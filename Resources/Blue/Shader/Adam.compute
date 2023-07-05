@@ -1,0 +1,26 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+float t;
+float beta1;
+float beta2;
+float learning_rate;
+StructuredBuffer<float> g;
+RWStructuredBuffer<float> m;
+RWStructuredBuffer<float> v;
+RWStructuredBuffer<float> theta;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    float cm = beta1 * m[id.x] + (1.0 - beta1) * g[id.x];
+    m[id.x] = cm;
+    float cv = beta2 * v[id.x] + (1.0 - beta2) * g[id.x] * g[id.x];
+    v[id.x] = cv;
+    cm = cm/ (1.0 - pow(beta1, t));
+    cv = cv/ (1.0 - pow(beta2, t));
+    theta[id.x] = theta[id.x] - learning_rate * cm / (sqrt(cv) + 0.0000001);
+}

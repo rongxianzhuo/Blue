@@ -1,0 +1,23 @@
+#pragma kernel Value
+#pragma kernel Derivative
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+StructuredBuffer<float> r_buffer1;
+RWStructuredBuffer<float> rw_buffer1;
+
+[numthreads(64, 1, 1)]
+void Value(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    rw_buffer1[id.x] = 1.0 / (1.0 + pow(2.71828, -r_buffer1[id.x]));
+}
+
+[numthreads(64, 1, 1)]
+void Derivative(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    rw_buffer1[id.x] = r_buffer1[id.x] * (1.0 - r_buffer1[id.x]);
+}

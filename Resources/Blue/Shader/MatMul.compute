@@ -1,0 +1,24 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+int column;
+
+StructuredBuffer<float> r_buffer1;
+StructuredBuffer<float> r_buffer2;
+RWStructuredBuffer<float> rw_buffer1;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    if (id.y >= total_thread_y) return;
+    float result = 0;
+    for (int i = 0; i < column; i++)
+    {
+        result += r_buffer1[id.y * column + i] * r_buffer2[id.x + i * total_thread_x];
+    }
+    rw_buffer1[id.x + id.y * total_thread_x] = result;
+}
