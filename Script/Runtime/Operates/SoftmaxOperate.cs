@@ -5,16 +5,30 @@ namespace Blue.Operates
     public class SoftmaxOperate
     {
         
-        private static Operate _operate;
+        private static Operate _valueOp;
+        
+        private static Operate _derivativeOp;
 
-        private static Operate GetOperate() => _operate ??= new Operate("Softmax", "CSMain", "r_buffer", "rw_buffer");
+        private static Operate GetValueOperate() => _valueOp ??= new Operate("Softmax", "Value"
+            , "r_buffer1", "rw_buffer1");
 
-        public static void Calculate(ComputeBuffer input, ComputeBuffer output)
+        private static Operate GetDerivativeOperate() => _derivativeOp ??= new Operate("Softmax", "Derivative"
+            , "r_buffer1", "rw_buffer1");
+
+        public static void CalculateValue(ComputeBuffer input, ComputeBuffer output)
         {
-            GetOperate().CreateTask()
+            GetValueOperate().CreateTask()
                 .SetBuffer(input)
                 .SetBuffer(output)
                 .Dispatch(new Vector3Int(input.count, 1, 1));
+        }
+        
+        public static void CalculateDerivative(ComputeBuffer output, ComputeBuffer derivative)
+        {
+            GetDerivativeOperate().CreateTask()
+                .SetBuffer(output)
+                .SetBuffer(derivative)
+                .Dispatch(new Vector3Int(output.count, 1, 1));
         }
     }
 }
