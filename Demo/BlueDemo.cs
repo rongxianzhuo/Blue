@@ -1,6 +1,7 @@
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
+using Blue.Util;
 using UnityEngine;
 using UnityEngine.UI;
 using Model = Blue.Kit.Model;
@@ -63,7 +64,8 @@ namespace Blue.Samples
                 _target.SetData(_tempArray);
                 
                 _model.ForwardPropagation();
-                loss += LossFunction.L2Loss(_output, _target, true);
+                LossFunction.L2Loss(_output, _target);
+                loss += _output.GetGradient().SquareSum() / _output.GetGradient().count;
                 _model.BackwardPropagation();
             }
 

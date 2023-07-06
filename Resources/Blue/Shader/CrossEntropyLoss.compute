@@ -1,0 +1,18 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+StructuredBuffer<float> r_buffer1;
+StructuredBuffer<float> r_buffer2;
+RWStructuredBuffer<float> rw_buffer1;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    const float p = r_buffer1[id.x];
+    const float y = r_buffer2[id.x];
+    rw_buffer1[id.x] = (1.0 - y) / (1.0 - p) - y / p;
+}
