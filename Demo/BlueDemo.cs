@@ -65,8 +65,9 @@ namespace Blue.Samples
                 
                 _model.ForwardPropagation();
                 LossFunction.L2Loss(_output, _target);
-                loss += _output.GetGradient().SquareSum() / _output.GetGradient().count;
                 _model.BackwardPropagation();
+                _model.UpdateParams();
+                loss += _output.GetGradient().SquareSum() / _output.GetGradient().count;
             }
 
             lossText.text = $"Loss: {loss / batchSize}";

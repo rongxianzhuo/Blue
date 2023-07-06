@@ -52,22 +52,32 @@ namespace Blue.Kit
             }
         }
 
-        public void BackwardPropagation()
+        public void UpdateParams()
         {
             _paramsUpdateFlag--;
             var shouldUpdateParams = _paramsUpdateFlag <= 0;
             if (shouldUpdateParams) _paramsUpdateFlag = _batchSize;
+            else return;
             foreach (var nodes in _nodeLayer)
             {
                 foreach (var node in nodes)
                 {
-                    node.GradientPropagation();
-                    if (!shouldUpdateParams) continue;
                     var dataNode = node as DataNode;
                     if (dataNode == null || dataNode.TotalGradient == null) continue;
                     TransformOperate.Calculate(dataNode.TotalGradient, 1f / _batchSize, 0);
                     _optimizer.OnBackwardPropagation(dataNode.GetOutput(), dataNode.TotalGradient);
                     SetOperate.Calculate(dataNode.TotalGradient, 0f);
+                }
+            }
+        }
+
+        public void BackwardPropagation()
+        {
+            foreach (var nodes in _nodeLayer)
+            {
+                foreach (var node in nodes)
+                {
+                    node.GradientPropagation();
                 }
             }
         }
