@@ -10,10 +10,10 @@ namespace Blue.Operates
         private static Operate _derivativeOp;
 
         private static Operate GetValueOperate() => _valueOp ??= new Operate("Softmax", "Value"
-            , "r_buffer1", "rw_buffer1");
+            , "r_buffer", "rw_buffer");
 
         private static Operate GetDerivativeOperate() => _derivativeOp ??= new Operate("Softmax", "Derivative"
-            , "r_buffer1", "rw_buffer1");
+            , "r_buffer", "rw_buffer");
 
         public static void CalculateValue(ComputeBuffer input, ComputeBuffer output)
         {
