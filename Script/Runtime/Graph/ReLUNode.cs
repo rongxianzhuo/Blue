@@ -1,19 +1,18 @@
 using System;
 using Blue.Operates;
-using Blue.Util;
 using UnityEngine;
 
 namespace Blue.Graph
 {
     
-    public class SoftmaxNode : IGraphNode
+    public class ReLUNode : IGraphNode
     {
-        
+
         private readonly IGraphNode _input;
         private readonly ComputeBuffer _output;
         private readonly ComputeBuffer _gradient;
 
-        public SoftmaxNode(IGraphNode input)
+        public ReLUNode(IGraphNode input)
         {
             _input = input;
             var size = input.GetOutput().count;
@@ -33,12 +32,12 @@ namespace Blue.Graph
 
         public void Calculate()
         {
-            SoftmaxOperate.CalculateValue(_input.GetOutput(), _output);
+            ReLUOperate.CalculateValue(_input.GetOutput(), _output);
         }
 
         public void GradientPropagation()
         {
-            SoftmaxOperate.CalculateDerivative(_output, _input.GetGradient());
+            ReLUOperate.CalculateDerivative(_output, _input.GetGradient());
             MulOperate.Calculate(_input.GetGradient(), _gradient);
         }
 
