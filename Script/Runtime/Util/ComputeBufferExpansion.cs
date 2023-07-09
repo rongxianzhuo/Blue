@@ -5,6 +5,21 @@ namespace Blue.Util
     public static class ComputeBufferExpansion
     {
 
+        public static int MaxIndex(this ComputeBuffer buffer)
+        {
+            var array = FloatArrayPool.Default.Get(buffer);
+            var max = array[0];
+            var index = 0;
+            for (var i = 1; i < array.Length; i++)
+            {
+                if (array[i] <= max) continue;
+                max = array[i];
+                index = i;
+            }
+            FloatArrayPool.Default.Recycle(array);
+            return index;
+        }
+
         public static float Sum(this ComputeBuffer buffer)
         {
             var result = 0f;
