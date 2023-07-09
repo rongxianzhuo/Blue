@@ -9,11 +9,11 @@ namespace Blue.Samples
         
         public Text infoText;
 
-        private readonly MnistSample _sample = new MnistSample();
+        private readonly BaseSample _sample = new MnistSample();
 
         private void Awake()
         {
-            StartCoroutine(_sample.Run());
+            StartCoroutine(_sample.Run(5));
         }
 
         private void Update()

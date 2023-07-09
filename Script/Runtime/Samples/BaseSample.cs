@@ -15,7 +15,7 @@ namespace Blue.Samples
         
         private ComputeBuffer _outputTarget;
 
-        public Model GetModel() => _model;
+        public int Epoch { get; private set; }
 
         public bool IsRunning { get; private set; }
 
@@ -29,8 +29,6 @@ namespace Blue.Samples
 
         public abstract string Info { get; }
 
-        protected abstract void OnTest(ComputeBuffer output, ComputeBuffer target);
-
         protected abstract int GetTrainCount();
 
         protected abstract void GetTrainData(int index, out float[] input, out float[] output);
@@ -41,16 +39,22 @@ namespace Blue.Samples
 
         protected abstract void SetupGraph(out IGraphNode input, out IGraphNode output);
 
-        public IEnumerator Run()
+        public IEnumerator Run(int epochs)
         {
             if (IsRunning) yield break;
             IsRunning = true;
             SetupGraph(out var input, out var output);
             InputNode = input;
             OutputNode = output;
-            _model.Load(output, new AdamOptimizer(0.1f), BatchSize);
+            _model.Load(output, new AdamOptimizer(), BatchSize);
             _outputTarget = new ComputeBuffer(OutputNode.GetOutput().count, 4);
-            yield return Train();
+            while (Epoch < epochs)
+            {
+                Epoch++;
+                TrainCount = 0;
+                OnEpochStart();
+                yield return Train();
+            }
             yield return Test();
             Stop();
         }
@@ -94,6 +98,7 @@ namespace Blue.Samples
             _model.BackwardPropagation();
             _model.UpdateParams();
             TrainCount++;
+            OnTrain(OutputNode.GetOutput(), _outputTarget);
         }
 
         private void OnTestUpdate()
@@ -101,9 +106,24 @@ namespace Blue.Samples
             GetTestData(TestCount, out var input, out var output);
             InputNode.GetOutput().SetData(input);
             _model.ForwardPropagation();
-            TestCount++;
             _outputTarget.SetData(output);
+            TestCount++;
             OnTest(OutputNode.GetOutput(), _outputTarget);
+        }
+
+        protected virtual void OnEpochStart()
+        {
+            
+        }
+
+        protected virtual void OnTrain(ComputeBuffer output, ComputeBuffer target)
+        {
+            
+        }
+
+        protected virtual void OnTest(ComputeBuffer output, ComputeBuffer target)
+        {
+            
         }
 
     }

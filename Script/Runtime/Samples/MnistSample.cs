@@ -12,20 +12,36 @@ namespace Blue.Samples
 
         private readonly MnistData _data = new MnistData();
 
-        private int _correctCount;
+        private int _trainCorrectCount;
+        private int _testCorrectCount;
 
         public override string Info
         {
             get
             {
-                if (TestCount <= 0) return $"Training: {TrainCount}/{_data.TrainData.Count}";
-                return $"Accuracy: {_correctCount * 100 / TestCount}% ({TestCount})";
+                if (TrainCount <= 0) return "";
+                if (TestCount <= 0)
+                {
+                    return $"Epoch: {Epoch}\nTraining: {TrainCount}/{_data.TrainData.Count}\nAccuracy: {_trainCorrectCount * 100 / TrainCount}%";
+                }
+                return $"Test: {TestCount}\nAccuracy: {_testCorrectCount * 100 / TestCount}%";
             }
+        }
+
+        protected override void OnEpochStart()
+        {
+            base.OnEpochStart();
+            _trainCorrectCount = 0;
+        }
+
+        protected override void OnTrain(ComputeBuffer output, ComputeBuffer target)
+        {
+            if (output.MaxIndex() == target.MaxIndex()) _trainCorrectCount++;
         }
 
         protected override void OnTest(ComputeBuffer output, ComputeBuffer target)
         {
-            if (output.MaxIndex() == target.MaxIndex()) _correctCount++;
+            if (output.MaxIndex() == target.MaxIndex()) _testCorrectCount++;
         }
 
         protected override int GetTrainCount()
