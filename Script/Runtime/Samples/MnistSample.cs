@@ -73,9 +73,8 @@ namespace Blue.Samples
                 , Application.dataPath + "/GameFramework/ML/Runtime/MNist/t10k-labels-idx1-ubyte.bytes"
                 , Application.dataPath + "/GameFramework/ML/Runtime/MNist/t10k-images-idx3-ubyte.bytes");
             input = new DataNode(28 * 28, false);
-            var hidden1 = Layer.DenseLayer(input, 128, "relu");
-            var hidden2 = Layer.DenseLayer(hidden1, 10, null);
-            output = new SoftmaxNode(hidden2);
+            var hidden = Layer.DenseLayer(input, 128, "relu");
+            output = Layer.DenseLayer(hidden, 10, "softmax");
         }
     }
 }

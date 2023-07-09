@@ -17,6 +17,7 @@ namespace Blue.Kit
             {
                 "relu" => new ReLUNode(add),
                 "sigmoid" => new SigmoidNode(add),
+                "softmax" => new SoftmaxNode(add),
                 _ => add
             };
         }
