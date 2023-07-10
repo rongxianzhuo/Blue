@@ -2,6 +2,7 @@ using System.Collections;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
+using Blue.Util;
 using UnityEngine;
 
 namespace Blue.Samples
@@ -94,7 +95,7 @@ namespace Blue.Samples
             InputNode.GetOutput().SetData(input);
             _model.ForwardPropagation();
             _outputTarget.SetData(output);
-            LossFunction.L2Loss(OutputNode, _outputTarget);
+            LossFunction.CrossEntropyLoss(OutputNode, _outputTarget);
             _model.BackwardPropagation();
             _model.UpdateParams();
             TrainCount++;

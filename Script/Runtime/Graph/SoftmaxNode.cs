@@ -38,9 +38,8 @@ namespace Blue.Graph
 
         public void GradientPropagation()
         {
-            // SoftmaxOperate.CalculateDerivative(_output, _input.GetGradient());
-            // MulOperate.Calculate(_input.GetGradient(), _gradient);
-            CopyOperate.Calculate(_gradient, _input.GetGradient());
+            SoftmaxOperate.CalculateDerivative(_output, _input.GetGradient());
+            MulOperate.Calculate(_input.GetGradient(), _gradient);
         }
 
         public void Destroy()
