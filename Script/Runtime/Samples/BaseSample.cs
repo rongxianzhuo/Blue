@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
@@ -13,6 +14,7 @@ namespace Blue.Samples
         public const int BatchSize = 32;
         
         private readonly Model _model = new Model();
+        private readonly Stopwatch _stopwatch = new Stopwatch();
         
         private ComputeBuffer _outputTarget;
 
@@ -29,6 +31,8 @@ namespace Blue.Samples
         public IGraphNode OutputNode { get; private set; }
 
         public abstract string Info { get; }
+
+        public long BatchTrainingTime => _stopwatch.ElapsedMilliseconds;
 
         protected abstract int GetTrainCount();
 
@@ -73,10 +77,12 @@ namespace Blue.Samples
         {
             while (IsRunning && TrainCount < GetTrainCount())
             {
+                _stopwatch.Restart();
                 for (var i = 0; i < BatchSize && TrainCount < GetTrainCount(); i++)
                 {
                     OnTrainUpdate();
                 }
+                _stopwatch.Stop();
                 yield return null;
             }
         }

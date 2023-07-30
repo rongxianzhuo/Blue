@@ -20,11 +20,20 @@ namespace Blue.Samples
             get
             {
                 if (TrainCount <= 0) return "";
+                var info = $"BatchTrainingTime: {BatchTrainingTime}";
                 if (TestCount <= 0)
                 {
-                    return $"Epoch: {Epoch}\nTraining: {TrainCount}/{_data.TrainData.Count}\nAccuracy: {_trainCorrectCount * 100 / TrainCount}%";
+                    info += $"\nEpoch: {Epoch}";
+                    info += $"\nTraining: {TrainCount}/{_data.TrainData.Count}";
+                    info += $"\nAccuracy: {_trainCorrectCount * 100 / TrainCount}%";
                 }
-                return $"Test: {TestCount}\nAccuracy: {_testCorrectCount * 100 / TestCount}%";
+                else
+                {
+                    info += $"\nTest: {TestCount}";
+                    info += $"\nAccuracy: {_testCorrectCount * 100 / TestCount}%";
+                }
+
+                return info;
             }
         }
 
