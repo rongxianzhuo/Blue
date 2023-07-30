@@ -10,17 +10,32 @@ namespace Blue.Kit
     public class Model
     {
 
+        private const int DefaultBatchSize = 32;
+
         private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
 
         private IOptimizer _optimizer;
-        private int _batchSize;
-        private int _paramsUpdateFlag;
+        private int _batchSize = DefaultBatchSize;
+        private int _paramsUpdateFlag = DefaultBatchSize;
+        private int _requestBatchSize = DefaultBatchSize;
 
-        public void Load(IGraphNode outputNode, IOptimizer optimizer, int batchSize)
+        public bool IsLoaded => _nodeLayer.Count > 0;
+
+        public int BatchSize
+        {
+            set
+            {
+                if (_requestBatchSize == value) return;
+                _requestBatchSize = Mathf.Max(1, value);
+                if (IsLoaded) return;
+                _batchSize = _requestBatchSize;
+                _paramsUpdateFlag = _requestBatchSize;
+            }
+        }
+
+        public void Load(IGraphNode outputNode, IOptimizer optimizer)
         {
             Unload();
-            _batchSize = batchSize;
-            _paramsUpdateFlag = batchSize;
             _optimizer = optimizer;
             _nodeLayer.Add(new HashSet<IGraphNode>());
             _nodeLayer[0].Add(outputNode);
@@ -56,7 +71,7 @@ namespace Blue.Kit
         {
             _paramsUpdateFlag--;
             var shouldUpdateParams = _paramsUpdateFlag <= 0;
-            if (shouldUpdateParams) _paramsUpdateFlag = _batchSize;
+            if (shouldUpdateParams) _paramsUpdateFlag = _requestBatchSize;
             else return;
             foreach (var nodes in _nodeLayer)
             {
@@ -69,6 +84,8 @@ namespace Blue.Kit
                     SetOperate.Calculate(dataNode.TotalGradient, 0f);
                 }
             }
+
+            _batchSize = _requestBatchSize;
         }
 
         public void BackwardPropagation()

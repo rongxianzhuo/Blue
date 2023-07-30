@@ -47,7 +47,8 @@ namespace Blue.Samples
             SetupGraph(out var input, out var output);
             InputNode = input;
             OutputNode = output;
-            _model.Load(output, new AdamOptimizer(), BatchSize);
+            _model.BatchSize = BatchSize;
+            _model.Load(output, new AdamOptimizer());
             _outputTarget = new ComputeBuffer(OutputNode.GetOutput().count, 4);
             while (Epoch < epochs)
             {
