@@ -80,9 +80,9 @@ namespace Blue.Samples
                 , Application.dataPath + "/Blue/Demo/MNist/train-images-idx3-ubyte.bytes"
                 , Application.dataPath + "/Blue/Demo/MNist/t10k-labels-idx1-ubyte.bytes"
                 , Application.dataPath + "/Blue/Demo/MNist/t10k-images-idx3-ubyte.bytes");
-            input = new DataNode(28 * 28, false);
-            var hidden = Layer.DenseLayer(input, 128, "relu");
-            output = Layer.DenseLayer(hidden, 10, null);
+            input = new DataNode("input", 28 * 28, false);
+            var hidden = Layer.DenseLayer("hidden", input, 128, "relu");
+            output = Layer.DenseLayer("output", hidden, 10, null);
         }
     }
 }

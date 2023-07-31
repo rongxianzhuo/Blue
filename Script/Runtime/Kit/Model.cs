@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using Blue.Graph;
 using Blue.Operates;
 using Blue.Optimizers;
@@ -40,6 +41,36 @@ namespace Blue.Kit
             _nodeLayer.Add(new HashSet<IGraphNode>());
             _nodeLayer[0].Add(outputNode);
             outputNode.ForeachInputNode(input => AddNode(input, outputNode));
+        }
+
+        public void LoadParameterFile(string dirPath)
+        {
+            foreach (var hashSet in _nodeLayer)
+            {
+                foreach (var node in hashSet)
+                {
+                    if (node is DataNode dataNode && dataNode.IsParameter)
+                    {
+                        dataNode.LoadFromText(File.ReadAllText($"{dirPath}/{dataNode.Name}.bytes"));
+                    }
+                }
+            }
+        }
+
+        public void SaveParameterFile(string dirPath)
+        {
+            Directory.CreateDirectory(dirPath);
+            foreach (var hashSet in _nodeLayer)
+            {
+                foreach (var node in hashSet)
+                {
+                    if (node is DataNode dataNode && dataNode.IsParameter)
+                    {
+                        var text = dataNode.SaveAsText();
+                        File.WriteAllText($"{dirPath}/{dataNode.Name}.bytes", text);
+                    }
+                }
+            }
         }
 
         public void Unload()
