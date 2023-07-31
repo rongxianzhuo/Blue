@@ -1,4 +1,3 @@
-using System.Text;
 using Blue.Data;
 using Blue.Graph;
 using Blue.Kit;
@@ -77,10 +76,10 @@ namespace Blue.Samples
 
         protected override void SetupGraph(out IGraphNode input, out IGraphNode output)
         {
-            _data.Load(Application.dataPath + "/GameFramework/ML/Runtime/MNist/train-labels-idx1-ubyte.bytes"
-                , Application.dataPath + "/GameFramework/ML/Runtime/MNist/train-images-idx3-ubyte.bytes"
-                , Application.dataPath + "/GameFramework/ML/Runtime/MNist/t10k-labels-idx1-ubyte.bytes"
-                , Application.dataPath + "/GameFramework/ML/Runtime/MNist/t10k-images-idx3-ubyte.bytes");
+            _data.Load(Application.dataPath + "/Blue/Demo/MNist/train-labels-idx1-ubyte.bytes"
+                , Application.dataPath + "/Blue/Demo/MNist/train-images-idx3-ubyte.bytes"
+                , Application.dataPath + "/Blue/Demo/MNist/t10k-labels-idx1-ubyte.bytes"
+                , Application.dataPath + "/Blue/Demo/MNist/t10k-images-idx3-ubyte.bytes");
             input = new DataNode(28 * 28, false);
             var hidden = Layer.DenseLayer(input, 128, "relu");
             output = Layer.DenseLayer(hidden, 10, null);
