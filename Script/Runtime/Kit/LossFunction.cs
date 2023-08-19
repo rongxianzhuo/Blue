@@ -11,7 +11,7 @@ namespace Blue.Kit
 
         public static void L2Loss(IGraphNode node, ComputeBuffer target)
         {
-            CopyOperate.Calculate(node.GetOutput(), node.GetGradient());
+            CopyOperate.Calculate(node.GetOutput(), 0, node.GetGradient(), 0);
             AddOperate.Calculate(node.GetGradient(), target, -1, 0);
         }
 
