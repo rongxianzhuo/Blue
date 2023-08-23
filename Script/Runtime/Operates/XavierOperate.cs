@@ -23,6 +23,10 @@ namespace Blue.Operates
                     min = -Mathf.Sqrt(96f / (inputCount + outputCount));
                     max = -min;
                     break;
+                default:
+                    min = -Mathf.Sqrt(1f / (inputCount + outputCount));
+                    max = -min;
+                    break;
             }
             var array = new float[weight.count];
             for (var i = 0; i < array.Length; i++)
