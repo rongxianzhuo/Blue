@@ -30,9 +30,10 @@ namespace Blue.Optimizers
 
             if (!_t.TryGetValue(param, out var t))
             {
-                t = 1f;
-                _t[param] = t;
+                t = 0f;
             }
+            t++;
+            _t[param] = t;
             AdamOperate.Calculate(t, _beta1, _beta2, LearningRate, gradient, m, v, param);
         }
 
