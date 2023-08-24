@@ -19,7 +19,7 @@ namespace Blue.Samples
             get
             {
                 if (TrainCount <= 0) return "";
-                var info = $"BatchTrainingTime: {BatchTrainingTime}";
+                var info = $"StepTrainingTime: {StepTrainingTime}";
                 if (TestCount <= 0)
                 {
                     info += $"\nEpoch: {Epoch}";

@@ -15,6 +15,7 @@ namespace Blue.Samples
         
         private readonly Model _model = new Model();
         private readonly Stopwatch _stopwatch = new Stopwatch();
+        private readonly SmoothHelper _stepTimeSmoothHelper = new SmoothHelper(4096);
         
         private ComputeBuffer _outputTarget;
 
@@ -32,7 +33,7 @@ namespace Blue.Samples
 
         public abstract string Info { get; }
 
-        public long BatchTrainingTime => _stopwatch.ElapsedMilliseconds;
+        public float StepTrainingTime => _stepTimeSmoothHelper.Mean();
 
         protected abstract int GetTrainCount();
 
@@ -77,12 +78,10 @@ namespace Blue.Samples
         {
             while (IsRunning && TrainCount < GetTrainCount())
             {
-                _stopwatch.Restart();
                 for (var i = 0; i < BatchSize && TrainCount < GetTrainCount(); i++)
                 {
                     OnTrainUpdate();
                 }
-                _stopwatch.Stop();
                 yield return null;
             }
         }
@@ -99,12 +98,15 @@ namespace Blue.Samples
         private void OnTrainUpdate()
         {
             GetTrainData(TrainCount, out var input, out var output);
+            _stopwatch.Restart();
             InputNode.GetOutput().SetData(input);
             _model.ForwardPropagation();
             _outputTarget.SetData(output);
             LossFunction.CrossEntropyLoss(OutputNode, _outputTarget);
             _model.BackwardPropagation();
             _model.UpdateParams();
+            _stopwatch.Stop();
+            _stepTimeSmoothHelper.Add(_stopwatch.Elapsed.TotalMilliseconds);
             TrainCount++;
             OnTrain(OutputNode.GetOutput(), _outputTarget);
         }
