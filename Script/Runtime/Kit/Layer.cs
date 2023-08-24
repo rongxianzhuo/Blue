@@ -15,6 +15,7 @@ namespace Blue.Kit
             var add = new AddNode(dot, bias);
             return activation switch
             {
+                "elu" => new ELUNode(add),
                 "relu" => new ReLUNode(add),
                 "sigmoid" => new SigmoidNode(add),
                 _ => add
