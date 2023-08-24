@@ -7,6 +7,16 @@ namespace Blue.Graph
     
     public class ReLUNode : IGraphNode
     {
+        
+        private static Operate _valueOp;
+        
+        private static Operate _derivativeOp;
+
+        private static Operate GetValueOperate() => _valueOp ??= new Operate("ReLU", "Value"
+            , "r_buffer1", "rw_buffer1");
+
+        private static Operate GetDerivativeOperate() => _derivativeOp ??= new Operate("ReLU", "Derivative"
+            , "gradient", "r_buffer1", "rw_buffer1");
 
         private readonly IGraphNode _input;
         private readonly ComputeBuffer _output;
@@ -32,13 +42,19 @@ namespace Blue.Graph
 
         public void Calculate()
         {
-            ReLUOperate.CalculateValue(_input.GetOutput(), _output);
+            GetValueOperate().CreateTask()
+                .SetBuffer(_input.GetOutput())
+                .SetBuffer(_output)
+                .Dispatch(new Vector3Int(_output.count, 1, 1));
         }
 
         public void GradientPropagation()
         {
-            ReLUOperate.CalculateDerivative(_output, _input.GetGradient());
-            MulOperate.Calculate(_input.GetGradient(), _gradient);
+            GetDerivativeOperate().CreateTask()
+                .SetBuffer(_gradient)
+                .SetBuffer(_output)
+                .SetBuffer(_input.GetGradient())
+                .Dispatch(new Vector3Int(_output.count, 1, 1));
         }
 
         public void Destroy()

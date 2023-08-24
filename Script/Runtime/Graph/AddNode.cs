@@ -31,10 +31,10 @@ namespace Blue.Graph
 
         public void Calculate()
         {
-            SetOperate.Calculate(_output, 0);
-            foreach (var node in _nodes)
+            CopyOperate.Calculate(_nodes[0].GetOutput(), 0, _output, 0);
+            for (var i = 1; i < _nodes.Length; i++)
             {
-                AddOperate.Calculate(_output, node.GetOutput(), 1, 0);
+                AddOperate.Calculate(_output, _nodes[i].GetOutput(), 1, 0);
             }
         }
 
@@ -42,8 +42,7 @@ namespace Blue.Graph
         {
             foreach (var node in _nodes)
             {
-                SetOperate.Calculate(node.GetGradient(), 0);
-                AddOperate.Calculate(node.GetGradient(), _gradient, 1, 0);
+                CopyOperate.Calculate(_gradient, 0, node.GetGradient(), 0);
             }
         }
 
