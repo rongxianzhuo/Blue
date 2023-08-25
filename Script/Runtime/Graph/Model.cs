@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using Blue.Graph;
 using Blue.Operates;
 using Blue.Optimizers;
 using UnityEngine;
 
-namespace Blue.Kit
+namespace Blue.Graph
 {
 
     public class Model
@@ -34,6 +33,16 @@ namespace Blue.Kit
             }
         }
 
+        protected virtual void OnLoad()
+        {
+            
+        }
+
+        protected virtual void OnUnload()
+        {
+            
+        }
+
         public void Load(IGraphNode outputNode, IOptimizer optimizer)
         {
             Unload();
@@ -41,6 +50,7 @@ namespace Blue.Kit
             _nodeLayer.Add(new HashSet<IGraphNode>());
             _nodeLayer[0].Add(outputNode);
             outputNode.ForeachInputNode(input => AddNode(input, outputNode));
+            OnLoad();
         }
 
         public void LoadParameterFile(string dirPath)
@@ -75,6 +85,7 @@ namespace Blue.Kit
 
         public void Unload()
         {
+            OnUnload();
             foreach (var nodes in _nodeLayer)
             {
                 foreach (var node in nodes)
