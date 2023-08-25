@@ -123,7 +123,7 @@ namespace Blue.Graph
                     if (dataNode == null || dataNode.TotalGradient == null) continue;
                     TransformOperate.Calculate(dataNode.TotalGradient, 1f / _batchSize, 0);
                     _optimizer.OnBackwardPropagation(dataNode.GetOutput(), dataNode.TotalGradient);
-                    SetOperate.Calculate(dataNode.TotalGradient, 0f);
+                    TransformOperate.Calculate(dataNode.TotalGradient, 0, 0);
                 }
             }
 

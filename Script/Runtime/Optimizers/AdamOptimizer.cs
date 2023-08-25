@@ -7,6 +7,11 @@ namespace Blue.Optimizers
     public class AdamOptimizer : IOptimizer
     {
 
+        private static Operate _operate;
+
+        private static Operate GetOperate() => _operate ??= new Operate("Adam", "CSMain"
+            , "t", "beta1", "beta2", "learning_rate", "g", "m", "v", "theta");
+
         public float LearningRate = 0.001f;
         
         private readonly float _beta1 = 0.9f;
@@ -34,7 +39,16 @@ namespace Blue.Optimizers
             }
             t++;
             _t[param] = t;
-            AdamOperate.Calculate(t, _beta1, _beta2, LearningRate, gradient, m, v, param);
+            GetOperate().CreateTask()
+                .SetFloat(t)
+                .SetFloat(_beta1)
+                .SetFloat(_beta2)
+                .SetFloat(LearningRate)
+                .SetBuffer(gradient)
+                .SetBuffer(m)
+                .SetBuffer(v)
+                .SetBuffer(param)
+                .Dispatch(new Vector3Int(param.count, 1, 1));
         }
 
         public void Destroy()

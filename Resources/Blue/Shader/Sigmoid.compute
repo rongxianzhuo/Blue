@@ -5,6 +5,7 @@ uint total_thread_x;
 uint total_thread_y;
 uint total_thread_z;
 
+StructuredBuffer<float> gradient;
 StructuredBuffer<float> r_buffer1;
 RWStructuredBuffer<float> rw_buffer1;
 
@@ -19,5 +20,5 @@ void Value(uint3 id : SV_DispatchThreadID)
 void Derivative(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= total_thread_x) return;
-    rw_buffer1[id.x] = r_buffer1[id.x] * (1.0 - r_buffer1[id.x]);
+    rw_buffer1[id.x] = r_buffer1[id.x] * (1.0 - r_buffer1[id.x]) * gradient[id.x];
 }
