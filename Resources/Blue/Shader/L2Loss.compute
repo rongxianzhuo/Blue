@@ -4,12 +4,13 @@ uint total_thread_x;
 uint total_thread_y;
 uint total_thread_z;
 
-RWStructuredBuffer<float> rw_buffer1;
-StructuredBuffer<float> r_buffer1;
+StructuredBuffer<float> output;
+StructuredBuffer<float> target;
+RWStructuredBuffer<float> gradient;
 
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= total_thread_x) return;
-    rw_buffer1[id.x] = rw_buffer1[id.x] + r_buffer1[id.x];
+    gradient[id.x] = output[id.x] - target[id.x];
 }

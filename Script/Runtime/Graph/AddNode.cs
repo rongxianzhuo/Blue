@@ -34,7 +34,7 @@ namespace Blue.Graph
             CopyOperate.Calculate(_nodes[0].GetOutput(), 0, _output, 0);
             for (var i = 1; i < _nodes.Length; i++)
             {
-                AddOperate.Calculate(_output, _nodes[i].GetOutput(), 1, 0);
+                AddOperate.Calculate(_output, _nodes[i].GetOutput());
             }
         }
 

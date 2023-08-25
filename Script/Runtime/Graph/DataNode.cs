@@ -61,7 +61,7 @@ namespace Blue.Graph
 
         public void GradientPropagation()
         {
-            if (TotalGradient != null) AddOperate.Calculate(TotalGradient, _gradient, 1, 0);
+            if (TotalGradient != null) AddOperate.Calculate(TotalGradient, _gradient);
         }
 
         public void Destroy()
