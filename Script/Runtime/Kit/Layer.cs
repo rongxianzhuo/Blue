@@ -1,5 +1,4 @@
 using Blue.Graph;
-using Blue.Operates;
 using UnityEngine;
 
 namespace Blue.Kit
@@ -11,9 +10,9 @@ namespace Blue.Kit
         {
             var weight = new DataNode($"{name}.weight", size * input.GetOutput().count, true);
             WeightInit(weight.GetOutput(), activation, input.GetOutput().count, size);
-            var dot = new DotNode(input, weight);
+            var matMul = new MatMulNode(input, weight);
             var bias = new DataNode($"{name}.bias", size, true);
-            var add = new AddNode(dot, bias);
+            var add = new AddNode(matMul, bias);
             return activation switch
             {
                 "elu" => new ELUNode(add),
