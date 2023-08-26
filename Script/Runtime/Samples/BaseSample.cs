@@ -1,9 +1,7 @@
 using System.Collections;
-using System.Diagnostics;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
-using Blue.Util;
 using UnityEngine;
 
 namespace Blue.Samples
@@ -14,8 +12,6 @@ namespace Blue.Samples
         public const int BatchSize = 32;
         
         private readonly Model _model = new Model();
-        private readonly Stopwatch _stopwatch = new Stopwatch();
-        private readonly SmoothHelper _stepTimeSmoothHelper = new SmoothHelper(4096);
         
         private ComputeBuffer _outputTarget;
 
@@ -32,8 +28,6 @@ namespace Blue.Samples
         public IGraphNode OutputNode { get; private set; }
 
         public abstract string Info { get; }
-
-        public float StepTrainingTime => _stepTimeSmoothHelper.Mean();
 
         protected abstract int GetTrainCount();
 
@@ -98,15 +92,12 @@ namespace Blue.Samples
         private void OnTrainUpdate()
         {
             GetTrainData(TrainCount, out var input, out var output);
-            _stopwatch.Restart();
             InputNode.GetOutput().SetData(input);
             _model.ForwardPropagation();
             _outputTarget.SetData(output);
             LossFunction.CrossEntropyLoss(OutputNode, _outputTarget);
             _model.BackwardPropagation();
             _model.UpdateParams();
-            _stopwatch.Stop();
-            _stepTimeSmoothHelper.Add(_stopwatch.Elapsed.TotalMilliseconds);
             TrainCount++;
             OnTrain(OutputNode.GetOutput(), _outputTarget);
         }
