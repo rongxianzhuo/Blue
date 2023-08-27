@@ -10,7 +10,6 @@ namespace Blue.Graph
         private static Operate _matMulOp;
 
         private static Operate GetMatMulOp() => _matMulOp ??= new Operate("MatMul", "CSMain"
-            , "hl"
             , "wl"
             , "wr"
             , "left"
@@ -38,7 +37,6 @@ namespace Blue.Graph
         public void Calculate()
         {
             GetMatMulOp().CreateTask()
-                .SetInt(1)
                 .SetInt(_left.GetOutput().count)
                 .SetInt(_output.count)
                 .SetBuffer(_left.GetOutput())
@@ -50,7 +48,6 @@ namespace Blue.Graph
         public void GradientPropagation()
         {
             GetMatMulOp().CreateTask()
-                .SetInt(_left.GetOutput().count)
                 .SetInt(_output.count)
                 .SetInt(1)
                 .SetBuffer(_right.GetOutput())
@@ -58,7 +55,6 @@ namespace Blue.Graph
                 .SetBuffer(_left.GetGradient())
                 .Dispatch(new Vector3Int(_left.GetGradient().count, 1, 1));
             GetMatMulOp().CreateTask()
-                .SetInt(_left.GetOutput().count)
                 .SetInt(1)
                 .SetInt(_output.count)
                 .SetBuffer(_left.GetOutput())

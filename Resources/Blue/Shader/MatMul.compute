@@ -4,7 +4,6 @@ uint total_thread_x;
 uint total_thread_y;
 uint total_thread_z;
 
-int hl;
 int wl;
 int wr;
 
