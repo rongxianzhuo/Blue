@@ -34,7 +34,7 @@ using Blue.Core;namespace Blue.Graph
 
         public ComputeBuffer GetGradient() => _gradient;
 
-        public void Calculate()
+        public void Forward()
         {
             GetMatMulOp().CreateTask()
                 .SetInt(_left.GetOutput().count)
@@ -45,7 +45,7 @@ using Blue.Core;namespace Blue.Graph
                 .Dispatch(new Vector3Int(_output.count, 1, 1));
         }
 
-        public void GradientPropagation()
+        public void Backward()
         {
             GetMatMulOp().CreateTask()
                 .SetInt(_output.count)

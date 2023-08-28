@@ -11,8 +11,8 @@ namespace Blue.Samples
     {
 
         public const int BatchSize = 32;
-        
-        private readonly Model _model = new Model();
+
+        private Model _model;
         
         private ComputeBuffer _outputTarget;
 
@@ -47,8 +47,9 @@ namespace Blue.Samples
             SetupGraph(out var input, out var output);
             InputNode = input;
             OutputNode = output;
+            _model = new Model(output);
             _model.BatchSize = BatchSize;
-            _model.Load(output, new AdamOptimizer(), "CrossEntropyLoss");
+            _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             _outputTarget = new ComputeBuffer(OutputNode.GetOutput().count, 4);
             while (Epoch < epochs)
             {
@@ -65,7 +66,7 @@ namespace Blue.Samples
         {
             if (!IsRunning) return;
             IsRunning = false;
-            _model.Unload();
+            _model.Destroy();
             _outputTarget.Release();
         }
 
@@ -94,7 +95,7 @@ namespace Blue.Samples
         {
             GetTrainData(TrainCount, out var input, out var output);
             InputNode.GetOutput().SetData(input);
-            _model.ForwardPropagation();
+            _model.Forward();
             _outputTarget.SetData(output);
             _model.BackwardPropagation(_outputTarget);
             _model.UpdateParams();
@@ -106,7 +107,7 @@ namespace Blue.Samples
         {
             GetTestData(TestCount, out var input, out var output);
             InputNode.GetOutput().SetData(input);
-            _model.ForwardPropagation();
+            _model.Forward();
             _outputTarget.SetData(output);
             TestCount++;
             OnTest(OutputNode.GetOutput(), _outputTarget);

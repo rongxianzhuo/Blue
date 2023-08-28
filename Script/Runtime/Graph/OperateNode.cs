@@ -70,7 +70,7 @@ namespace Blue.Graph
             return _gradient;
         }
 
-        public void Calculate()
+        public void Forward()
         {
             var handler = _forward.CreateTask();
             handler.SetBuffer(_output);
@@ -81,7 +81,7 @@ namespace Blue.Graph
             handler.Dispatch(new Vector3Int(_output.count, 1, 1));
         }
 
-        public void GradientPropagation()
+        public void Backward()
         {
             for (var i = 0; i < _inputs.Count; i++)
             {

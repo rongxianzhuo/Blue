@@ -38,7 +38,7 @@ namespace Blue.Graph
             return _gradient;
         }
 
-        public void Calculate()
+        public void Forward()
         {
             var i = 0;
             foreach (var node in _nodes)
@@ -53,7 +53,7 @@ namespace Blue.Graph
             }
         }
 
-        public void GradientPropagation()
+        public void Backward()
         {
             var i = 0;
             foreach (var node in _nodes)

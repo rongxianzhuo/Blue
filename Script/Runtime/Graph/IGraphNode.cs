@@ -10,9 +10,9 @@ namespace Blue.Graph
 
         ComputeBuffer GetGradient();
 
-        void Calculate();
+        void Forward();
 
-        void GradientPropagation();
+        void Backward();
 
         void Destroy();
 

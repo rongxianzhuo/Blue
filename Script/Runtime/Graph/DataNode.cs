@@ -60,11 +60,11 @@ using Blue.Core;namespace Blue.Graph
             return _gradient;
         }
 
-        public void Calculate()
+        public void Forward()
         {
         }
 
-        public void GradientPropagation()
+        public void Backward()
         {
             if (TotalGradient == null) return;
             
