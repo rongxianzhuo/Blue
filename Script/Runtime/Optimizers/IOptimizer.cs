@@ -5,7 +5,7 @@ namespace Blue.Optimizers
 {
     public interface IOptimizer
     {
-        void OnBackwardPropagation(ComputeBuffer param, ComputeBuffer gradient);
+        void Step(ComputeBuffer param, ComputeBuffer gradient);
 
         void Destroy();
     }

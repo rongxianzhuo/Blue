@@ -20,7 +20,7 @@ using Blue.Core;namespace Blue.Optimizers
         private readonly Dictionary<ComputeBuffer, ComputeBuffer> _v = new Dictionary<ComputeBuffer, ComputeBuffer>();
         private readonly Dictionary<ComputeBuffer, float> _t = new Dictionary<ComputeBuffer, float>();
         
-        public void OnBackwardPropagation(ComputeBuffer param, ComputeBuffer gradient)
+        public void Step(ComputeBuffer param, ComputeBuffer gradient)
         {
             if (!_m.TryGetValue(param, out var m))
             {

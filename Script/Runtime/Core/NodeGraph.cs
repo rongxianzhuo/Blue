@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Blue.Graph;
 using UnityEngine;
 
-namespace Blue.Graph
+namespace Blue.Core
 {
     public class NodeGraph
     {

@@ -21,7 +21,7 @@ namespace Blue.Core
         private int _requestBatchSize = DefaultBatchSize;
         private Operate _lossFunction;
 
-        public bool IsEnableTrain => _optimizer != null;
+        public bool IsTrainEnabled => _optimizer != null;
 
         public int BatchSize
         {
@@ -29,7 +29,7 @@ namespace Blue.Core
             {
                 if (_requestBatchSize == value) return;
                 _requestBatchSize = Mathf.Max(1, value);
-                if (IsEnableTrain) return;
+                if (IsTrainEnabled) return;
                 _batchSize = _requestBatchSize;
                 _paramsUpdateFlag = _requestBatchSize;
             }
@@ -38,6 +38,8 @@ namespace Blue.Core
         public void EnableTrain(IOptimizer optimizer, string lossFunction)
         {
             DisableTrain();
+            _batchSize = _requestBatchSize;
+            _paramsUpdateFlag = _requestBatchSize;
             _optimizer = optimizer;
             _lossFunction = new Operate($"LossFunction/{lossFunction}", "CSMain"
                 , "output", "target", "gradient");
@@ -50,16 +52,6 @@ namespace Blue.Core
             _lossFunction = null;
         }
 
-        public void UpdateParams()
-        {
-            _paramsUpdateFlag--;
-            var shouldUpdateParams = _paramsUpdateFlag <= 0;
-            if (shouldUpdateParams) _paramsUpdateFlag = _requestBatchSize;
-            else return;
-            ForeachParameterNode(UpdateParameter);
-            _batchSize = _requestBatchSize;
-        }
-
         public void BackwardPropagation(ComputeBuffer target)
         {
             _lossFunction.CreateTask()
@@ -68,6 +60,11 @@ namespace Blue.Core
                 .SetBuffer(Output.GetGradient())
                 .Dispatch(new Vector3Int(target.count, 1, 1));
             Backward();
+            _paramsUpdateFlag--;
+            if (_paramsUpdateFlag > 0) return;
+            ForeachParameterNode(UpdateParameter);
+            _batchSize = _requestBatchSize;
+            _paramsUpdateFlag = _requestBatchSize;
         }
 
         public Model(IGraphNode outputNode) : base(outputNode)
@@ -87,7 +84,7 @@ namespace Blue.Core
                 .SetFloat(0)
                 .SetBuffer(node.TotalGradient)
                 .Dispatch(new Vector3Int(node.GetOutput().count, 1, 1));
-            _optimizer.OnBackwardPropagation(node.GetOutput(), node.TotalGradient);
+            _optimizer.Step(node.GetOutput(), node.TotalGradient);
             GetTranslateOperate().CreateTask()
                 .SetFloat(0)
                 .SetFloat(0)

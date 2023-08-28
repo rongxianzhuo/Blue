@@ -98,7 +98,6 @@ namespace Blue.Samples
             _model.Forward();
             _outputTarget.SetData(output);
             _model.BackwardPropagation(_outputTarget);
-            _model.UpdateParams();
             TrainCount++;
             OnTrain(OutputNode.GetOutput(), _outputTarget);
         }

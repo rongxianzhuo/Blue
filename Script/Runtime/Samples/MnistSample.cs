@@ -1,7 +1,6 @@
 using Blue.Data;
 using Blue.Graph;
 using Blue.Kit;
-using Blue.Util;
 using UnityEngine;
 
 namespace Blue.Samples
@@ -10,6 +9,7 @@ namespace Blue.Samples
     {
 
         private readonly MnistData _data = new MnistData();
+        private readonly float[] _temp = new float[10];
 
         private int _trainCorrectCount;
         private int _testCorrectCount;
@@ -44,12 +44,12 @@ namespace Blue.Samples
 
         protected override void OnTrain(ComputeBuffer output, ComputeBuffer target)
         {
-            if (output.MaxIndex() == target.MaxIndex()) _trainCorrectCount++;
+            if (OutputMaxIndex(output) == OutputMaxIndex(target)) _trainCorrectCount++;
         }
 
         protected override void OnTest(ComputeBuffer output, ComputeBuffer target)
         {
-            if (output.MaxIndex() == target.MaxIndex()) _testCorrectCount++;
+            if (OutputMaxIndex(output) == OutputMaxIndex(target)) _testCorrectCount++;
         }
 
         protected override int GetTrainCount()
@@ -83,6 +83,20 @@ namespace Blue.Samples
             input = new TensorNode("input", 28 * 28, false);
             var hidden = Layer.DenseLayer("hidden", input, 128, "relu");
             output = Layer.DenseLayer("output", hidden, 10, null);
+        }
+
+        public int OutputMaxIndex(ComputeBuffer buffer)
+        {
+            buffer.GetData(_temp);
+            var max = _temp[0];
+            var index = 0;
+            for (var i = 1; i < _temp.Length; i++)
+            {
+                if (_temp[i] <= max) continue;
+                max = _temp[i];
+                index = i;
+            }
+            return index;
         }
     }
 }
