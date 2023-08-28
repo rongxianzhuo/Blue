@@ -36,13 +36,13 @@ namespace Blue.Graph
             });
         }
 
-        public void ForeachParameterNode(Action<DataNode> action)
+        public void ForeachParameterNode(Action<TensorNode> action)
         {
             for (var i = _nodeLayer.Count - 1; i >= 0; i--)
             {
                 foreach (var node in _nodeLayer[i])
                 {
-                    if (node is DataNode dataNode && dataNode.IsParameter) action(dataNode);
+                    if (node is TensorNode dataNode && dataNode.IsParameter) action(dataNode);
                 }
             }
         }

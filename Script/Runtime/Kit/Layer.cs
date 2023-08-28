@@ -8,10 +8,10 @@ namespace Blue.Kit
 
         public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation)
         {
-            var weight = new DataNode($"{name}.weight", size * input.GetOutput().count, true);
+            var weight = new TensorNode($"{name}.weight", size * input.GetOutput().count, true);
             WeightInit(weight.GetOutput(), activation, input.GetOutput().count, size);
             var matMul = new MatMulNode(input, weight);
-            var bias = new DataNode($"{name}.bias", size, true);
+            var bias = new TensorNode($"{name}.bias", size, true);
             var add = OperateNode.Add(matMul, bias);
             return activation switch
             {

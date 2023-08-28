@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
+using Blue.Core;
 
-
-using Blue.Core;namespace Blue.Graph
+namespace Blue.Graph
 {
-    public class DataNode : IGraphNode
+    public class TensorNode : IGraphNode
     {
 
         private static Operate _incrementOperate;
@@ -26,7 +26,7 @@ using Blue.Core;namespace Blue.Graph
 
         public bool IsParameter => TotalGradient != null;
 
-        public DataNode(string name, int size, bool isParam)
+        public TensorNode(string name, int size, bool isParam)
         {
             Name = name;
             TotalGradient = isParam ? new ComputeBuffer(size, 4) : null;

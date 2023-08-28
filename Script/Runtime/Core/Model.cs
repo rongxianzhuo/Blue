@@ -80,7 +80,7 @@ namespace Blue.Core
             base.Destroy();
         }
 
-        private void UpdateParameter(DataNode node)
+        private void UpdateParameter(TensorNode node)
         {
             GetTranslateOperate().CreateTask()
                 .SetFloat(1f / _batchSize)
