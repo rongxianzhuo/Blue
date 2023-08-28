@@ -1,15 +1,15 @@
 using System;
-using Blue.Operates;
 using UnityEngine;
 
-namespace Blue.Graph
+
+using Blue.Core;namespace Blue.Graph
 {
     public class MatMulNode : IGraphNode
     {
         
         private static Operate _matMulOp;
 
-        private static Operate GetMatMulOp() => _matMulOp ??= new Operate("MatMul", "CSMain"
+        private static Operate GetMatMulOp() => _matMulOp ??= new Operate("Common/MatMul", "CSMain"
             , "wl"
             , "wr"
             , "left"

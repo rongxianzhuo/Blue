@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using Blue.Operates;
 using UnityEngine;
 
-namespace Blue.Optimizers
+
+using Blue.Core;namespace Blue.Optimizers
 {
     public class AdamOptimizer : IOptimizer
     {
 
         private static Operate _operate;
 
-        private static Operate GetOperate() => _operate ??= new Operate("Adam", "CSMain"
+        private static Operate GetOperate() => _operate ??= new Operate("Optimizer/Adam", "CSMain"
             , "t", "beta1", "beta2", "learning_rate", "g", "m", "v", "theta");
 
         public float LearningRate = 0.001f;

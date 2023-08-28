@@ -1,4 +1,5 @@
 using System.Collections;
+using Blue.Core;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;

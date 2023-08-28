@@ -1,11 +1,16 @@
 using System;
-using Blue.Operates;
 using UnityEngine;
 
-namespace Blue.Graph
+
+using Blue.Core;namespace Blue.Graph
 {
     public class DataNode : IGraphNode
     {
+
+        private static Operate _incrementOperate;
+
+        private static Operate GetIncrementOperate() => _incrementOperate ??= new Operate("Common/Increment", "CSMain"
+            , "r_buffer1", "rw_buffer1");
 
         [Serializable]
         public class SerializedObject
@@ -61,7 +66,12 @@ namespace Blue.Graph
 
         public void GradientPropagation()
         {
-            if (TotalGradient != null) AddOperate.Calculate(TotalGradient, _gradient);
+            if (TotalGradient == null) return;
+            
+            GetIncrementOperate().CreateTask()
+                .SetBuffer(_gradient)
+                .SetBuffer(TotalGradient)
+                .Dispatch(new Vector3Int(TotalGradient.count, 1, 1));
         }
 
         public void Destroy()

@@ -1,7 +1,5 @@
-using System.Linq;
 using Blue.Graph;
-using Blue.Operates;
-using Blue.Util;
+using Blue.Core;
 using UnityEngine;
 
 namespace Blue.Kit
@@ -11,12 +9,12 @@ namespace Blue.Kit
 
         private static Operate _l2Loss;
 
-        private static Operate GetL2LossOp() => _l2Loss ??= new Operate("L2Loss", "CSMain"
+        private static Operate GetL2LossOp() => _l2Loss ??= new Operate("LossFunction/L2Loss", "CSMain"
             , "output", "target", "gradient");
 
         private static Operate _crossEntropyLoss;
 
-        private static Operate GetCrossEntropyLossOp() => _crossEntropyLoss ??= new Operate("CrossEntropyLoss", "CSMain"
+        private static Operate GetCrossEntropyLossOp() => _crossEntropyLoss ??= new Operate("LossFunction/CrossEntropyLoss", "CSMain"
             , "r_buffer1", "r_buffer2", "rw_buffer1");
 
         public static void L2Loss(IGraphNode node, ComputeBuffer target)

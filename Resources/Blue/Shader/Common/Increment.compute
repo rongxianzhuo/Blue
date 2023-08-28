@@ -13,3 +13,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (id.x >= total_thread_x) return;
     rw_buffer1[id.x] = rw_buffer1[id.x] + r_buffer1[id.x];
 }
+
+

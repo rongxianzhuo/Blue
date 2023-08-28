@@ -1,14 +1,19 @@
 using System.Collections.Generic;
 using System.IO;
-using Blue.Operates;
+using Blue.Graph;
 using Blue.Optimizers;
 using UnityEngine;
 
-namespace Blue.Graph
+namespace Blue.Core
 {
 
     public class Model
     {
+        
+        private static Operate _translateOperate;
+
+        private static Operate GetTranslateOperate() => _translateOperate ??= new Operate("Common/Translate", "CSMain"
+            , "weight", "bias", "rw_buffer1");
 
         private const int DefaultBatchSize = 32;
 
@@ -121,9 +126,18 @@ namespace Blue.Graph
                 {
                     var dataNode = node as DataNode;
                     if (dataNode == null || dataNode.TotalGradient == null) continue;
-                    TransformOperate.Calculate(dataNode.TotalGradient, 1f / _batchSize, 0);
+                    
+                    GetTranslateOperate().CreateTask()
+                        .SetFloat(1f / _batchSize)
+                        .SetFloat(0)
+                        .SetBuffer(dataNode.TotalGradient)
+                        .Dispatch(new Vector3Int(dataNode.GetOutput().count, 1, 1));
                     _optimizer.OnBackwardPropagation(dataNode.GetOutput(), dataNode.TotalGradient);
-                    TransformOperate.Calculate(dataNode.TotalGradient, 0, 0);
+                    GetTranslateOperate().CreateTask()
+                        .SetFloat(0)
+                        .SetFloat(0)
+                        .SetBuffer(dataNode.TotalGradient)
+                        .Dispatch(new Vector3Int(dataNode.TotalGradient.count, 1, 1));
                 }
             }
 

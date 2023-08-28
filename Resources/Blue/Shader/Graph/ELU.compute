@@ -1,0 +1,28 @@
+#pragma kernel Forward
+#pragma kernel Backward_input
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+RWStructuredBuffer<float> output;
+StructuredBuffer<float> output_gradient;
+RWStructuredBuffer<float> input_gradient;
+
+StructuredBuffer<float> input;
+
+[numthreads(64, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    if (input[id.x] >= 0.0) output[id.x] = input[id.x];
+    else output[id.x] = exp(input[id.x]) - 1.0;
+}
+
+[numthreads(64, 1, 1)]
+void Backward_input(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    if (output[id.x] >= 0) input_gradient[id.x] = output_gradient[id.x];
+    else input_gradient[id.x] = (output[id.x] + 1) * output_gradient[id.x];
+}

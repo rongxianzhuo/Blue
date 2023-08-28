@@ -12,12 +12,12 @@ namespace Blue.Kit
             WeightInit(weight.GetOutput(), activation, input.GetOutput().count, size);
             var matMul = new MatMulNode(input, weight);
             var bias = new DataNode($"{name}.bias", size, true);
-            var add = new AddNode(matMul, bias);
+            var add = OperateNode.Add(matMul, bias);
             return activation switch
             {
-                "elu" => new ELUNode(add),
-                "relu" => new ReLUNode(add),
-                "sigmoid" => new SigmoidNode(add),
+                "elu" => OperateNode.ELU(add),
+                "relu" => OperateNode.ReLU(add),
+                "sigmoid" => OperateNode.Sigmoid(add),
                 _ => add
             };
         }
