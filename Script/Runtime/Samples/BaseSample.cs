@@ -48,7 +48,7 @@ namespace Blue.Samples
             InputNode = input;
             OutputNode = output;
             _model.BatchSize = BatchSize;
-            _model.Load(output, new AdamOptimizer());
+            _model.Load(output, new AdamOptimizer(), "CrossEntropyLoss");
             _outputTarget = new ComputeBuffer(OutputNode.GetOutput().count, 4);
             while (Epoch < epochs)
             {
@@ -96,8 +96,7 @@ namespace Blue.Samples
             InputNode.GetOutput().SetData(input);
             _model.ForwardPropagation();
             _outputTarget.SetData(output);
-            LossFunction.CrossEntropyLoss(OutputNode, _outputTarget);
-            _model.BackwardPropagation();
+            _model.BackwardPropagation(_outputTarget);
             _model.UpdateParams();
             TrainCount++;
             OnTrain(OutputNode.GetOutput(), _outputTarget);

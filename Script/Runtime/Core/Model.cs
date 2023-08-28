@@ -23,6 +23,9 @@ namespace Blue.Core
         private int _batchSize = DefaultBatchSize;
         private int _paramsUpdateFlag = DefaultBatchSize;
         private int _requestBatchSize = DefaultBatchSize;
+        private Operate _lossFunction;
+
+        public IGraphNode Output { get; private set; }
 
         public bool IsLoaded => _nodeLayer.Count > 0;
 
@@ -48,13 +51,16 @@ namespace Blue.Core
             
         }
 
-        public void Load(IGraphNode outputNode, IOptimizer optimizer)
+        public void Load(IGraphNode outputNode, IOptimizer optimizer, string lossFunction)
         {
             Unload();
+            Output = outputNode;
             _optimizer = optimizer;
             _nodeLayer.Add(new HashSet<IGraphNode>());
             _nodeLayer[0].Add(outputNode);
             outputNode.ForeachInputNode(input => AddNode(input, outputNode));
+            _lossFunction = new Operate($"LossFunction/{lossFunction}", "CSMain"
+                , "output", "target", "gradient");
             OnLoad();
         }
 
@@ -91,6 +97,7 @@ namespace Blue.Core
         public void Unload()
         {
             OnUnload();
+            Output = null;
             foreach (var nodes in _nodeLayer)
             {
                 foreach (var node in nodes)
@@ -144,8 +151,13 @@ namespace Blue.Core
             _batchSize = _requestBatchSize;
         }
 
-        public void BackwardPropagation()
+        public void BackwardPropagation(ComputeBuffer target)
         {
+            _lossFunction.CreateTask()
+                .SetBuffer(Output.GetOutput())
+                .SetBuffer(target)
+                .SetBuffer(Output.GetGradient())
+                .Dispatch(new Vector3Int(target.count, 1, 1));
             foreach (var nodes in _nodeLayer)
             {
                 foreach (var node in nodes)

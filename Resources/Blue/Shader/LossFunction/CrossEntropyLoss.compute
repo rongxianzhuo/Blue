@@ -4,25 +4,25 @@ uint total_thread_x;
 uint total_thread_y;
 uint total_thread_z;
 
-StructuredBuffer<float> r_buffer1;
-StructuredBuffer<float> r_buffer2;
-RWStructuredBuffer<float> rw_buffer1;
+StructuredBuffer<float> output;
+StructuredBuffer<float> target;
+RWStructuredBuffer<float> gradient;
 
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= total_thread_x) return;
-    float max_value = r_buffer1[0];
+    float max_value = output[0];
     for (uint j = 1; j < total_thread_x; j++)
     {
-        if (max_value > r_buffer1[j]) continue;
-        max_value = r_buffer1[j];
+        if (max_value > output[j]) continue;
+        max_value = output[j];
     }
     float sum = 0;
     for (uint i = 0; i < total_thread_x; i++)
     {
-        sum += exp(r_buffer1[i] - max_value);
+        sum += exp(output[i] - max_value);
     }
-    const float p = exp(r_buffer1[id.x] - max_value) / sum;
-    rw_buffer1[id.x] = p - r_buffer2[id.x];
+    const float p = exp(output[id.x] - max_value) / sum;
+    gradient[id.x] = p - target[id.x];
 }
