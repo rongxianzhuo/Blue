@@ -85,7 +85,6 @@ namespace Blue.Demo
         public IEnumerator DownloadData()
         {
             var directory = $"{Application.temporaryCachePath}/mnist";
-            Debug.Log(directory);
             Directory.CreateDirectory(directory);
             yield return DownloadGZip("http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz"
                 , directory,
