@@ -52,7 +52,7 @@ namespace Blue.Core
             _lossFunction = null;
         }
 
-        public void BackwardPropagation(ComputeBuffer target)
+        public void Backward(ComputeBuffer target)
         {
             _lossFunction.CreateTask()
                 .SetBuffer(Output.GetOutput())
