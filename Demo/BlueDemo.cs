@@ -1,5 +1,4 @@
 using System.Collections;
-using Blue.Core;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
@@ -20,7 +19,7 @@ namespace Blue.Demo
         {
             var input = new TensorNode("Input", 28 * 28, false);
             var hidden = Layer.DenseLayer("Hidden", input, 128, "relu");
-            var output = Layer.DenseLayer("Output", hidden, 10, "");
+            var output = Layer.DenseLayer("Output", hidden, 10);
             _model = new SimpleModel(input, output);
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             StartCoroutine(Train());
@@ -36,22 +35,18 @@ namespace Blue.Demo
             var mnistData = new MnistData();
             yield return mnistData.DownloadData();
             var epoch = 0;
-            while (true)
+            while (epoch < 5)
             {
                 epoch++;
-                var trainCount = 0;
                 var correctCount = 0;
                 for (var i = 0; i < mnistData.TrainData.Count; i++)
                 {
                     var data = mnistData.TrainData[i];
                     _model.Train(data.ImageData, data.LabelArray);
-                    trainCount++;
                     if (_model.GetMaxOutputIndex() == data.Label) correctCount++;
-                    if (i % 32 == 0)
-                    {
-                        infoText.text = $"Epoch: {epoch}\nTrainCount: {trainCount}\nAccuracy: {correctCount * 1000 / trainCount}‰";
-                        yield return null;
-                    }
+                    if (i % 32 != 0) continue;
+                    infoText.text = $"Epoch: {epoch}\nTrainCount: {i + 1}\nAccuracy: {correctCount * 1000 / (i + 1)}‰";
+                    yield return null;
                 }
             }
         }

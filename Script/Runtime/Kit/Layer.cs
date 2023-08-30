@@ -6,7 +6,7 @@ namespace Blue.Kit
     public static class Layer
     {
 
-        public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation)
+        public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation=null)
         {
             var weight = new TensorNode($"{name}.weight", size * input.GetOutput().count, true);
             WeightInit(weight.GetOutput(), activation, input.GetOutput().count, size);
