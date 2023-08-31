@@ -29,9 +29,6 @@ namespace Blue.Graph
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(size);
             _gradient = new Tensor(size);
-            Op.Clear(_output, 0);
-            Op.Clear(_gradient, 0);
-            if (isParam) Op.Clear(TotalGradient, 0);
         }
 
         public TensorNode(string name, bool isParam, List<float> data)
@@ -41,8 +38,6 @@ namespace Blue.Graph
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(data);
             _gradient = new Tensor(size);
-            Op.Clear(_gradient, 0);
-            if (isParam) Op.Clear(TotalGradient, 0);
         }
 
         public void LoadFromText(string text)
