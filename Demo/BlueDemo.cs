@@ -45,7 +45,7 @@ namespace Blue.Demo
                     _model.Train(data.ImageData, data.LabelArray);
                     if (_model.GetMaxOutputIndex() == data.Label) correctCount++;
                     if (i % 32 != 0) continue;
-                    infoText.text = $"Epoch: {epoch}\nTrainCount: {i + 1}\nAccuracy: {correctCount * 1000 / (i + 1)}‰";
+                    infoText.text = $"Epoch: {epoch}\nTrainCount: {i + 1}\nAccuracy: {correctCount * 100f / (i + 1):0.00}%";
                     yield return null;
                 }
             }

@@ -42,13 +42,14 @@ namespace Blue.Graph
         public OperateNode(string shaderName, int size, params KeyValuePair<string, IGraphNode>[] inputs)
         {
             var properties = new List<string>(inputs.Length + 2);
-            properties.Add("output");
+            properties.Add("rw_output");
             foreach (var pair in inputs)
             {
                 properties.Add(pair.Key);
                 _inputs.Add(pair.Value);
             }
             _forward = new Operate(shaderName, "Forward", properties.ToArray());
+            properties[0] = "r_output";
             properties.Add("input_gradient");
             properties.Add("output_gradient");
             var propertiesArray = properties.ToArray();

@@ -6,7 +6,8 @@ uint total_thread_x;
 uint total_thread_y;
 uint total_thread_z;
 
-RWStructuredBuffer<float> output;
+RWStructuredBuffer<float> rw_output;
+StructuredBuffer<float> r_output;
 StructuredBuffer<float> output_gradient;
 RWStructuredBuffer<float> input_gradient;
 
@@ -17,7 +18,7 @@ StructuredBuffer<float> b;
 void Forward(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= total_thread_x) return;
-    output[id.x] = a[id.x] + b[id.x];
+    rw_output[id.x] = a[id.x] + b[id.x];
 }
 
 [numthreads(64, 1, 1)]
