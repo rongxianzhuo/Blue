@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Blue.Graph;
 using UnityEngine;
 
@@ -8,8 +9,11 @@ namespace Blue.Kit
 
         public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation=null)
         {
-            var randomWeight = RandomWeight(size * input.GetOutput().count, activation, input.GetOutput().count, size);
-            var weight = new TensorNode($"{name}.weight", true, randomWeight);
+            var randomWeight = new float[size * input.GetOutput().count];
+            var weight = new TensorNode($"{name}.weight", randomWeight.Length, true);
+            weight.GetOutput().GetData(randomWeight); // make it sync
+            RandomWeight(randomWeight, activation, input.GetOutput().count, size);
+            weight.GetOutput().SetData(randomWeight);
             var matMul = new MatMulNode(input, weight);
             var bias = new TensorNode($"{name}.bias", size, true);
             var add = OperateNode.Add(matMul, bias);
@@ -22,7 +26,7 @@ namespace Blue.Kit
             };
         }
         
-        private static float[] RandomWeight(int size, string activation, int inputCount, int outputCount)
+        private static void RandomWeight(IList<float> weight, string activation, int inputCount, int outputCount)
         {
             float min;
             float max;
@@ -45,13 +49,10 @@ namespace Blue.Kit
                     max = -min;
                     break;
             }
-            var array = new float[size];
-            for (var i = 0; i < array.Length; i++)
+            for (var i = 0; i < weight.Count; i++)
             {
-                array[i] = Random.Range(min, max);
+                weight[i] = Random.Range(min, max);
             }
-
-            return array;
         }
         
     }

@@ -11,5 +11,5 @@ RWStructuredBuffer<float> buffer;
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= total_thread_x) return;
-    buffer[id.x] = 0;
+    buffer[id.x] = clear_value;
 }
