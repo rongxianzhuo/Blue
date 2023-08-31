@@ -1,0 +1,15 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+float clear_value;
+RWStructuredBuffer<float> buffer;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    buffer[id.x] = 0;
+}

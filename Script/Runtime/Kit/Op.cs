@@ -50,7 +50,6 @@ namespace Blue.Kit
         private static Operate _copyOp;
         private static Operate GetCopyOp() => _copyOp ??= new Operate("Common/Copy", "CSMain"
             , "r_buffer1", "src_offset", "rw_buffer1", "dst_offset");
-
         public static void Copy(ComputeBuffer src, int srcStartIndex, ComputeBuffer dst, int dstStartIndex, int length)
         {
             GetCopyOp().CreateTask()
@@ -59,6 +58,17 @@ namespace Blue.Kit
                 .SetBuffer(dst)
                 .SetInt(dstStartIndex)
                 .Dispatch(new Vector3Int(length, 1, 1));
+        }
+        
+        private static Operate _clearOp;
+        private static Operate GetClearOp() => _clearOp ??= new Operate("Common/Clear", "CSMain"
+            , "clear_value", "buffer");
+        public static void Clear(ComputeBuffer buffer, float clearValue)
+        {
+            GetClearOp().CreateTask()
+                .SetFloat(clearValue)
+                .SetBuffer(buffer)
+                .Dispatch(new Vector3Int(buffer.count, 1, 1));
         }
         
     }

@@ -8,8 +8,8 @@ namespace Blue.Kit
 
         public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation=null)
         {
-            var weight = new TensorNode($"{name}.weight", size * input.GetOutput().count, true);
-            WeightInit(weight.GetOutput(), activation, input.GetOutput().count, size);
+            var randomWeight = RandomWeight(size * input.GetOutput().count, activation, input.GetOutput().count, size);
+            var weight = new TensorNode($"{name}.weight", true, randomWeight);
             var matMul = new MatMulNode(input, weight);
             var bias = new TensorNode($"{name}.bias", size, true);
             var add = OperateNode.Add(matMul, bias);
@@ -22,10 +22,10 @@ namespace Blue.Kit
             };
         }
         
-        private static void WeightInit(ComputeBuffer weight, string activation, int inputCount, int outputCount)
+        private static float[] RandomWeight(int size, string activation, int inputCount, int outputCount)
         {
-            var min = -1f;
-            var max = 1f;
+            float min;
+            float max;
             switch (activation)
             {
                 case "tanh":
@@ -45,12 +45,13 @@ namespace Blue.Kit
                     max = -min;
                     break;
             }
-            var array = new float[weight.count];
+            var array = new float[size];
             for (var i = 0; i < array.Length; i++)
             {
                 array[i] = Random.Range(min, max);
             }
-            weight.SetData(array);
+
+            return array;
         }
         
     }

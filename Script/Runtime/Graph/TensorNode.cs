@@ -21,12 +21,27 @@ namespace Blue.Graph
 
         public bool IsParameter => TotalGradient != null;
 
+        public TensorNode(string name, bool isParam, float[] array)
+        {
+            var size = array.Length;
+            Name = name;
+            TotalGradient = isParam ? new ComputeBuffer(size, 4) : null;
+            _output = new ComputeBuffer(size, 4);
+            _gradient = new ComputeBuffer(size, 4);
+            _output.SetData(array);
+            Op.Clear(_gradient, 0);
+            if (isParam) Op.Clear(TotalGradient, 0);
+        }
+
         public TensorNode(string name, int size, bool isParam)
         {
             Name = name;
             TotalGradient = isParam ? new ComputeBuffer(size, 4) : null;
             _output = new ComputeBuffer(size, 4);
             _gradient = new ComputeBuffer(size, 4);
+            Op.Clear(_output, 0);
+            Op.Clear(_gradient, 0);
+            if (isParam) Op.Clear(TotalGradient, 0);
         }
 
         public void LoadFromText(string text)
