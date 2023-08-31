@@ -1,6 +1,6 @@
 using System;
+using Blue.Core;
 using Blue.Kit;
-using UnityEngine;
 
 namespace Blue.Graph
 {
@@ -8,8 +8,8 @@ namespace Blue.Graph
     {
 
         private readonly IGraphNode[] _nodes;
-        private readonly ComputeBuffer _output;
-        private readonly ComputeBuffer _gradient;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
 
         public ConcatNode(params IGraphNode[] nodes)
         {
@@ -17,18 +17,18 @@ namespace Blue.Graph
             var size = 0;
             foreach (var node in nodes)
             {
-                size += node.GetOutput().count;
+                size += node.GetOutput().Size;
             }
-            _output = new ComputeBuffer(size, 4);
-            _gradient = new ComputeBuffer(size, 4);
+            _output = new Tensor(size);
+            _gradient = new Tensor(size);
         }
         
-        public ComputeBuffer GetOutput()
+        public Tensor GetOutput()
         {
             return _output;
         }
 
-        public ComputeBuffer GetGradient()
+        public Tensor GetGradient()
         {
             return _gradient;
         }
@@ -38,8 +38,8 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                Op.Copy(node.GetOutput(), 0, _output, i, node.GetOutput().count);
-                i += node.GetOutput().count;
+                Op.Copy(node.GetOutput(), 0, _output, i, node.GetOutput().Size);
+                i += node.GetOutput().Size;
             }
         }
 
@@ -48,8 +48,8 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                Op.Copy(_output, i, node.GetGradient(), 0, node.GetGradient().count);
-                i += node.GetOutput().count;
+                Op.Copy(_output, i, node.GetGradient(), 0, node.GetGradient().Size);
+                i += node.GetOutput().Size;
             }
         }
 

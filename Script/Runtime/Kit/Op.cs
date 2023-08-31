@@ -9,13 +9,13 @@ namespace Blue.Kit
         private static Operate _translateOp;
         private static Operate GetTranslateOp() => _translateOp ??= new Operate("Common/Translate", "CSMain"
             , "weight", "bias", "rw_buffer1");
-        public static void Translate(ComputeBuffer buffer, float weight, float bias)
+        public static void Translate(Tensor buffer, float weight, float bias)
         {
             GetTranslateOp().CreateTask()
                 .SetFloat(weight)
                 .SetFloat(bias)
-                .SetBuffer(buffer)
-                .Dispatch(new Vector3Int(buffer.count, 1, 1));
+                .SetTensor(buffer)
+                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
         }
 
         private static Operate _matMulOp;
@@ -25,37 +25,37 @@ namespace Blue.Kit
             , "left"
             , "right"
             , "result");
-        public static void MatMul(ComputeBuffer left, int leftWidth, ComputeBuffer right, int rightWidth, ComputeBuffer result)
+        public static void MatMul(Tensor left, int leftWidth, Tensor right, int rightWidth, Tensor result)
         {
             GetMatMulOp().CreateTask()
                 .SetInt(leftWidth)
                 .SetInt(rightWidth)
-                .SetBuffer(left)
-                .SetBuffer(right)
-                .SetBuffer(result)
-                .Dispatch(new Vector3Int(result.count, 1, 1));
+                .SetTensor(left)
+                .SetTensor(right)
+                .SetTensor(result)
+                .Dispatch(new Vector3Int(result.Size, 1, 1));
         }
         
         private static Operate _incrementOp;
         private static Operate GetIncrementOp() => _incrementOp ??= new Operate("Common/Increment", "CSMain"
             , "r_buffer1", "rw_buffer1");
-        public static void Increment(ComputeBuffer buffer, ComputeBuffer other)
+        public static void Increment(Tensor buffer, Tensor other)
         {
             GetIncrementOp().CreateTask()
-                .SetBuffer(other)
-                .SetBuffer(buffer)
-                .Dispatch(new Vector3Int(buffer.count, 1, 1));
+                .SetTensor(other)
+                .SetTensor(buffer)
+                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
         }
         
         private static Operate _copyOp;
         private static Operate GetCopyOp() => _copyOp ??= new Operate("Common/Copy", "CSMain"
             , "r_buffer1", "src_offset", "rw_buffer1", "dst_offset");
-        public static void Copy(ComputeBuffer src, int srcStartIndex, ComputeBuffer dst, int dstStartIndex, int length)
+        public static void Copy(Tensor src, int srcStartIndex, Tensor dst, int dstStartIndex, int length)
         {
             GetCopyOp().CreateTask()
-                .SetBuffer(src)
+                .SetTensor(src)
                 .SetInt(srcStartIndex)
-                .SetBuffer(dst)
+                .SetTensor(dst)
                 .SetInt(dstStartIndex)
                 .Dispatch(new Vector3Int(length, 1, 1));
         }
@@ -63,12 +63,12 @@ namespace Blue.Kit
         private static Operate _clearOp;
         private static Operate GetClearOp() => _clearOp ??= new Operate("Common/Clear", "CSMain"
             , "clear_value", "buffer");
-        public static void Clear(ComputeBuffer buffer, float clearValue)
+        public static void Clear(Tensor buffer, float clearValue)
         {
             GetClearOp().CreateTask()
                 .SetFloat(clearValue)
-                .SetBuffer(buffer)
-                .Dispatch(new Vector3Int(buffer.count, 1, 1));
+                .SetTensor(buffer)
+                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
         }
         
     }

@@ -35,9 +35,9 @@ namespace Blue.Core
                 return this;
             }
 
-            public OperateHandler SetBuffer(ComputeBuffer buffer)
+            public OperateHandler SetTensor(Tensor tensor)
             {
-                _cs.SetBuffer(_kernel, _propertyIds[_propertyIndex++], buffer);
+                _cs.SetBuffer(_kernel, _propertyIds[_propertyIndex++], tensor.Buffer);
                 return this;
             }
 

@@ -9,33 +9,33 @@ namespace Blue.Graph
     {
         
         private readonly Operate _forward;
-        private readonly ComputeBuffer _output;
-        private readonly ComputeBuffer _gradient;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
         private readonly List<IGraphNode> _inputs = new List<IGraphNode>();
         private readonly List<Operate> _backward = new List<Operate>();
 
         public static OperateNode Add(IGraphNode a, IGraphNode b)
         {
-            return new OperateNode("Graph/Add", a.GetOutput().count
+            return new OperateNode("Graph/Add", a.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("a", a)
                 , new KeyValuePair<string, IGraphNode>("b", b));
         }
 
         public static OperateNode ReLU(IGraphNode input)
         {
-            return new OperateNode("Graph/ReLU", input.GetOutput().count
+            return new OperateNode("Graph/ReLU", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode ELU(IGraphNode input)
         {
-            return new OperateNode("Graph/ELU", input.GetOutput().count
+            return new OperateNode("Graph/ELU", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode Sigmoid(IGraphNode input)
         {
-            return new OperateNode("Graph/Sigmoid", input.GetOutput().count
+            return new OperateNode("Graph/Sigmoid", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
@@ -57,16 +57,16 @@ namespace Blue.Graph
             {
                 _backward.Add(new Operate(shaderName, $"Backward_{inputs[i].Key}", propertiesArray));
             }
-            _output = new ComputeBuffer(size, 4);
-            _gradient = new ComputeBuffer(size, 4);
+            _output = new Tensor(size);
+            _gradient = new Tensor(size);
         }
         
-        public ComputeBuffer GetOutput()
+        public Tensor GetOutput()
         {
             return _output;
         }
 
-        public ComputeBuffer GetGradient()
+        public Tensor GetGradient()
         {
             return _gradient;
         }
@@ -74,12 +74,12 @@ namespace Blue.Graph
         public void Forward()
         {
             var handler = _forward.CreateTask();
-            handler.SetBuffer(_output);
+            handler.SetTensor(_output);
             foreach (var node in _inputs)
             {
-                handler.SetBuffer(node.GetOutput());
+                handler.SetTensor(node.GetOutput());
             }
-            handler.Dispatch(new Vector3Int(_output.count, 1, 1));
+            handler.Dispatch(new Vector3Int(_output.Size, 1, 1));
         }
 
         public void Backward()
@@ -88,14 +88,14 @@ namespace Blue.Graph
             {
                 var op = _backward[i];
                 var handler = op.CreateTask();
-                handler.SetBuffer(_output);
+                handler.SetTensor(_output);
                 foreach (var node in _inputs)
                 {
-                    handler.SetBuffer(node.GetOutput());
+                    handler.SetTensor(node.GetOutput());
                 }
-                handler.SetBuffer(_inputs[i].GetGradient());
-                handler.SetBuffer(_gradient);
-                handler.Dispatch(new Vector3Int(_inputs[i].GetOutput().count, 1, 1));
+                handler.SetTensor(_inputs[i].GetGradient());
+                handler.SetTensor(_gradient);
+                handler.Dispatch(new Vector3Int(_inputs[i].GetOutput().Size, 1, 1));
             }
         }
 

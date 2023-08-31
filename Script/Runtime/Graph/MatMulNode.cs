@@ -1,5 +1,5 @@
 using System;
-using UnityEngine;
+using Blue.Core;
 using Blue.Kit;
 
 namespace Blue.Graph
@@ -9,42 +9,42 @@ namespace Blue.Graph
 
         private readonly IGraphNode _left;
         private readonly IGraphNode _right;
-        private readonly ComputeBuffer _output;
-        private readonly ComputeBuffer _gradient;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
         
         public MatMulNode(IGraphNode left, IGraphNode right)
         {
             _left = left;
             _right = right;
-            var size = right.GetOutput().count / left.GetOutput().count;
-            _output = new ComputeBuffer(size, 4);
-            _gradient = new ComputeBuffer(size, 4);
+            var size = right.GetOutput().Size / left.GetOutput().Size;
+            _output = new Tensor(size);
+            _gradient = new Tensor(size);
         }
 
-        public ComputeBuffer GetOutput() => _output;
+        public Tensor GetOutput() => _output;
 
-        public ComputeBuffer GetGradient() => _gradient;
+        public Tensor GetGradient() => _gradient;
 
         public void Forward()
         {
             Op.MatMul(_left.GetOutput()
-                , _left.GetOutput().count
+                , _left.GetOutput().Size
                 , _right.GetOutput()
-                , _output.count
+                , _output.Size
                 , _output);
         }
 
         public void Backward()
         {
             Op.MatMul(_right.GetOutput()
-                , _output.count
+                , _output.Size
                 , _gradient
                 , 1
                 , _left.GetGradient());
             Op.MatMul(_left.GetOutput()
                 , 1
                 , _gradient
-                , _output.count
+                , _output.Size
                 , _right.GetGradient());
         }
 

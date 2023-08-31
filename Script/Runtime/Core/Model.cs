@@ -48,13 +48,13 @@ namespace Blue.Core
             _lossFunction = null;
         }
 
-        public void Backward(ComputeBuffer target)
+        public void Backward(Tensor target)
         {
             _lossFunction.CreateTask()
-                .SetBuffer(Output.GetOutput())
-                .SetBuffer(target)
-                .SetBuffer(Output.GetGradient())
-                .Dispatch(new Vector3Int(target.count, 1, 1));
+                .SetTensor(Output.GetOutput())
+                .SetTensor(target)
+                .SetTensor(Output.GetGradient())
+                .Dispatch(new Vector3Int(target.Size, 1, 1));
             Backward();
             _paramsUpdateFlag--;
             if (_paramsUpdateFlag > 0) return;

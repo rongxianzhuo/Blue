@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Blue.Core;
 using Blue.Graph;
-using UnityEngine;
 
 namespace Blue.Kit
 {
@@ -9,32 +8,32 @@ namespace Blue.Kit
     {
 
         private readonly TensorNode _input;
-        private readonly ComputeBuffer _target;
+        private readonly Tensor _target;
         private readonly float[] _outputArray;
 
-        private ComputeBuffer _trainX;
-        private ComputeBuffer _trainY;
+        private Tensor _trainX;
+        private Tensor _trainY;
         
         public SimpleModel(TensorNode input, IGraphNode outputNode) : base(outputNode)
         {
             _input = input;
-            _target = new ComputeBuffer(outputNode.GetOutput().count, 4);
-            _outputArray = new float[outputNode.GetOutput().count];
+            _target = new Tensor(outputNode.GetOutput().Size);
+            _outputArray = new float[outputNode.GetOutput().Size];
         }
 
         public void StartTrain(List<float> x, List<float> y)
         {
             StopTrain();
-            _trainX = new ComputeBuffer(x.Count, 4);
-            _trainX.SetData(x);
-            _trainY = new ComputeBuffer(y.Count, 4);
-            _trainY.SetData(y);
+            _trainX = new Tensor(x.Count);
+            _trainX.Buffer.SetData(x);
+            _trainY = new Tensor(y.Count);
+            _trainY.Buffer.SetData(y);
         }
 
         public void UpdateTrain(int sampleIndex)
         {
-            var inputLength = _input.GetOutput().count;
-            var outputLength = _target.count;
+            var inputLength = _input.GetOutput().Size;
+            var outputLength = _target.Size;
             Op.Copy(_trainX, sampleIndex * inputLength, _input.GetOutput(), 0, inputLength);
             Op.Copy(_trainY, sampleIndex * outputLength, _target, 0, outputLength);
             Forward();

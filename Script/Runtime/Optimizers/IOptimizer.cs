@@ -1,10 +1,10 @@
-using UnityEngine;
+using Blue.Core;
 
 namespace Blue.Optimizers
 {
     public interface IOptimizer
     {
-        void Step(ComputeBuffer param, ComputeBuffer gradient);
+        void Step(Tensor param, Tensor gradient);
 
         void Destroy();
     }

@@ -1,4 +1,5 @@
 using System;
+using Blue.Core;
 using UnityEngine;
 using Blue.Kit;
 
@@ -13,20 +14,20 @@ namespace Blue.Graph
             public float[] data;
         }
 
-        public readonly ComputeBuffer TotalGradient;
+        public readonly Tensor TotalGradient;
         public readonly string Name;
 
-        private readonly ComputeBuffer _output;
-        private readonly ComputeBuffer _gradient;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
 
         public bool IsParameter => TotalGradient != null;
 
         public TensorNode(string name, int size, bool isParam)
         {
             Name = name;
-            TotalGradient = isParam ? new ComputeBuffer(size, 4) : null;
-            _output = new ComputeBuffer(size, 4);
-            _gradient = new ComputeBuffer(size, 4);
+            TotalGradient = isParam ? new Tensor(size) : null;
+            _output = new Tensor(size);
+            _gradient = new Tensor(size);
             Op.Clear(_output, 0);
             Op.Clear(_gradient, 0);
             if (isParam) Op.Clear(TotalGradient, 0);
@@ -35,25 +36,27 @@ namespace Blue.Graph
         public void LoadFromText(string text)
         {
             var so = JsonUtility.FromJson<SerializedObject>(text);
-            _output.SetData(so.data);
+            var array = new float[_output.Size];
+            _output.Buffer.GetData(array);
+            _output.Buffer.SetData(so.data);
         }
 
         public string SaveAsText()
         {
             var so = new SerializedObject
             {
-                data = new float[_output.count]
+                data = new float[_output.Size]
             };
             _output.GetData(so.data);
             return JsonUtility.ToJson(so);
         }
         
-        public ComputeBuffer GetOutput()
+        public Tensor GetOutput()
         {
             return _output;
         }
 
-        public ComputeBuffer GetGradient()
+        public Tensor GetGradient()
         {
             return _gradient;
         }

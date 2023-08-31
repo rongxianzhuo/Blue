@@ -1,4 +1,5 @@
 using System;
+using Blue.Core;
 using UnityEngine;
 
 namespace Blue.Graph
@@ -6,9 +7,9 @@ namespace Blue.Graph
     public interface IGraphNode
     {
 
-        ComputeBuffer GetOutput();
+        Tensor GetOutput();
 
-        ComputeBuffer GetGradient();
+        Tensor GetGradient();
 
         void Forward();
 

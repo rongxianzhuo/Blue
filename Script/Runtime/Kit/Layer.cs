@@ -9,11 +9,11 @@ namespace Blue.Kit
 
         public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation=null)
         {
-            var randomWeight = new float[size * input.GetOutput().count];
+            var randomWeight = new float[size * input.GetOutput().Size];
             var weight = new TensorNode($"{name}.weight", randomWeight.Length, true);
             weight.GetOutput().GetData(randomWeight); // make it sync
-            RandomWeight(randomWeight, activation, input.GetOutput().count, size);
-            weight.GetOutput().SetData(randomWeight);
+            RandomWeight(randomWeight, activation, input.GetOutput().Size, size);
+            weight.GetOutput().Buffer.SetData(randomWeight);
             var matMul = new MatMulNode(input, weight);
             var bias = new TensorNode($"{name}.bias", size, true);
             var add = OperateNode.Add(matMul, bias);

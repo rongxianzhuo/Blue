@@ -16,20 +16,20 @@ using Blue.Core;namespace Blue.Optimizers
         
         private readonly float _beta1 = 0.9f;
         private readonly float _beta2 = 0.999f;
-        private readonly Dictionary<ComputeBuffer, ComputeBuffer> _m = new Dictionary<ComputeBuffer, ComputeBuffer>();
-        private readonly Dictionary<ComputeBuffer, ComputeBuffer> _v = new Dictionary<ComputeBuffer, ComputeBuffer>();
-        private readonly Dictionary<ComputeBuffer, float> _t = new Dictionary<ComputeBuffer, float>();
+        private readonly Dictionary<Tensor, Tensor> _m = new Dictionary<Tensor, Tensor>();
+        private readonly Dictionary<Tensor, Tensor> _v = new Dictionary<Tensor, Tensor>();
+        private readonly Dictionary<Tensor, float> _t = new Dictionary<Tensor, float>();
         
-        public void Step(ComputeBuffer param, ComputeBuffer gradient)
+        public void Step(Tensor param, Tensor gradient)
         {
             if (!_m.TryGetValue(param, out var m))
             {
-                m = new ComputeBuffer(param.count, 4);
+                m = new Tensor(param.Size);
                 _m[param] = m;
             }
             if (!_v.TryGetValue(param, out var v))
             {
-                v = new ComputeBuffer(param.count, 4);
+                v = new Tensor(param.Size);
                 _v[param] = v;
             }
 
@@ -44,11 +44,11 @@ using Blue.Core;namespace Blue.Optimizers
                 .SetFloat(_beta1)
                 .SetFloat(_beta2)
                 .SetFloat(LearningRate)
-                .SetBuffer(gradient)
-                .SetBuffer(m)
-                .SetBuffer(v)
-                .SetBuffer(param)
-                .Dispatch(new Vector3Int(param.count, 1, 1));
+                .SetTensor(gradient)
+                .SetTensor(m)
+                .SetTensor(v)
+                .SetTensor(param)
+                .Dispatch(new Vector3Int(param.Size, 1, 1));
         }
 
         public void Destroy()
