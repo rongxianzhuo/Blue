@@ -1,16 +1,11 @@
 using System;
-using Blue.Core;
+using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Graph
 {
     public class ConcatNode : IGraphNode
     {
-        
-        private static Operate _copyOperate;
-
-        private static Operate GetCopyOperate() => _copyOperate ??= new Operate("Common/Copy", "CSMain"
-            , "r_buffer1", "src_offset", "rw_buffer1", "dst_offset");
 
         private readonly IGraphNode[] _nodes;
         private readonly ComputeBuffer _output;
@@ -43,12 +38,7 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                GetCopyOperate().CreateTask()
-                    .SetBuffer(node.GetOutput())
-                    .SetInt(0)
-                    .SetBuffer(_output)
-                    .SetInt(i)
-                    .Dispatch(new Vector3Int(_output.count, 1, 1));
+                Op.Copy(node.GetOutput(), 0, _output, i, node.GetOutput().count);
                 i += node.GetOutput().count;
             }
         }
@@ -58,12 +48,7 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                GetCopyOperate().CreateTask()
-                    .SetBuffer(_output)
-                    .SetInt(i)
-                    .SetBuffer(node.GetGradient())
-                    .SetInt(0)
-                    .Dispatch(new Vector3Int(node.GetGradient().count, 1, 1));
+                Op.Copy(_output, i, node.GetGradient(), 0, node.GetGradient().count);
                 i += node.GetOutput().count;
             }
         }

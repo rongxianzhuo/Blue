@@ -1,4 +1,5 @@
 using Blue.Graph;
+using Blue.Kit;
 using Blue.Optimizers;
 using UnityEngine;
 
@@ -7,11 +8,6 @@ namespace Blue.Core
 
     public class Model : NodeGraph
     {
-        
-        private static Operate _translateOperate;
-
-        private static Operate GetTranslateOperate() => _translateOperate ??= new Operate("Common/Translate", "CSMain"
-            , "weight", "bias", "rw_buffer1");
 
         private const int DefaultBatchSize = 32;
 
@@ -79,17 +75,9 @@ namespace Blue.Core
 
         private void UpdateParameter(TensorNode node)
         {
-            GetTranslateOperate().CreateTask()
-                .SetFloat(1f / _batchSize)
-                .SetFloat(0)
-                .SetBuffer(node.TotalGradient)
-                .Dispatch(new Vector3Int(node.GetOutput().count, 1, 1));
+            Op.Translate(node.TotalGradient, 1f / _batchSize, 0);
             _optimizer.Step(node.GetOutput(), node.TotalGradient);
-            GetTranslateOperate().CreateTask()
-                .SetFloat(0)
-                .SetFloat(0)
-                .SetBuffer(node.TotalGradient)
-                .Dispatch(new Vector3Int(node.TotalGradient.count, 1, 1));
+            Op.Translate(node.TotalGradient, 0, 0);
         }
     }
 
