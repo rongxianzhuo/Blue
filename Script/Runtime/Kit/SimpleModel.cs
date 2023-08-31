@@ -24,10 +24,8 @@ namespace Blue.Kit
         public void StartTrain(List<float> x, List<float> y)
         {
             StopTrain();
-            _trainX = new Tensor(x.Count);
-            _trainX.Buffer.SetData(x);
-            _trainY = new Tensor(y.Count);
-            _trainY.Buffer.SetData(y);
+            _trainX = new Tensor(x);
+            _trainY = new Tensor(y);
         }
 
         public void UpdateTrain(int sampleIndex)

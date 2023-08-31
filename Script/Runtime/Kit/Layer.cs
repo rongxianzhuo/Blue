@@ -9,11 +9,8 @@ namespace Blue.Kit
 
         public static IGraphNode DenseLayer(string name, IGraphNode input, int size, string activation=null)
         {
-            var randomWeight = new float[size * input.GetOutput().Size];
-            var weight = new TensorNode($"{name}.weight", randomWeight.Length, true);
-            weight.GetOutput().GetData(randomWeight); // make it sync
-            RandomWeight(randomWeight, activation, input.GetOutput().Size, size);
-            weight.GetOutput().Buffer.SetData(randomWeight);
+            var randomWeight = RandomWeight(activation, input.GetOutput().Size, size);
+            var weight = new TensorNode($"{name}.weight", true, randomWeight);
             var matMul = new MatMulNode(input, weight);
             var bias = new TensorNode($"{name}.bias", size, true);
             var add = OperateNode.Add(matMul, bias);
@@ -26,7 +23,7 @@ namespace Blue.Kit
             };
         }
         
-        private static void RandomWeight(IList<float> weight, string activation, int inputCount, int outputCount)
+        private static List<float> RandomWeight(string activation, int inputCount, int outputCount)
         {
             float min;
             float max;
@@ -49,10 +46,13 @@ namespace Blue.Kit
                     max = -min;
                     break;
             }
-            for (var i = 0; i < weight.Count; i++)
+            var size = inputCount * outputCount;
+            var list = new List<float>();
+            for (var i = 0; i < size; i++)
             {
-                weight[i] = Random.Range(min, max);
+                list.Add(Random.Range(min, max));
             }
+            return list;
         }
         
     }

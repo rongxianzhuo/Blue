@@ -37,7 +37,7 @@ namespace Blue.Core
 
             public OperateHandler SetTensor(Tensor tensor)
             {
-                _cs.SetBuffer(_kernel, _propertyIds[_propertyIndex++], tensor.Buffer);
+                tensor.SetToShader(_cs, _kernel, _propertyIds[_propertyIndex++]);
                 return this;
             }
 

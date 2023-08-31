@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Blue.Core;
 using UnityEngine;
 using Blue.Kit;
@@ -33,12 +34,22 @@ namespace Blue.Graph
             if (isParam) Op.Clear(TotalGradient, 0);
         }
 
+        public TensorNode(string name, bool isParam, List<float> data)
+        {
+            Name = name;
+            var size = data.Count;
+            TotalGradient = isParam ? new Tensor(size) : null;
+            _output = new Tensor(data);
+            _gradient = new Tensor(size);
+            Op.Clear(_gradient, 0);
+            if (isParam) Op.Clear(TotalGradient, 0);
+        }
+
         public void LoadFromText(string text)
         {
             var so = JsonUtility.FromJson<SerializedObject>(text);
             var array = new float[_output.Size];
-            _output.Buffer.GetData(array);
-            _output.Buffer.SetData(so.data);
+            _output.SetData(new float[_output.Size], _ => so.data);
         }
 
         public string SaveAsText()
