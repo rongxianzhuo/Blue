@@ -48,8 +48,7 @@ namespace Blue.Graph
         public void LoadFromText(string text)
         {
             var so = JsonUtility.FromJson<SerializedObject>(text);
-            var array = new float[_output.Size];
-            _output.SetData(new float[_output.Size], _ => so.data);
+            _output.SetData(so.data);
         }
 
         public string SaveAsText()

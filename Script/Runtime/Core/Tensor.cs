@@ -13,6 +13,8 @@ namespace Blue.Core
 
         public bool IsValid { get; private set; }
 
+        private float[] _syncArray;
+
         public Tensor(int size)
         {
             Size = size;
@@ -34,12 +36,12 @@ namespace Blue.Core
             IsValid = false;
         }
 
-        public void SetData(float[] array, System.Func<float[], float[]> writeAction)
+        public void SetData(float[] data)
         {
             if (!IsValid) return;
-            _buffer.GetData(array);
-            array = writeAction(array);
-            _buffer.SetData(array);
+            _syncArray ??= new float[Size];
+            _buffer.GetData(_syncArray);
+            _buffer.SetData(data);
         }
 
         public void GetData(float[] array)

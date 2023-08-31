@@ -21,7 +21,7 @@ namespace Blue.Demo
             var input = new TensorNode("Input", 28 * 28, false);
             var hidden = Layer.DenseLayer("Hidden", input, 128, "relu");
             var output = Layer.DenseLayer("Output", hidden, 10);
-            _model = new SimpleModel(input, output);
+            _model = new SimpleModel(output, input);
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             StartCoroutine(Train());
         }
@@ -42,7 +42,7 @@ namespace Blue.Demo
                 x.AddRange(data.ImageData);
                 y.AddRange(data.LabelArray);
             }
-            _model.StartTrain(x, y);
+            _model.StartTrain(y, x);
             var epoch = 0;
             while (epoch < 5)
             {
