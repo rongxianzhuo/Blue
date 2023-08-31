@@ -41,6 +41,11 @@ namespace Blue.Core
                 return this;
             }
 
+            public void Dispatch(int size)
+            {
+                Dispatch(new Vector3Int(size, 1, 1));
+            }
+
             public void Dispatch(Vector3Int size)
             {
                 _cs.SetInt(_propertyIds[_propertyIndex++], size.x);

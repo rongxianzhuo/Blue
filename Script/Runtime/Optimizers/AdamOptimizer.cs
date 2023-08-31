@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
-
 
 using Blue.Core;namespace Blue.Optimizers
 {
@@ -48,7 +46,7 @@ using Blue.Core;namespace Blue.Optimizers
                 .SetTensor(m)
                 .SetTensor(v)
                 .SetTensor(param)
-                .Dispatch(new Vector3Int(param.Size, 1, 1));
+                .Dispatch(param.Size);
         }
 
         public void Destroy()

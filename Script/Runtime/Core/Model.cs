@@ -54,7 +54,7 @@ namespace Blue.Core
                 .SetTensor(Output.GetOutput())
                 .SetTensor(target)
                 .SetTensor(Output.GetGradient())
-                .Dispatch(new Vector3Int(target.Size, 1, 1));
+                .Dispatch(target.Size);
             Backward();
             _paramsUpdateFlag--;
             if (_paramsUpdateFlag > 0) return;

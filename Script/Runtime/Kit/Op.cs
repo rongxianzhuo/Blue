@@ -1,5 +1,4 @@
 using Blue.Core;
-using UnityEngine;
 
 namespace Blue.Kit
 {
@@ -15,7 +14,7 @@ namespace Blue.Kit
                 .SetFloat(weight)
                 .SetFloat(bias)
                 .SetTensor(buffer)
-                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
+                .Dispatch(buffer.Size);
         }
 
         private static Operate _matMulOp;
@@ -33,7 +32,7 @@ namespace Blue.Kit
                 .SetTensor(left)
                 .SetTensor(right)
                 .SetTensor(result)
-                .Dispatch(new Vector3Int(result.Size, 1, 1));
+                .Dispatch(result.Size);
         }
         
         private static Operate _incrementOp;
@@ -44,7 +43,7 @@ namespace Blue.Kit
             GetIncrementOp().CreateTask()
                 .SetTensor(other)
                 .SetTensor(buffer)
-                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
+                .Dispatch(buffer.Size);
         }
         
         private static Operate _copyOp;
@@ -57,7 +56,7 @@ namespace Blue.Kit
                 .SetInt(srcStartIndex)
                 .SetTensor(dst)
                 .SetInt(dstStartIndex)
-                .Dispatch(new Vector3Int(length, 1, 1));
+                .Dispatch(length);
         }
         
         private static Operate _clearOp;
@@ -68,7 +67,7 @@ namespace Blue.Kit
             GetClearOp().CreateTask()
                 .SetFloat(clearValue)
                 .SetTensor(buffer)
-                .Dispatch(new Vector3Int(buffer.Size, 1, 1));
+                .Dispatch(buffer.Size);
         }
         
     }

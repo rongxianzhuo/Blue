@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Blue.Core;
-using UnityEngine;
 
 namespace Blue.Graph
 {
@@ -79,7 +78,7 @@ namespace Blue.Graph
             {
                 handler.SetTensor(node.GetOutput());
             }
-            handler.Dispatch(new Vector3Int(_output.Size, 1, 1));
+            handler.Dispatch(_output.Size);
         }
 
         public void Backward()
@@ -95,7 +94,7 @@ namespace Blue.Graph
                 }
                 handler.SetTensor(_inputs[i].GetGradient());
                 handler.SetTensor(_gradient);
-                handler.Dispatch(new Vector3Int(_inputs[i].GetOutput().Size, 1, 1));
+                handler.Dispatch(_inputs[i].GetOutput().Size);
             }
         }
 
