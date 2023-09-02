@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Blue.Kit;
 using UnityEngine;
 
@@ -26,6 +28,20 @@ namespace Blue.Core
             Size = list.Count;
             _buffer = new ComputeBuffer(list.Count, sizeof(float));
             _buffer.SetData(list);
+        }
+
+        public void LoadFromStream(Stream stream)
+        {
+            var binaryFormatter = new BinaryFormatter();
+            var array = (float[])binaryFormatter.Deserialize(stream);
+            SetData(array);
+        }
+
+        public void SaveToStream(Stream stream)
+        {
+            Sync();
+            var binaryFormatter = new BinaryFormatter();
+            binaryFormatter.Serialize(stream, _syncArray);
         }
 
         public void Release()

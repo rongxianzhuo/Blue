@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Blue.Core;
 using UnityEngine;
 using Blue.Kit;
@@ -8,12 +10,6 @@ namespace Blue.Graph
 {
     public class TensorNode : IGraphNode
     {
-
-        [Serializable]
-        public class SerializedObject
-        {
-            public float[] data;
-        }
 
         public readonly Tensor TotalGradient;
         public readonly string Name;
@@ -38,22 +34,6 @@ namespace Blue.Graph
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(data);
             _gradient = new Tensor(size);
-        }
-
-        public void LoadFromText(string text)
-        {
-            var so = JsonUtility.FromJson<SerializedObject>(text);
-            _output.SetData(so.data);
-        }
-
-        public string SaveAsText()
-        {
-            var so = new SerializedObject
-            {
-                data = new float[_output.Size]
-            };
-            _output.GetData(so.data);
-            return JsonUtility.ToJson(so);
         }
         
         public Tensor GetOutput()

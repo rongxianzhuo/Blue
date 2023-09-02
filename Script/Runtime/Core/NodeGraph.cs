@@ -23,7 +23,9 @@ namespace Blue.Core
         {
             ForeachParameterNode(node =>
             {
-                node.LoadFromText(File.ReadAllText($"{dirPath}/{node.Name}.bytes"));
+                using var stream = File.OpenRead($"{dirPath}/{node.Name}.bytes");
+                node.GetOutput().LoadFromStream(stream);
+                stream.Close();
             });
         }
 
@@ -32,8 +34,9 @@ namespace Blue.Core
             Directory.CreateDirectory(dirPath);
             ForeachParameterNode(node =>
             {
-                var text = node.SaveAsText();
-                File.WriteAllText($"{dirPath}/{node.Name}.bytes", text);
+                using var stream = File.OpenWrite($"{dirPath}/{node.Name}.bytes");
+                node.GetOutput().SaveToStream(stream);
+                stream.Close();
             });
         }
 

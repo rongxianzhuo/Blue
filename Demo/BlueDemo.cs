@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
@@ -11,10 +12,13 @@ namespace Blue.Demo
 
     public class BlueDemo : MonoBehaviour
     {
-        
+
+        public bool saveModel;
         public Text infoText;
 
         private SimpleModel _model;
+
+        private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
 
         private void Awake()
         {
@@ -23,6 +27,7 @@ namespace Blue.Demo
             var output = Layer.DenseLayer("Output", hidden, 10);
             _model = new SimpleModel(output, input);
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
+            if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
 
@@ -56,6 +61,11 @@ namespace Blue.Demo
                     if (i % 32 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nTrainCount: {i + 1}\nAccuracy: {correctCount * 100f / (i + 1):0.00}%";
                     yield return null;
+                }
+                if (saveModel)
+                {
+                    _model.SaveParameterFile(ModelSavePath);
+                    Debug.Log("Model saved");
                 }
             }
         }
