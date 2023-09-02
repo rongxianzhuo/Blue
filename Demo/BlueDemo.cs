@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
 using UnityEngine;
@@ -15,6 +14,7 @@ namespace Blue.Demo
 
         public bool saveModel;
         public Text infoText;
+        public TextAsset modelAsset;
 
         private SimpleModel _model;
 
@@ -22,11 +22,9 @@ namespace Blue.Demo
 
         private void Awake()
         {
-            _model = new ModelBuilder()
-                .TensorNode("Input", 28 * 28, false)
-                .DenseLayer("Hidden", "Input", 128, "relu")
-                .DenseLayer("Output", "Hidden", 10)
-                .BuildSimpleModel();
+            var graphAsset = new GraphAsset();
+            graphAsset.LoadFromStream(new MemoryStream(modelAsset.bytes));
+            _model = graphAsset.CreateBuilder().BuildSimpleModel();
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
