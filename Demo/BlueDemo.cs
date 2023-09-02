@@ -22,10 +22,11 @@ namespace Blue.Demo
 
         private void Awake()
         {
-            var input = new TensorNode("Input", 28 * 28, false);
-            var hidden = Layer.DenseLayer("Hidden", input, 128, "relu");
-            var output = Layer.DenseLayer("Output", hidden, 10);
-            _model = new SimpleModel(output, input);
+            _model = new ModelBuilder()
+                .TensorNode("Input", 28 * 28, false)
+                .DenseLayer("Hidden", "Input", 128, "relu")
+                .DenseLayer("Output", "Hidden", 10)
+                .BuildSimpleModel();
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
