@@ -10,32 +10,32 @@ namespace Blue.Kit
     public class ModelBuilder
     {
 
-        private readonly Dictionary<string, IGraphNode> _allNodes = new Dictionary<string, IGraphNode>();
-
         private readonly List<TensorNode> _inputNodes = new List<TensorNode>();
+
+        private readonly Stack<IGraphNode> _inputNodeStack = new Stack<IGraphNode>();
 
         private IGraphNode _outputNode;
 
-        public IGraphNode GetNode(string name) => _allNodes[name];
+        private int _nextTensorNodeId;
 
-        public void AddNode(string name, IGraphNode node)
+        private void AddNode(IGraphNode node)
         {
-            _allNodes[name] = node;
             _outputNode = node;
+            _inputNodeStack.Push(node);
         }
 
-        public ModelBuilder TensorNode(string name, int size, bool isParameter)
+        public ModelBuilder TensorNode(int size, bool isParameter, out TensorNode node)
         {
-            var input = new TensorNode(name, size, isParameter);
-            if (!isParameter) _inputNodes.Add(input);
-            AddNode(name, input);
+            node = new TensorNode(_nextTensorNodeId++, size, isParameter);
+            if (!isParameter) _inputNodes.Add(node);
+            AddNode(node);
             return this;
         }
 
-        public ModelBuilder WeightNode(string name, int inputCount, int outputCount)
+        public ModelBuilder WeightNode(int inputCount, int outputCount, out TensorNode node)
         {
             var size = inputCount * outputCount;
-            var input = new TensorNode(name, size, true);
+            node = new TensorNode(_nextTensorNodeId++, size, true);
             var min = -Mathf.Sqrt(1f / (inputCount + outputCount));
             var max = -min;
             var array = new float[size];
@@ -43,88 +43,81 @@ namespace Blue.Kit
             {
                 array[i] = Random.Range(min, max);
             }
-            input.GetOutput().SetData(array);
-            AddNode(name, input);
+            node.GetOutput().SetData(array);
+            AddNode(node);
             return this;
         }
 
-        public ModelBuilder MatMulNode(string name, string left, string right)
+        public ModelBuilder MatMulNode()
         {
-            var matMul = new MatMulNode(_allNodes[left], _allNodes[right]);
-            AddNode(name, matMul);
+            var right = _inputNodeStack.Pop();
+            var left = _inputNodeStack.Pop();
+            var matMul = new MatMulNode(left, right);
+            AddNode(matMul);
             return this;
         }
 
-        public ModelBuilder AddNode(string name, string aName, string bName)
+        public ModelBuilder AddNode()
         {
-            var a = _allNodes[aName];
-            var b = _allNodes[bName];
+            var a = _inputNodeStack.Pop();
+            var b = _inputNodeStack.Pop();
             var add = new OperateNode("Graph/Add", a.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("a", a)
                 , new KeyValuePair<string, IGraphNode>("b", b));
-            AddNode(name, add);
+            AddNode(add);
             return this;
         }
 
-        public ModelBuilder ReLUNode(string name, string inputName)
+        public ModelBuilder ReLUNode()
         {
-            var input = _allNodes[inputName];
-            AddNode(name, OperateNode.ReLU(input));
+            AddNode(OperateNode.ReLU(_inputNodeStack.Pop()));
             return this;
         }
 
-        public ModelBuilder EluNode(string name, string inputName)
+        public ModelBuilder EluNode()
         {
-            var input = _allNodes[inputName];
-            AddNode(name, OperateNode.ELU(input));
+            AddNode(OperateNode.ELU(_inputNodeStack.Pop()));
             return this;
         }
 
-        public ModelBuilder SigmoidNode(string name, string inputName)
+        public ModelBuilder SigmoidNode()
         {
-            var input = _allNodes[inputName];
-            AddNode(name, OperateNode.Sigmoid(input));
+            AddNode(OperateNode.Sigmoid(_inputNodeStack.Pop()));
             return this;
         }
 
-        public ModelBuilder ConcatLayer(string name, params string[] inputNames)
+        public ModelBuilder ConcatLayer()
         {
-            var inputs = new IGraphNode[inputNames.Length];
-            for (var i = 0; i < inputs.Length; i++)
+            var inputs = new IGraphNode[_inputNodeStack.Count];
+            for (var i = inputs.Length - 1; i >= 0; i--)
             {
-                inputs[i] = _allNodes[inputNames[i]];
+                inputs[i] = _inputNodeStack.Pop();
             }
 
-            AddNode(name, new ConcatNode(inputs));
+            AddNode(new ConcatNode(inputs));
             return this;
         }
 
-        public ModelBuilder DenseLayer(string name, string inputNodeName, int size, string activation=null)
+        public ModelBuilder DenseLayer(int size, string activation=null)
         {
-            WeightNode($"{name}.weight", _allNodes[inputNodeName].GetOutput().Size, size);
-            MatMulNode($"{name}.matmul", inputNodeName, $"{name}.weight");
-            TensorNode($"{name}.bias", size, true);
-            if (string.IsNullOrEmpty(activation))
+            WeightNode(_inputNodeStack.Peek().GetOutput().Size, size, out _);
+            MatMulNode();
+            TensorNode(size, true, out _);
+            AddNode();
+            if (string.IsNullOrEmpty(activation)) return this;
+            switch (activation)
             {
-                AddNode(name, $"{name}.matmul", $"{name}.bias");
-            }
-            else
-            {
-                AddNode($"{name}.add", $"{name}.matmul", $"{name}.bias");
-                switch (activation)
-                {
-                    case "relu":
-                        ReLUNode(name, $"{name}.add");
-                        break;
-                    case "elu":
-                        EluNode(name, $"{name}.add");
-                        break;
-                    case "sigmoid":
-                        SigmoidNode(name, $"{name}.add");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                case "relu":
+                    ReLUNode();
+                    break;
+                case "elu":
+                    EluNode();
+                    break;
+                case "sigmoid":
+                    SigmoidNode();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return this;
         }

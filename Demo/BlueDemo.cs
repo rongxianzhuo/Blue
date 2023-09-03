@@ -14,7 +14,6 @@ namespace Blue.Demo
 
         public bool saveModel;
         public Text infoText;
-        public TextAsset modelAsset;
 
         private SimpleModel _model;
 
@@ -22,9 +21,11 @@ namespace Blue.Demo
 
         private void Awake()
         {
-            var graphAsset = new GraphAsset();
-            graphAsset.LoadFromStream(new MemoryStream(modelAsset.bytes));
-            _model = graphAsset.CreateBuilder().BuildSimpleModel();
+            _model = new ModelBuilder()
+                .TensorNode(784, false, out _)
+                .DenseLayer(128, "relu")
+                .DenseLayer(10)
+                .BuildSimpleModel();
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());

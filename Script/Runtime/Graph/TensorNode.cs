@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using Blue.Core;
-using UnityEngine;
 using Blue.Kit;
 
 namespace Blue.Graph
@@ -12,24 +9,24 @@ namespace Blue.Graph
     {
 
         public readonly Tensor TotalGradient;
-        public readonly string Name;
+        public readonly int Id;
 
         private readonly Tensor _output;
         private readonly Tensor _gradient;
 
         public bool IsParameter => TotalGradient != null;
 
-        public TensorNode(string name, int size, bool isParam)
+        public TensorNode(int id, int size, bool isParam)
         {
-            Name = name;
+            Id = id;
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(size);
             _gradient = new Tensor(size);
         }
 
-        public TensorNode(string name, bool isParam, List<float> data)
+        public TensorNode(int id, bool isParam, List<float> data)
         {
-            Name = name;
+            Id = id;
             var size = data.Count;
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(data);
