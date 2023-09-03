@@ -11,14 +11,14 @@ namespace Blue.Kit
     {
 
         [Serializable]
-        public class NodeInfo
+        public class NodeDisplayInfo
         {
 
             public Rect position;
 
         }
 
-        public NodeInfo OutputNodeInfo { get; private set; }
+        public NodeDisplayInfo OutputNodeInfo { get; private set; }
 
         private readonly List<string> _nodeTree = new List<string>();
 
@@ -26,19 +26,19 @@ namespace Blue.Kit
 
         private readonly Dictionary<string, object[]> _parameters = new Dictionary<string, object[]>();
 
-        private readonly Dictionary<string, NodeInfo> _infos = new Dictionary<string, NodeInfo>();
+        private readonly Dictionary<string, NodeDisplayInfo> _infos = new Dictionary<string, NodeDisplayInfo>();
 
         public string OutputNodeName => _nodeTree[_nodeTree.Count - 1];
 
-        public void ForeachNode(Action<string, string, object[], NodeInfo> action)
+        public void ForeachNode(Action<string, object[], NodeDisplayInfo> action)
         {
             foreach (var name in _nodeTree)
             {
-                action(name, _methods[name], _parameters[name], _infos[name]);
+                action(_methods[name], _parameters[name], _infos[name]);
             }
         }
 
-        public void AddNode(string name, string method, object[] parameters, NodeInfo info)
+        public void AddNode(string name, string method, object[] parameters, NodeDisplayInfo info)
         {
             _nodeTree.Add(name);
             _methods[name] = method;
@@ -49,17 +49,17 @@ namespace Blue.Kit
         public void LoadFromStream(Stream stream)
         {
             var binaryFormatter = new BinaryFormatter();
-            OutputNodeInfo = JsonUtility.FromJson<NodeInfo>((string)binaryFormatter.Deserialize(stream));
+            OutputNodeInfo = JsonUtility.FromJson<NodeDisplayInfo>((string)binaryFormatter.Deserialize(stream));
             while (stream.Position < stream.Length)
             {
                 AddNode((string)binaryFormatter.Deserialize(stream)
                     ,  (string)binaryFormatter.Deserialize(stream)
                     ,  (object[])binaryFormatter.Deserialize(stream)
-                    ,  JsonUtility.FromJson<NodeInfo>((string)binaryFormatter.Deserialize(stream)));
+                    ,  JsonUtility.FromJson<NodeDisplayInfo>((string)binaryFormatter.Deserialize(stream)));
             }
         }
 
-        public void SaveToStream(Stream stream, NodeInfo outputNodeInfo)
+        public void SaveToStream(Stream stream, NodeDisplayInfo outputNodeInfo)
         {
             var binaryFormatter = new BinaryFormatter();
             binaryFormatter.Serialize(stream, JsonUtility.ToJson(outputNodeInfo));

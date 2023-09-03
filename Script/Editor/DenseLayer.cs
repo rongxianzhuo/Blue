@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Blue.Editor
 {
-    public sealed class DenseLayerNode : BlueNode
+    public sealed class DenseLayer : BlueNode
     {
         
         public readonly Port Input;
@@ -30,7 +30,7 @@ namespace Blue.Editor
             }
         }
 
-        public DenseLayerNode()
+        public DenseLayer()
         {
             title = "DenseLayer";
             
@@ -47,13 +47,12 @@ namespace Blue.Editor
             _sizeField.value = "0";
         }
 
-        public override void SetSaveInfo(ModelGraphView graphView, object[] parameters, GraphAsset.NodeInfo info)
+        public override void SetSaveInfo(ModelGraphView graphView, object[] parameters)
         {
             Name = parameters[0].ToString();
             graphView.ConnectPort(graphView.FindNode(parameters[1].ToString()).OutputPort, Input);
             _sizeField.value = parameters[2].ToString();
             _activationField.value = parameters[3].ToString();
-            SetPosition(info.position);
         }
 
         public override void ForeachInputNode(Action<BlueNode> action)

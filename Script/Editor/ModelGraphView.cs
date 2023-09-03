@@ -36,7 +36,7 @@ namespace Blue.Editor
             AddElement(p1.ConnectTo(p2));
         }
 
-        private void ForeachInputNode(BlueNode node, System.Action<BlueNode> action)
+        private void ForeachInputNode(BlueNode node, Action<BlueNode> action)
         {
             node.ForeachInputNode(n =>
             {
@@ -60,19 +60,20 @@ namespace Blue.Editor
 
         public void LoadModel(GraphAsset asset)
         {
-            asset.ForeachNode((nodeName, method, parameters, info) =>
+            asset.ForeachNode((method, parameters, info) =>
             {
                 BlueNode node = method switch
                 {
                     "TensorNode" => new TensorNode(),
-                    "DenseLayer" => new DenseLayerNode(),
+                    "DenseLayer" => new DenseLayer(),
                     _ => throw new Exception("Unknown error")
                 };
-                node.SetSaveInfo(this, parameters, info);
+                node.SetSaveInfo(this, parameters);
+                node.SetDisplayInfo(info);
                 AddElement(node);
             });
             ConnectPort(FindNode(asset.OutputNodeName).OutputPort, _outputNode.InputNode);
-            _outputNode.SetPosition(asset.OutputNodeInfo.position);
+            _outputNode.SetDisplayInfo(asset.OutputNodeInfo);
         }
 
         public void Save(Stream stream)
@@ -84,9 +85,9 @@ namespace Blue.Editor
             foreach (var node in list)
             {
                 node.GetSaveInfo(out var method, out var parameters);
-                asset.AddNode(node.Name, method, parameters, node.GetInfo());
+                asset.AddNode(node.Name, method, parameters, node.GetDisplayInfo());
             }
-            asset.SaveToStream(stream, _outputNode.GetInfo());
+            asset.SaveToStream(stream, _outputNode.GetDisplayInfo());
         }
         
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)

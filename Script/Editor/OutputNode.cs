@@ -11,7 +11,7 @@ namespace Blue.Editor
 
         public OutputNode()
         {
-            title = "ModelOutput";
+            title = "Root";
             InputNode = Port.Create<Edge>(Orientation.Horizontal, Direction.Input, Port.Capacity.Single, typeof(Port));
             InputNode.portName = "Input";
             inputContainer.Add(InputNode);
@@ -19,7 +19,7 @@ namespace Blue.Editor
 
         public override Port OutputPort => null;
 
-        public override void SetSaveInfo(ModelGraphView graphAsset, object[] parameters, GraphAsset.NodeInfo info)
+        public override void SetSaveInfo(ModelGraphView graphView, object[] parameters)
         {
             throw new NotImplementedException();
         }
