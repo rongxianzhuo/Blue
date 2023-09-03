@@ -13,7 +13,13 @@ namespace Blue.Editor
     public class ModelWindow : EditorWindow
     {
 
+        private static string _savePath;
+
         private ModelGraphView _graphView;
+
+        public string SavePath => string.IsNullOrEmpty(_savePath)
+            ? $"{Application.dataPath}/ModelAsset.blue.bytes"
+            : _savePath;
 
         private void OnEnable()
         {
@@ -23,25 +29,42 @@ namespace Blue.Editor
             rootVisualElement.Add(_graphView);
             rootVisualElement.Add(new Button(() =>
             {
-                var path = $"{Application.dataPath}/Blue/Demo/ModelAsset.bytes";
-                using var stream = File.OpenWrite(path);
+                using var stream = File.OpenWrite(SavePath);
                 _graphView.Save(stream);
                 stream.Close();
+                AssetDatabase.Refresh();
             }) { text = "Save" });
-            if (File.Exists($"{Application.dataPath}/Blue/Demo/ModelAsset.bytes"))
+            if (File.Exists(SavePath))
             {
                 var graphAsset = new GraphAsset();
-                var path = $"{Application.dataPath}/Blue/Demo/ModelAsset.bytes";
-                using var stream = File.OpenRead(path);
+                using var stream = File.OpenRead(SavePath);
                 graphAsset.LoadFromStream(stream);
                 stream.Close();
                 _graphView.LoadModel(graphAsset);
             }
         }
 
-        [MenuItem("Blue/Model Editor")]
+        [MenuItem("Blue/ModelEditor")]
         public static void OpenWindow()
         {
+            _savePath = null;
+            var window = GetWindow<ModelWindow>("ModelEditor");
+            window.Show();
+        }
+
+        [MenuItem("Assets/Blue/ModelEditor", validate = true)]
+        public static bool CanOpenEditor()
+        {
+            if (Selection.activeObject == null) return false;
+            var path = AssetDatabase.GetAssetPath(Selection.activeObject);
+            return path.EndsWith(".blue.bytes");
+        }
+
+        [MenuItem("Assets/Blue/ModelEditor")]
+        public static void OpenEditorWithFile()
+        {
+            var path = AssetDatabase.GetAssetPath(Selection.activeObject).Substring(7);
+            _savePath = $"{Application.dataPath}/{path}";
             var window = GetWindow<ModelWindow>("ModelEditor");
             window.Show();
         }
