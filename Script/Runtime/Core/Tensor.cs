@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -9,6 +10,12 @@ namespace Blue.Core
     
     public class Tensor
     {
+
+        [Serializable]
+        public class FloatArrayData
+        {
+            public float[] data;
+        }
 
         public readonly int Size;
 
@@ -28,6 +35,12 @@ namespace Blue.Core
             Size = list.Count;
             _buffer = new ComputeBuffer(list.Count, sizeof(float));
             _buffer.SetData(list);
+        }
+
+        public void LoadFromJson(string json)
+        {
+            var data = JsonUtility.FromJson<FloatArrayData>(json);
+            SetData(data.data);
         }
 
         public void LoadFromStream(Stream stream)

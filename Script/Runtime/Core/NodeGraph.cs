@@ -23,9 +23,20 @@ namespace Blue.Core
         {
             ForeachParameterNode(node =>
             {
-                using var stream = File.OpenRead($"{dirPath}/{node.Id}.bytes");
-                node.GetOutput().LoadFromStream(stream);
-                stream.Close();
+                if (File.Exists($"{dirPath}/{node.Id}.bytes"))
+                {
+                    using var stream = File.OpenRead($"{dirPath}/{node.Id}.bytes");
+                    node.GetOutput().LoadFromStream(stream);
+                    stream.Close();
+                }
+                else if (File.Exists($"{dirPath}/{node.Id}.json"))
+                {
+                    node.GetOutput().LoadFromJson(File.ReadAllText($"{dirPath}/{node.Id}.json"));
+                }
+                else
+                {
+                    Debug.LogWarning($"No parameter file: {node.Id}");
+                }
             });
         }
 
