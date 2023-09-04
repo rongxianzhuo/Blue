@@ -22,7 +22,7 @@ namespace Blue.Demo
         private void Awake()
         {
             _model = new ModelBuilder()
-                .TensorNode(784, false, out _)
+                .Tensor(784, false, out _)
                 .DenseLayer(128, "relu")
                 .DenseLayer(10)
                 .BuildSimpleModel();

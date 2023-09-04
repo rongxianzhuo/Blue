@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Blue.Core;
 using Blue.Graph;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Blue.Kit
 {
@@ -18,71 +16,70 @@ namespace Blue.Kit
 
         private int _nextTensorNodeId;
 
-        private void AddNode(IGraphNode node)
+        public void Any(IGraphNode node)
         {
             _outputNode = node;
             _inputNodeStack.Push(node);
         }
 
-        public ModelBuilder TensorNode(int size, bool isParameter, out TensorNode node)
+        public ModelBuilder Tensor(int size, bool isParameter, out TensorNode node)
         {
             node = new TensorNode(_nextTensorNodeId++, size, isParameter);
             if (!isParameter) _inputNodes.Add(node);
-            AddNode(node);
+            Any(node);
             return this;
         }
 
-        public ModelBuilder WeightNode(int inputCount, int outputCount, out TensorNode node)
+        public ModelBuilder Random(int inputCount, int outputCount)
         {
             var size = inputCount * outputCount;
-            node = new TensorNode(_nextTensorNodeId++, size, true);
+            var node = new TensorNode(_nextTensorNodeId++, size, true);
             var min = -Mathf.Sqrt(1f / (inputCount + outputCount));
             var max = -min;
             var array = new float[size];
             for (var i = 0; i < size; i++)
             {
-                array[i] = Random.Range(min, max);
+                array[i] = UnityEngine.Random.Range(min, max);
             }
             node.GetOutput().SetData(array);
-            AddNode(node);
+            Any(node);
             return this;
         }
 
-        public ModelBuilder MatMulNode()
+        public ModelBuilder MatMul()
         {
             var right = _inputNodeStack.Pop();
             var left = _inputNodeStack.Pop();
             var matMul = new MatMulNode(left, right);
-            AddNode(matMul);
+            Any(matMul);
             return this;
         }
 
-        public ModelBuilder AddNode()
+        public ModelBuilder Add()
         {
             var a = _inputNodeStack.Pop();
             var b = _inputNodeStack.Pop();
             var add = new OperateNode("Graph/Add", a.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("a", a)
                 , new KeyValuePair<string, IGraphNode>("b", b));
-            AddNode(add);
+            Any(add);
             return this;
         }
 
-        public ModelBuilder ReLUNode()
+        public ModelBuilder Activation(string activation)
         {
-            AddNode(OperateNode.ReLU(_inputNodeStack.Pop()));
-            return this;
-        }
-
-        public ModelBuilder EluNode()
-        {
-            AddNode(OperateNode.ELU(_inputNodeStack.Pop()));
-            return this;
-        }
-
-        public ModelBuilder SigmoidNode()
-        {
-            AddNode(OperateNode.Sigmoid(_inputNodeStack.Pop()));
+            switch (activation)
+            {
+                case "relu":
+                    Any(OperateNode.ReLU(_inputNodeStack.Pop()));
+                    break;
+                case "elu":
+                    Any(OperateNode.ELU(_inputNodeStack.Pop()));
+                    break;
+                case "sigmoid":
+                    Any(OperateNode.Sigmoid(_inputNodeStack.Pop()));
+                    break;
+            }
             return this;
         }
 
@@ -94,33 +91,16 @@ namespace Blue.Kit
                 inputs[i] = _inputNodeStack.Pop();
             }
 
-            AddNode(new ConcatNode(inputs));
+            Any(new ConcatNode(inputs));
             return this;
         }
 
-        public ModelBuilder DenseLayer(int size, string activation=null)
-        {
-            WeightNode(_inputNodeStack.Peek().GetOutput().Size, size, out _);
-            MatMulNode();
-            TensorNode(size, true, out _);
-            AddNode();
-            if (string.IsNullOrEmpty(activation)) return this;
-            switch (activation)
-            {
-                case "relu":
-                    ReLUNode();
-                    break;
-                case "elu":
-                    EluNode();
-                    break;
-                case "sigmoid":
-                    SigmoidNode();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            return this;
-        }
+        public ModelBuilder DenseLayer(int size, string activation = null) =>
+            Random(_inputNodeStack.Peek().GetOutput().Size, size)
+                .MatMul()
+                .Tensor(size, true, out _)
+                .Add()
+                .Activation(activation);
 
         public Model Build()
         {
