@@ -1,0 +1,15 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+StructuredBuffer<float> gradient;
+RWStructuredBuffer<float> bias_gradient;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    bias_gradient[id.x] = gradient[id.x];
+}

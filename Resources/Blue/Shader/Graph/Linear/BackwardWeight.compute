@@ -1,0 +1,19 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+uint input_count;
+StructuredBuffer<float> input_layer;
+StructuredBuffer<float> gradient;
+RWStructuredBuffer<float> weight_gradient;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    const uint i = id.x % input_count;
+    const uint j = id.x / input_count;
+    weight_gradient[id.x] = input_layer[i] * gradient[j];
+}

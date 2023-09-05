@@ -1,0 +1,23 @@
+#pragma kernel CSMain
+
+uint total_thread_x;
+uint total_thread_y;
+uint total_thread_z;
+
+uint input_count;
+uint output_count;
+StructuredBuffer<float> weight;
+StructuredBuffer<float> gradient;
+RWStructuredBuffer<float> input_gradient;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= total_thread_x) return;
+    float o = 0.0;
+    for (uint i = 0; i < output_count; i++)
+    {
+        o += weight[i * input_count + id.x] * gradient[i];
+    }
+    input_gradient[id.x] = o;
+}

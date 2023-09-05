@@ -83,6 +83,17 @@ namespace Blue.Kit
             return this;
         }
 
+        public ModelBuilder Linear(int size)
+        {
+            Random(_inputNodeStack.Peek().GetOutput().Size, size);
+            Tensor(size, true, out _);
+            var bias = _inputNodeStack.Pop();
+            var weight = _inputNodeStack.Pop();
+            var input = _inputNodeStack.Pop();
+            Any(new LinearNode(input, weight, bias, size));
+            return this;
+        }
+
         public ModelBuilder ConcatLayer()
         {
             var inputs = new IGraphNode[_inputNodeStack.Count];
@@ -95,12 +106,7 @@ namespace Blue.Kit
             return this;
         }
 
-        public ModelBuilder DenseLayer(int size, string activation = null) =>
-            Random(_inputNodeStack.Peek().GetOutput().Size, size)
-                .MatMul()
-                .Tensor(size, true, out _)
-                .Add()
-                .Activation(activation);
+        public ModelBuilder DenseLayer(int size, string activation = null) => Linear(size).Activation(activation);
 
         public Model Build()
         {
