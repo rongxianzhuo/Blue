@@ -23,8 +23,9 @@ namespace Blue.Demo
         {
             _model = new ModelBuilder()
                 .Tensor(784, false, out _)
-                .DenseLayer(128, "relu")
-                .DenseLayer(10)
+                .Linear(128)
+                .Activation("relu")
+                .Linear(10)
                 .BuildSimpleModel();
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);

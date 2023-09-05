@@ -13,13 +13,6 @@ namespace Blue.Graph
         private readonly List<IGraphNode> _inputs = new List<IGraphNode>();
         private readonly List<Operate> _backward = new List<Operate>();
 
-        public static OperateNode Add(IGraphNode a, IGraphNode b)
-        {
-            return new OperateNode("Graph/Add", a.GetOutput().Size
-                , new KeyValuePair<string, IGraphNode>("a", a)
-                , new KeyValuePair<string, IGraphNode>("b", b));
-        }
-
         public static OperateNode ReLU(IGraphNode input)
         {
             return new OperateNode("Graph/ReLU", input.GetOutput().Size
