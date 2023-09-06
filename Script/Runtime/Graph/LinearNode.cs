@@ -1,26 +1,15 @@
 using System;
 using Blue.Core;
+using Blue.Kit;
 
 namespace Blue.Graph
 {
     public class LinearNode : IGraphNode
     {
         
-        private static Operate _forwardOp;
-        private static Operate GetForwardOp() => _forwardOp ??= new Operate("Graph/Linear/Forward", "CSMain"
-            , "input_count", "input_layer", "weight", "bias", "output");
-        
         private static Operate _backwardInputOp;
         private static Operate GetBackwardInputOp() => _backwardInputOp ??= new Operate("Graph/Linear/BackwardInput", "CSMain"
             , "input_count", "output_count", "weight", "gradient", "input_gradient");
-        
-        private static Operate _backwardWeightOp;
-        private static Operate GetBackwardWeightOp() => _backwardWeightOp ??= new Operate("Graph/Linear/BackwardWeight", "CSMain"
-            , "input_count", "input_layer", "gradient", "weight_gradient");
-        
-        private static Operate _backwardBiasOp;
-        private static Operate GetBackwardBiasOp() => _backwardBiasOp ??= new Operate("Graph/Linear/BackwardBias", "CSMain"
-            , "gradient", "bias_gradient");
 
         private readonly IGraphNode _input;
         private readonly IGraphNode _weight;
@@ -43,34 +32,27 @@ namespace Blue.Graph
 
         public void Forward()
         {
-            GetForwardOp().CreateTask()
-                .SetInt(_input.GetOutput().FlattenSize)
-                .SetTensor(_input.GetOutput())
-                .SetTensor(_weight.GetOutput())
-                .SetTensor(_bias.GetOutput())
-                .SetTensor(_output)
-                .Dispatch(_output.FlattenSize);
+            Op.MatMul(_weight.GetOutput()
+                , _input.GetOutput().FlattenSize
+                , _input.GetOutput()
+                , 1
+                , _output);
+            Op.Increment(_output, _bias.GetOutput());
         }
 
         public void Backward()
         {
-            GetBackwardInputOp().CreateTask()
-                .SetInt(_input.GetOutput().FlattenSize)
-                .SetInt(_output.FlattenSize)
-                .SetTensor(_weight.GetOutput())
-                .SetTensor(_gradient)
-                .SetTensor(_input.GetGradient())
-                .Dispatch(_input.GetGradient().FlattenSize);
-            GetBackwardWeightOp().CreateTask()
-                .SetInt(_input.GetOutput().FlattenSize)
-                .SetTensor(_input.GetOutput())
-                .SetTensor(_gradient)
-                .SetTensor(_weight.GetGradient())
-                .Dispatch(_weight.GetGradient().FlattenSize);
-            GetBackwardBiasOp().CreateTask()
-                .SetTensor(_gradient)
-                .SetTensor(_bias.GetGradient())
-                .Dispatch(_bias.GetGradient().FlattenSize);
+            Op.MatMul(_gradient
+                , _gradient.FlattenSize
+                , _weight.GetOutput()
+                , _input.GetGradient().FlattenSize
+                , _input.GetGradient());
+            Op.MatMul(_gradient
+                , 1
+                , _input.GetOutput()
+                , _input.GetOutput().FlattenSize
+                , _weight.GetGradient());
+            Op.Copy(_gradient, 0, _bias.GetGradient(), 0, _gradient.FlattenSize);
         }
 
         public void Destroy()
