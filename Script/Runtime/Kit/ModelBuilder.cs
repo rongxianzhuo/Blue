@@ -64,7 +64,7 @@ namespace Blue.Kit
 
         public ModelBuilder Linear(int size)
         {
-            Random(_inputNodeStack.Peek().GetOutput().Size, size);
+            Random(_inputNodeStack.Peek().GetOutput().FlattenSize, size);
             Tensor(size, true, out _);
             var bias = _inputNodeStack.Pop();
             var weight = _inputNodeStack.Pop();

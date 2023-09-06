@@ -17,7 +17,7 @@ namespace Blue.Graph
             var size = 0;
             foreach (var node in nodes)
             {
-                size += node.GetOutput().Size;
+                size += node.GetOutput().FlattenSize;
             }
             _output = new Tensor(size);
             _gradient = new Tensor(size);
@@ -38,8 +38,8 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                Op.Copy(node.GetOutput(), 0, _output, i, node.GetOutput().Size);
-                i += node.GetOutput().Size;
+                Op.Copy(node.GetOutput(), 0, _output, i, node.GetOutput().FlattenSize);
+                i += node.GetOutput().FlattenSize;
             }
         }
 
@@ -48,8 +48,8 @@ namespace Blue.Graph
             var i = 0;
             foreach (var node in _nodes)
             {
-                Op.Copy(_output, i, node.GetGradient(), 0, node.GetGradient().Size);
-                i += node.GetOutput().Size;
+                Op.Copy(_output, i, node.GetGradient(), 0, node.GetGradient().FlattenSize);
+                i += node.GetOutput().FlattenSize;
             }
         }
 

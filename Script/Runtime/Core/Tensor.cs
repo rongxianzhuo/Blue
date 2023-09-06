@@ -17,22 +17,32 @@ namespace Blue.Core
             public float[] data;
         }
 
-        public readonly int Size;
+        public readonly int FlattenSize;
+
+        public readonly int[] Size;
 
         private readonly ComputeBuffer _buffer;
 
         private float[] _syncArray;
 
-        public Tensor(int size)
+        public Tensor(params int[] size)
         {
             Size = size;
-            _buffer = new ComputeBuffer(size, sizeof(float));
+            var totalSize = 1;
+            foreach (var i in size)
+            {
+                totalSize *= i;
+            }
+
+            FlattenSize = totalSize;
+            _buffer = new ComputeBuffer(totalSize, sizeof(float));
             Op.Clear(this, 0);
         }
 
         public Tensor(List<float> list)
         {
-            Size = list.Count;
+            Size = new []{list.Count};
+            FlattenSize = list.Count;
             _buffer = new ComputeBuffer(list.Count, sizeof(float));
             _buffer.SetData(list);
         }
@@ -80,7 +90,7 @@ namespace Blue.Core
 
         public IReadOnlyList<float> Sync()
         {
-            _syncArray ??= new float[Size];
+            _syncArray ??= new float[FlattenSize];
             _buffer.GetData(_syncArray);
             return _syncArray;
         }

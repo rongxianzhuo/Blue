@@ -1,7 +1,6 @@
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
-using UnityEngine;
 
 namespace Blue.Core
 {
@@ -16,20 +15,6 @@ namespace Blue.Core
         private int _paramsUpdateFlag = DefaultBatchSize;
         private int _requestBatchSize = DefaultBatchSize;
         private Operate _lossFunction;
-
-        public bool IsTrainEnabled => _optimizer != null;
-
-        public int BatchSize
-        {
-            set
-            {
-                if (_requestBatchSize == value) return;
-                _requestBatchSize = Mathf.Max(1, value);
-                if (IsTrainEnabled) return;
-                _batchSize = _requestBatchSize;
-                _paramsUpdateFlag = _requestBatchSize;
-            }
-        }
 
         public void EnableTrain(IOptimizer optimizer, string lossFunction)
         {
@@ -51,11 +36,11 @@ namespace Blue.Core
         public void Backward(Tensor target)
         {
             _lossFunction.CreateTask()
-                .SetInt(target.Size)
+                .SetInt(target.FlattenSize)
                 .SetTensor(Output.GetOutput())
                 .SetTensor(target)
                 .SetTensor(Output.GetGradient())
-                .Dispatch(target.Size);
+                .Dispatch(target.FlattenSize);
             Backward();
             _paramsUpdateFlag--;
             if (_paramsUpdateFlag > 0) return;

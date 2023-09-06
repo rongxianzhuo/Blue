@@ -18,7 +18,7 @@ namespace Blue.Kit
         {
             _input = input;
             _target = new Tensor(outputNode.GetOutput().Size);
-            _outputArray = new float[outputNode.GetOutput().Size];
+            _outputArray = new float[outputNode.GetOutput().FlattenSize];
         }
 
         public void StartTrain(List<float> y, params List<float>[] x)
@@ -34,10 +34,10 @@ namespace Blue.Kit
 
         public void UpdateTrain(int sampleIndex)
         {
-            var outputLength = _target.Size;
+            var outputLength = _target.FlattenSize;
             for (var i = 0; i < _input.Length; i++)
             {
-                var inputLength = _input[i].GetOutput().Size;
+                var inputLength = _input[i].GetOutput().FlattenSize;
                 Op.Copy(_trainX[i], sampleIndex * inputLength, _input[i].GetOutput(), 0, inputLength);
             }
             Op.Copy(_trainY, sampleIndex * outputLength, _target, 0, outputLength);

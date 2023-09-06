@@ -46,7 +46,7 @@ using Blue.Core;namespace Blue.Optimizers
                 .SetTensor(m)
                 .SetTensor(v)
                 .SetTensor(param)
-                .Dispatch(param.Size);
+                .Dispatch(param.FlattenSize);
         }
 
         public void Destroy()

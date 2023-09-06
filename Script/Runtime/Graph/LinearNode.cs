@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Blue.Core;
-using UnityEditor;
-using UnityEngine;
 
 namespace Blue.Graph
 {
@@ -47,33 +44,33 @@ namespace Blue.Graph
         public void Forward()
         {
             GetForwardOp().CreateTask()
-                .SetInt(_input.GetOutput().Size)
+                .SetInt(_input.GetOutput().FlattenSize)
                 .SetTensor(_input.GetOutput())
                 .SetTensor(_weight.GetOutput())
                 .SetTensor(_bias.GetOutput())
                 .SetTensor(_output)
-                .Dispatch(_output.Size);
+                .Dispatch(_output.FlattenSize);
         }
 
         public void Backward()
         {
             GetBackwardInputOp().CreateTask()
-                .SetInt(_input.GetOutput().Size)
-                .SetInt(_output.Size)
+                .SetInt(_input.GetOutput().FlattenSize)
+                .SetInt(_output.FlattenSize)
                 .SetTensor(_weight.GetOutput())
                 .SetTensor(_gradient)
                 .SetTensor(_input.GetGradient())
-                .Dispatch(_input.GetGradient().Size);
+                .Dispatch(_input.GetGradient().FlattenSize);
             GetBackwardWeightOp().CreateTask()
-                .SetInt(_input.GetOutput().Size)
+                .SetInt(_input.GetOutput().FlattenSize)
                 .SetTensor(_input.GetOutput())
                 .SetTensor(_gradient)
                 .SetTensor(_weight.GetGradient())
-                .Dispatch(_weight.GetGradient().Size);
+                .Dispatch(_weight.GetGradient().FlattenSize);
             GetBackwardBiasOp().CreateTask()
                 .SetTensor(_gradient)
                 .SetTensor(_bias.GetGradient())
-                .Dispatch(_bias.GetGradient().Size);
+                .Dispatch(_bias.GetGradient().FlattenSize);
         }
 
         public void Destroy()

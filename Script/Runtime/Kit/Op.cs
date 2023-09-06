@@ -14,7 +14,7 @@ namespace Blue.Kit
                 .SetFloat(weight)
                 .SetFloat(bias)
                 .SetTensor(buffer)
-                .Dispatch(buffer.Size);
+                .Dispatch(buffer.FlattenSize);
         }
 
         private static Operate _matMulOp;
@@ -32,7 +32,7 @@ namespace Blue.Kit
                 .SetTensor(left)
                 .SetTensor(right)
                 .SetTensor(result)
-                .Dispatch(result.Size);
+                .Dispatch(result.FlattenSize);
         }
         
         private static Operate _incrementOp;
@@ -43,7 +43,7 @@ namespace Blue.Kit
             GetIncrementOp().CreateTask()
                 .SetTensor(other)
                 .SetTensor(buffer)
-                .Dispatch(buffer.Size);
+                .Dispatch(buffer.FlattenSize);
         }
         
         private static Operate _copyOp;
@@ -67,7 +67,7 @@ namespace Blue.Kit
             GetClearOp().CreateTask()
                 .SetFloat(clearValue)
                 .SetTensor(buffer)
-                .Dispatch(buffer.Size);
+                .Dispatch(buffer.FlattenSize);
         }
         
     }

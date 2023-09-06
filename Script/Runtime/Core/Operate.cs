@@ -41,19 +41,14 @@ namespace Blue.Core
                 return this;
             }
 
-            public void Dispatch(int size)
-            {
-                Dispatch(size, 1, 1);
-            }
-
-            public void Dispatch(int x, int y, int z)
+            public void Dispatch(int x, int y=1, int z=1)
             {
                 var groupX = x / _threadNumber.x;
                 if (x % _threadNumber.x != 0) groupX++;
                 var groupY = y / _threadNumber.y;
                 if (y % _threadNumber.y != 0) groupY++;
-                var groupZ = y / _threadNumber.z;
-                if (y % _threadNumber.z != 0) groupZ++;
+                var groupZ = z / _threadNumber.z;
+                if (z % _threadNumber.z != 0) groupZ++;
                 _cs.Dispatch(_kernel, groupX, groupY, groupZ);
             }
         }

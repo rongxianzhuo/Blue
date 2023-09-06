@@ -15,19 +15,19 @@ namespace Blue.Graph
 
         public static OperateNode ReLU(IGraphNode input)
         {
-            return new OperateNode("Graph/ReLU", input.GetOutput().Size
+            return new OperateNode("Graph/ReLU", input.GetOutput().FlattenSize
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode ELU(IGraphNode input)
         {
-            return new OperateNode("Graph/ELU", input.GetOutput().Size
+            return new OperateNode("Graph/ELU", input.GetOutput().FlattenSize
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode Sigmoid(IGraphNode input)
         {
-            return new OperateNode("Graph/Sigmoid", input.GetOutput().Size
+            return new OperateNode("Graph/Sigmoid", input.GetOutput().FlattenSize
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
@@ -71,7 +71,7 @@ namespace Blue.Graph
             {
                 handler.SetTensor(node.GetOutput());
             }
-            handler.Dispatch(_output.Size);
+            handler.Dispatch(_output.FlattenSize);
         }
 
         public void Backward()
@@ -87,7 +87,7 @@ namespace Blue.Graph
                 }
                 handler.SetTensor(_inputs[i].GetGradient());
                 handler.SetTensor(_gradient);
-                handler.Dispatch(_inputs[i].GetOutput().Size);
+                handler.Dispatch(_inputs[i].GetOutput().FlattenSize);
             }
         }
 
