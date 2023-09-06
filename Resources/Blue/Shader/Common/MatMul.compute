@@ -1,9 +1,5 @@
 #pragma kernel CSMain
 
-uint total_thread_x;
-uint total_thread_y;
-uint total_thread_z;
-
 int wl;
 int wr;
 
@@ -14,7 +10,6 @@ RWStructuredBuffer<float> result;
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= total_thread_x) return;
     const int i = id.x / wr;
     const int j = id.x % wr;
     float sum = 0.0;

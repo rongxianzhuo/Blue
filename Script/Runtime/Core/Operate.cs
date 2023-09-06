@@ -43,20 +43,17 @@ namespace Blue.Core
 
             public void Dispatch(int size)
             {
-                Dispatch(new Vector3Int(size, 1, 1));
+                Dispatch(size, 1, 1);
             }
 
-            public void Dispatch(Vector3Int size)
+            public void Dispatch(int x, int y, int z)
             {
-                _cs.SetInt(_propertyIds[_propertyIndex++], size.x);
-                _cs.SetInt(_propertyIds[_propertyIndex++], size.y);
-                _cs.SetInt(_propertyIds[_propertyIndex++], size.z);
-                var groupX = size.x / _threadNumber.x;
-                if (size.x % _threadNumber.x != 0) groupX++;
-                var groupY = size.y / _threadNumber.y;
-                if (size.y % _threadNumber.y != 0) groupY++;
-                var groupZ = size.z / _threadNumber.z;
-                if (size.z % _threadNumber.z != 0) groupZ++;
+                var groupX = x / _threadNumber.x;
+                if (x % _threadNumber.x != 0) groupX++;
+                var groupY = y / _threadNumber.y;
+                if (y % _threadNumber.y != 0) groupY++;
+                var groupZ = y / _threadNumber.z;
+                if (y % _threadNumber.z != 0) groupZ++;
                 _cs.Dispatch(_kernel, groupX, groupY, groupZ);
             }
         }
@@ -72,14 +69,11 @@ namespace Blue.Core
             _kernel = _cs.FindKernel(kernel);
             _cs.GetKernelThreadGroupSizes(_kernel, out var x, out var y, out var z);
             _threadGroupSize = new Vector3Int((int)x, (int)y, (int)z);
-            _propertyIds = new int[propertyNames.Length + 3];
+            _propertyIds = new int[propertyNames.Length];
             for (var i = 0; i < propertyNames.Length; i++)
             {
                 _propertyIds[i] = Shader.PropertyToID(propertyNames[i]);
             }
-            _propertyIds[_propertyIds.Length - 3] = Shader.PropertyToID("total_thread_x");
-            _propertyIds[_propertyIds.Length - 2] = Shader.PropertyToID("total_thread_y");
-            _propertyIds[_propertyIds.Length - 1] = Shader.PropertyToID("total_thread_z");
         }
 
         public OperateHandler CreateTask()

@@ -38,7 +38,7 @@ namespace Blue.Core
             _paramsUpdateFlag = _requestBatchSize;
             _optimizer = optimizer;
             _lossFunction = new Operate($"LossFunction/{lossFunction}", "CSMain"
-                , "output", "target", "gradient");
+                , "total_count", "output", "target", "gradient");
         }
 
         public void DisableTrain()
@@ -51,6 +51,7 @@ namespace Blue.Core
         public void Backward(Tensor target)
         {
             _lossFunction.CreateTask()
+                .SetInt(target.Size)
                 .SetTensor(Output.GetOutput())
                 .SetTensor(target)
                 .SetTensor(Output.GetGradient())

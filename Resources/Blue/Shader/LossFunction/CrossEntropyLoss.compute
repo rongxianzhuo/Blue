@@ -1,9 +1,6 @@
 #pragma kernel CSMain
 
-uint total_thread_x;
-uint total_thread_y;
-uint total_thread_z;
-
+uint total_count;
 StructuredBuffer<float> output;
 StructuredBuffer<float> target;
 RWStructuredBuffer<float> gradient;
@@ -11,15 +8,14 @@ RWStructuredBuffer<float> gradient;
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= total_thread_x) return;
     float max_value = output[0];
-    for (uint j = 1; j < total_thread_x; j++)
+    for (uint j = 1; j < total_count; j++)
     {
         if (max_value > output[j]) continue;
         max_value = output[j];
     }
     float sum = 0;
-    for (uint i = 0; i < total_thread_x; i++)
+    for (uint i = 0; i < total_count; i++)
     {
         sum += exp(output[i] - max_value);
     }

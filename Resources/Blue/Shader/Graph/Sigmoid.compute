@@ -1,10 +1,6 @@
 #pragma kernel Forward
 #pragma kernel Backward_input
 
-uint total_thread_x;
-uint total_thread_y;
-uint total_thread_z;
-
 RWStructuredBuffer<float> rw_output;
 StructuredBuffer<float> r_output;
 StructuredBuffer<float> output_gradient;
@@ -15,13 +11,11 @@ StructuredBuffer<float> input;
 [numthreads(64, 1, 1)]
 void Forward(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= total_thread_x) return;
     rw_output[id.x] = 1.0 / (1.0 + pow(2.71828, -input[id.x]));
 }
 
 [numthreads(64, 1, 1)]
 void Backward_input(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= total_thread_x) return;
     input_gradient[id.x] = r_output[id.x] * (1.0 - r_output[id.x]) * output_gradient[id.x];
 }
