@@ -32,25 +32,25 @@ namespace Blue.Graph
 
         public void Forward()
         {
-            Op.MatMul(_weight.GetOutput()
+            Op.MatMul(_input.GetOutput()
                 , _input.GetOutput().FlattenSize
-                , _input.GetOutput()
-                , 1
+                , _weight.GetOutput()
+                , _output.FlattenSize
                 , _output);
             Op.Increment(_output, _bias.GetOutput());
         }
 
         public void Backward()
         {
-            Op.MatMul(_gradient
+            Op.MatMul(_weight.GetOutput()
                 , _gradient.FlattenSize
-                , _weight.GetOutput()
-                , _input.GetGradient().FlattenSize
-                , _input.GetGradient());
-            Op.MatMul(_gradient
+                , _gradient
                 , 1
-                , _input.GetOutput()
-                , _input.GetOutput().FlattenSize
+                , _input.GetGradient());
+            Op.MatMul(_input.GetOutput()
+                , 1
+                , _gradient
+                , _output.FlattenSize
                 , _weight.GetGradient());
             Op.Copy(_gradient, 0, _bias.GetGradient(), 0, _gradient.FlattenSize);
         }
