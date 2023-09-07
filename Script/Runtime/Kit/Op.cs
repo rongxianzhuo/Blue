@@ -70,5 +70,18 @@ namespace Blue.Kit
                 .Dispatch(buffer.FlattenSize);
         }
         
+        private static Operate _transposeOp;
+        private static Operate GetTransposeOp() => _transposeOp ??= new Operate("Common/Transpose", "CSMain"
+            , "src_height", "src_width", "from", "to");
+        public static void Transpose(Tensor src, int srcHeight, int srcWidth, Tensor dst)
+        {
+            GetTransposeOp().CreateTask()
+                .SetInt(srcHeight)
+                .SetInt(srcWidth)
+                .SetTensor(src)
+                .SetTensor(dst)
+                .Dispatch(dst.FlattenSize);
+        }
+        
     }
 }
