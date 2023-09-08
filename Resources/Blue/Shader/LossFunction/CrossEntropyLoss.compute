@@ -8,14 +8,15 @@ RWStructuredBuffer<float> gradient;
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float max_value = output[0];
-    for (uint j = 1; j < total_count; j++)
+    const uint start = id.x / total_count * total_count;
+    float max_value = output[start];
+    for (uint j = start + 1; j < start + total_count; j++)
     {
         if (max_value > output[j]) continue;
         max_value = output[j];
     }
     float sum = 0;
-    for (uint i = 0; i < total_count; i++)
+    for (uint i = start; i < start + total_count; i++)
     {
         sum += exp(output[i] - max_value);
     }

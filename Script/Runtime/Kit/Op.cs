@@ -37,10 +37,11 @@ namespace Blue.Kit
         
         private static Operate _incrementOp;
         private static Operate GetIncrementOp() => _incrementOp ??= new Operate("Common/Increment", "CSMain"
-            , "r_buffer1", "rw_buffer1");
+            , "other_count", "r_buffer1", "rw_buffer1");
         public static void Increment(Tensor buffer, Tensor other)
         {
             GetIncrementOp().CreateTask()
+                .SetInt(other.FlattenSize)
                 .SetTensor(other)
                 .SetTensor(buffer)
                 .Dispatch(buffer.FlattenSize);

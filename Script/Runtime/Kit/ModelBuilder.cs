@@ -8,8 +8,6 @@ namespace Blue.Kit
     public class ModelBuilder
     {
 
-        private readonly List<TensorNode> _inputNodes = new List<TensorNode>();
-
         private readonly Stack<IGraphNode> _inputNodeStack = new Stack<IGraphNode>();
 
         private IGraphNode _outputNode;
@@ -22,10 +20,9 @@ namespace Blue.Kit
             _inputNodeStack.Push(node);
         }
 
-        public ModelBuilder Tensor(int size, bool isParameter, out TensorNode node)
+        public ModelBuilder Tensor(bool isParameter, out TensorNode node, params int[] size)
         {
-            node = new TensorNode(_nextTensorNodeId++, size, isParameter);
-            if (!isParameter) _inputNodes.Add(node);
+            node = new TensorNode(_nextTensorNodeId++, isParameter, size);
             Any(node);
             return this;
         }
@@ -64,35 +61,18 @@ namespace Blue.Kit
 
         public ModelBuilder Linear(int size)
         {
-            Random(_inputNodeStack.Peek().GetOutput().FlattenSize, size);
-            Tensor(size, true, out _);
+            Random(_inputNodeStack.Peek().GetOutput().Size[1], size);
+            Tensor(true, out _, size);
             var bias = _inputNodeStack.Pop();
             var weight = _inputNodeStack.Pop();
             var input = _inputNodeStack.Pop();
-            Any(new LinearNode(input, weight, bias, size));
-            return this;
-        }
-
-        public ModelBuilder ConcatLayer()
-        {
-            var inputs = new IGraphNode[_inputNodeStack.Count];
-            for (var i = inputs.Length - 1; i >= 0; i--)
-            {
-                inputs[i] = _inputNodeStack.Pop();
-            }
-
-            Any(new ConcatNode(inputs));
+            Any(new LinearNode(input, weight, bias));
             return this;
         }
 
         public Model Build()
         {
             return new Model(_outputNode);
-        }
-
-        public SimpleModel BuildSimpleModel()
-        {
-            return new SimpleModel(_outputNode, _inputNodes.ToArray());
         }
 
     }

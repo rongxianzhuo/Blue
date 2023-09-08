@@ -1,25 +1,23 @@
 using System;
 using System.Collections.Generic;
 using Blue.Core;
-using Blue.Kit;
 
 namespace Blue.Graph
 {
     public class TensorNode : IGraphNode
     {
 
-        public readonly Tensor TotalGradient;
         public readonly int Id;
+
+        public readonly bool IsParameter;
 
         private readonly Tensor _output;
         private readonly Tensor _gradient;
 
-        public bool IsParameter => TotalGradient != null;
-
-        public TensorNode(int id, int size, bool isParam)
+        public TensorNode(int id, bool isParam, params int[] size)
         {
             Id = id;
-            TotalGradient = isParam ? new Tensor(size) : null;
+            IsParameter = isParam;
             _output = new Tensor(size);
             _gradient = new Tensor(size);
         }
@@ -27,8 +25,8 @@ namespace Blue.Graph
         public TensorNode(int id, bool isParam, List<float> data)
         {
             Id = id;
+            IsParameter = isParam;
             var size = data.Count;
-            TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(data);
             _gradient = new Tensor(size);
         }
@@ -49,15 +47,12 @@ namespace Blue.Graph
 
         public void Backward()
         {
-            if (TotalGradient == null) return;
-            Op.Increment(TotalGradient, _gradient);
         }
 
         public void Destroy()
         {
             _output.Release();
             _gradient.Release();
-            TotalGradient?.Release();
         }
 
         public void ForeachInputNode(Action<IGraphNode> action)

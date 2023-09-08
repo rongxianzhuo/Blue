@@ -15,23 +15,23 @@ namespace Blue.Graph
 
         public static OperateNode ReLU(IGraphNode input)
         {
-            return new OperateNode("Graph/ReLU", input.GetOutput().FlattenSize
+            return new OperateNode("Graph/ReLU", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode ELU(IGraphNode input)
         {
-            return new OperateNode("Graph/ELU", input.GetOutput().FlattenSize
+            return new OperateNode("Graph/ELU", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
         public static OperateNode Sigmoid(IGraphNode input)
         {
-            return new OperateNode("Graph/Sigmoid", input.GetOutput().FlattenSize
+            return new OperateNode("Graph/Sigmoid", input.GetOutput().Size
                 , new KeyValuePair<string, IGraphNode>("input", input));
         }
 
-        public OperateNode(string shaderName, int size, params KeyValuePair<string, IGraphNode>[] inputs)
+        public OperateNode(string shaderName, int[] size, params KeyValuePair<string, IGraphNode>[] inputs)
         {
             var properties = new List<string>(inputs.Length + 2);
             properties.Add("rw_output");
