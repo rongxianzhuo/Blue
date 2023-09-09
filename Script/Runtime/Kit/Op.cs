@@ -84,5 +84,18 @@ namespace Blue.Kit
                 .Dispatch(dst.FlattenSize);
         }
         
+        private static Operate _crossEntropyLossOp;
+        private static Operate GetCrossEntropyLossOp() => _crossEntropyLossOp ??= new Operate($"LossFunction/CrossEntropyLoss", "CSMain"
+            , "total_count", "output", "target", "gradient");
+        public static void CrossEntropyLoss(Tensor output, Tensor target, Tensor gradient)
+        {
+            GetCrossEntropyLossOp().CreateTask()
+                .SetInt(target.Size[1])
+                .SetTensor(output)
+                .SetTensor(target)
+                .SetTensor(gradient)
+                .Dispatch(target.FlattenSize);
+        }
+        
     }
 }

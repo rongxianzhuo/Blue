@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Blue.Core;
+using Blue.Graph;
 
-using Blue.Core;namespace Blue.Optimizers
+namespace Blue.Optimizers
 {
     public class AdamOptimizer : IOptimizer
     {
@@ -18,8 +20,10 @@ using Blue.Core;namespace Blue.Optimizers
         private readonly Dictionary<Tensor, Tensor> _v = new Dictionary<Tensor, Tensor>();
         private readonly Dictionary<Tensor, float> _t = new Dictionary<Tensor, float>();
         
-        public void Step(Tensor param, Tensor gradient)
+        public void Step(IGraphNode node)
         {
+            var param = node.GetOutput();
+            var gradient = node.GetGradient();
             if (!_m.TryGetValue(param, out var m))
             {
                 m = new Tensor(param.Size);

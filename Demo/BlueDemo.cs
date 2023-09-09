@@ -24,6 +24,7 @@ namespace Blue.Demo
         private Model _model;
         private TensorNode _input;
         private Tensor _target;
+        private IOptimizer _optimizer;
 
         private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
 
@@ -36,7 +37,7 @@ namespace Blue.Demo
                 .Activation("relu")
                 .Linear(10)
                 .Build();
-            _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
+            _optimizer = new AdamOptimizer();
             if (loadModel && Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
@@ -68,9 +69,11 @@ namespace Blue.Demo
                         batchTargetLabel[j] = mnistData.TrainData[i * BatchSize + j].Label;
                     }
                     _input.GetOutput().SetData(x);
-                    _target.SetData(y);
                     _model.Forward();
-                    _model.Backward(_target);
+                    _target.SetData(y);
+                    Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
+                    _model.Backward();
+                    _model.ForeachParameterNode(_optimizer.Step);
                     if (i % 32 == 0)
                     {
                         infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{batchCount}";
@@ -88,7 +91,7 @@ namespace Blue.Demo
 
         private void Test(MnistData mnistData)
         {
-            const int sampleCount = 1024;
+            const int sampleCount = 2048;
             _input.Resize(sampleCount, 784);
             var x = new float[sampleCount * 784];
             var y = new int[sampleCount];

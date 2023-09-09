@@ -1,56 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Blue.Graph;
-using Blue.Optimizers;
+using UnityEngine;
 
 namespace Blue.Core
 {
-
-    public class Model : NodeGraph
+    public class Model
     {
 
-        private IOptimizer _optimizer;
-        private Operate _lossFunction;
+        public readonly IGraphNode Output;
+        
+        private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
 
-        public void EnableTrain(IOptimizer optimizer, string lossFunction)
+        public Model(IGraphNode outputNode)
         {
-            DisableTrain();
-            _optimizer = optimizer;
-            _lossFunction = new Operate($"LossFunction/{lossFunction}", "CSMain"
-                , "total_count", "output", "target", "gradient");
+            Output = outputNode;
+            outputNode.ForeachInputNode(input => AddNode(input, outputNode));
         }
 
-        public void DisableTrain()
+        public void LoadParameterFile(string dirPath)
         {
-            _optimizer?.Destroy();
-            _optimizer = null;
-            _lossFunction = null;
+            ForeachParameterNode(node =>
+            {
+                if (File.Exists($"{dirPath}/{node.Id}.bytes"))
+                {
+                    using var stream = File.OpenRead($"{dirPath}/{node.Id}.bytes");
+                    node.GetOutput().LoadFromStream(stream);
+                    stream.Close();
+                }
+                else if (File.Exists($"{dirPath}/{node.Id}.json"))
+                {
+                    node.GetOutput().LoadFromJson(File.ReadAllText($"{dirPath}/{node.Id}.json"));
+                }
+                else
+                {
+                    Debug.LogWarning($"No parameter file: {node.Id}");
+                }
+            });
         }
 
-        public void Backward(Tensor target)
+        public void SaveParameterFile(string dirPath)
         {
-            _lossFunction.CreateTask()
-                .SetInt(target.Size[1])
-                .SetTensor(Output.GetOutput())
-                .SetTensor(target)
-                .SetTensor(Output.GetGradient())
-                .Dispatch(target.FlattenSize);
-            Backward();
-            ForeachParameterNode(UpdateParameter);
+            Directory.CreateDirectory(dirPath);
+            ForeachParameterNode(node =>
+            {
+                using var stream = File.OpenWrite($"{dirPath}/{node.Id}.bytes");
+                node.GetOutput().SaveToStream(stream);
+                stream.Close();
+            });
         }
 
-        public Model(IGraphNode outputNode) : base(outputNode)
+        public void ForeachParameterNode(Action<TensorNode> action)
         {
+            for (var i = _nodeLayer.Count - 1; i >= 0; i--)
+            {
+                foreach (var node in _nodeLayer[i])
+                {
+                    if (node is TensorNode dataNode && dataNode.IsParameter) action(dataNode);
+                }
+            }
         }
 
-        public override void Destroy()
+        public void Forward()
         {
-            DisableTrain();
-            base.Destroy();
+            for (var i = _nodeLayer.Count - 1; i >= 0; i--)
+            {
+                foreach (var node in _nodeLayer[i]) node.Forward();
+            }
+
+            Output.Forward();
         }
 
-        private void UpdateParameter(TensorNode node)
+        public void Backward()
         {
-            _optimizer.Step(node.GetOutput(), node.GetGradient());
+            Output.Backward();
+            foreach (var nodes in _nodeLayer)
+            {
+                foreach (var node in nodes) node.Backward();
+            }
+        }
+
+        public virtual void Destroy()
+        {
+            Output.Destroy();
+            foreach (var nodes in _nodeLayer)
+            {
+                foreach (var node in nodes)
+                {
+                    node.Destroy();
+                }
+            }
+        }
+
+        private void AddNode(IGraphNode node, IGraphNode forwardNode)
+        {
+            var forwardLayer = GetNodeLayerIndex(forwardNode);
+            var layer = GetNodeLayerIndex(node);
+            var newLayer = Mathf.Max(forwardLayer + 1, layer);
+            if (newLayer == layer) return;
+            if (layer != -1) _nodeLayer[layer].Remove(node);
+            while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<IGraphNode>());
+            _nodeLayer[newLayer].Add(node);
+            node.ForeachInputNode(input => AddNode(input, node));
+        }
+
+        private int GetNodeLayerIndex(IGraphNode node)
+        {
+            for (var i = 0; i < _nodeLayer.Count; i++)
+            {
+                if (_nodeLayer[i].Contains(node)) return i;
+            }
+
+            return -1;
         }
     }
-
 }

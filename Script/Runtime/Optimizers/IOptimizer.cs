@@ -1,10 +1,11 @@
 using Blue.Core;
+using Blue.Graph;
 
 namespace Blue.Optimizers
 {
     public interface IOptimizer
     {
-        void Step(Tensor param, Tensor gradient);
+        void Step(IGraphNode node);
 
         void Destroy();
     }
