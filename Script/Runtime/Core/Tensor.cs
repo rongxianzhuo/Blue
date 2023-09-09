@@ -111,5 +111,17 @@ namespace Blue.Core
             return _syncArray;
         }
 
+        public Tensor Transpose()
+        {
+            var size = new int[Size.Length];
+            for (var i = 0; i < size.Length; i++)
+            {
+                size[i] = Size[size.Length - i - 1];
+            }
+            var result = new Tensor(size);
+            Op.Transpose(this, result);
+            return result;
+        }
+
     }
 }

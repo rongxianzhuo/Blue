@@ -24,9 +24,9 @@ namespace Blue.Graph
             _bias = bias;
             _output = new Tensor(batchSize, bias.GetOutput().FlattenSize);
             _gradient = new Tensor(batchSize, bias.GetOutput().FlattenSize);
-            _tInput = new Tensor(input.GetOutput().Size[1], batchSize);
-            _tWeight = new Tensor(weight.GetOutput().Size);
-            _tBias = new Tensor(batchSize);
+            _tInput = input.GetOutput().Transpose();
+            _tWeight = weight.GetOutput().Transpose();
+            _tBias = new Tensor(1, batchSize);
             Op.Clear(_tBias, 1f / batchSize);
         }
 
@@ -43,13 +43,11 @@ namespace Blue.Graph
                 _output.Resize(batchSize, outputSize);
                 _gradient.Resize(batchSize, outputSize);
                 _tInput.Resize(_input.GetOutput().Size[1], batchSize);
-                _tBias.Resize(batchSize);
+                _tBias.Resize(1, batchSize);
                 Op.Clear(_tBias, 1f / batchSize);
             }
             Op.MatMul(_input.GetOutput()
-                , _input.GetOutput().Size[1]
                 , _weight.GetOutput()
-                , _output.Size[1]
                 , _output);
             Op.Increment(_output, _bias.GetOutput());
         }
@@ -57,25 +55,17 @@ namespace Blue.Graph
         public void Backward()
         {
             Op.Transpose(_weight.GetOutput()
-                , _input.GetOutput().Size[1]
-                , _output.Size[1]
                 , _tWeight);
             Op.MatMul(_gradient
-                , _gradient.Size[1]
                 , _tWeight
-                , _input.GetOutput().Size[1]
                 , _input.GetGradient());
             Op.Transpose(_input.GetOutput()
-                , _input.GetOutput().Size[0]
-                , _input.GetOutput().Size[1]
                 , _tInput);
             Op.MatMul(_tInput
-                , _input.GetOutput().Size[0]
                 , _gradient
-                , _output.Size[1]
                 , _weight.GetGradient());
             Op.Translate(_weight.GetGradient(), 1f / _input.GetOutput().Size[0], 0f);
-            Op.MatMul(_tBias, _tBias.FlattenSize, _gradient, _output.Size[1], _bias.GetGradient());
+            Op.MatMul(_tBias, _gradient, _bias.GetGradient());
         }
 
         public void Destroy()

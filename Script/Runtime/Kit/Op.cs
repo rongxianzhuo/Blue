@@ -24,11 +24,11 @@ namespace Blue.Kit
             , "left"
             , "right"
             , "result");
-        public static void MatMul(Tensor left, int leftWidth, Tensor right, int rightWidth, Tensor result)
+        public static void MatMul(Tensor left, Tensor right, Tensor result)
         {
             GetMatMulOp().CreateTask()
-                .SetInt(leftWidth)
-                .SetInt(rightWidth)
+                .SetInt(left.Size[1])
+                .SetInt(right.Size[1])
                 .SetTensor(left)
                 .SetTensor(right)
                 .SetTensor(result)
@@ -74,11 +74,11 @@ namespace Blue.Kit
         private static Operate _transposeOp;
         private static Operate GetTransposeOp() => _transposeOp ??= new Operate("Common/Transpose", "CSMain"
             , "src_height", "src_width", "from", "to");
-        public static void Transpose(Tensor src, int srcHeight, int srcWidth, Tensor dst)
+        public static void Transpose(Tensor src, Tensor dst)
         {
             GetTransposeOp().CreateTask()
-                .SetInt(srcHeight)
-                .SetInt(srcWidth)
+                .SetInt(src.Size[0])
+                .SetInt(src.Size[1])
                 .SetTensor(src)
                 .SetTensor(dst)
                 .Dispatch(dst.FlattenSize);

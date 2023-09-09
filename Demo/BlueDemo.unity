@@ -485,9 +485,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45ed6bf1408fa4278aa8c5a46d16570a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadModel: 0
   saveModel: 0
   infoText: {fileID: 1626112876}
-  modelAsset: {fileID: 4900000, guid: c1cbbeb77016b40f792b2e15ecae64b8, type: 3}
+  trainEpochs: 2
 --- !u!4 &1895136504
 Transform:
   m_ObjectHideFlags: 0

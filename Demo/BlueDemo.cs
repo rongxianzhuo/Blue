@@ -16,9 +16,10 @@ namespace Blue.Demo
 
         private const int BatchSize = 32;
 
+        public bool loadModel;
         public bool saveModel;
         public Text infoText;
-        public int trainEpochs = 5;
+        public int trainEpochs = 2;
 
         private Model _model;
         private TensorNode _input;
@@ -36,7 +37,7 @@ namespace Blue.Demo
                 .Linear(10)
                 .Build();
             _model.EnableTrain(new AdamOptimizer(), "CrossEntropyLoss");
-            if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
+            if (loadModel && Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
 

@@ -29,15 +29,16 @@ namespace Blue.Kit
 
         public ModelBuilder Random(int inputCount, int outputCount)
         {
+            var node = new TensorNode(_nextTensorNodeId++, true, inputCount, outputCount);
             var size = inputCount * outputCount;
             var min = -Mathf.Sqrt(1f / (inputCount + outputCount));
             var max = -min;
-            var list = new List<float>();
+            var array = new float[size];
             for (var i = 0; i < size; i++)
             {
-                list.Add(UnityEngine.Random.Range(min, max));
+                array[i] = UnityEngine.Random.Range(min, max);
             }
-            var node = new TensorNode(_nextTensorNodeId++, true, list);
+            node.GetOutput().SetData(array);
             Any(node);
             return this;
         }
