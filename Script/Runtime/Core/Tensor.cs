@@ -17,26 +17,28 @@ namespace Blue.Core
             public float[] data;
         }
 
-        public readonly int FlattenSize;
-
-        public readonly int[] Size;
-
-        private readonly ComputeBuffer _buffer;
-
         private float[] _syncArray;
+        private ComputeBuffer _buffer;
+
+        public int[] Size { get; private set; }
+
+        public int FlattenSize { get; private set; }
 
         public Tensor(params int[] size)
         {
-            Size = size;
-            var totalSize = 1;
-            foreach (var i in size)
+            Resize(size);
+        }
+
+        public bool IsSize(params int[] size)
+        {
+            if (Size == null) return false;
+            if (size.Length != Size.Length) return false;
+            for (var i = 0; i < size.Length; i++)
             {
-                totalSize *= i;
+                if (size[i] != Size[i]) return false;
             }
 
-            FlattenSize = totalSize;
-            _buffer = new ComputeBuffer(totalSize, sizeof(float));
-            Op.Clear(this, 0);
+            return true;
         }
 
         public Tensor(List<float> list)
@@ -58,6 +60,20 @@ namespace Blue.Core
             var binaryFormatter = new BinaryFormatter();
             var array = (float[])binaryFormatter.Deserialize(stream);
             SetData(array);
+        }
+
+        public void Resize(params int[] size)
+        {
+            if (IsSize(size)) return;
+            Size = size;
+            var totalSize = 1;
+            foreach (var i in size)
+            {
+                totalSize *= i;
+            }
+            FlattenSize = totalSize;
+            _buffer = new ComputeBuffer(totalSize, sizeof(float));
+            Op.Clear(this, 0);
         }
 
         public void SaveToStream(Stream stream)

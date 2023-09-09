@@ -36,6 +36,16 @@ namespace Blue.Graph
 
         public void Forward()
         {
+            var batchSize = _input.GetOutput().Size[0];
+            if (batchSize != _output.Size[0])
+            {
+                var outputSize = _bias.GetOutput().FlattenSize;
+                _output.Resize(batchSize, outputSize);
+                _gradient.Resize(batchSize, outputSize);
+                _tInput.Resize(_input.GetOutput().Size[1], batchSize);
+                _tBias.Resize(batchSize);
+                Op.Clear(_tBias, 1f / batchSize);
+            }
             Op.MatMul(_input.GetOutput()
                 , _input.GetOutput().Size[1]
                 , _weight.GetOutput()

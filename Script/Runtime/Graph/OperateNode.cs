@@ -65,6 +65,8 @@ namespace Blue.Graph
 
         public void Forward()
         {
+            _output.Resize(_inputs[0].GetOutput().Size);
+            _gradient.Resize(_inputs[0].GetOutput().Size);
             var handler = _forward.CreateTask();
             handler.SetTensor(_output);
             foreach (var node in _inputs)

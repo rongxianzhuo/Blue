@@ -18,6 +18,7 @@ namespace Blue.Demo
 
         public bool saveModel;
         public Text infoText;
+        public int trainEpochs = 5;
 
         private Model _model;
         private TensorNode _input;
@@ -53,11 +54,9 @@ namespace Blue.Demo
             var x = new float[BatchSize * 784];
             var y = new float[BatchSize * 10];
             var epoch = 0;
-            while (epoch < 5)
+            while (epoch < trainEpochs)
             {
                 epoch++;
-                var correctCount = 0;
-                var testCount = 0;
                 var batchCount = mnistData.TrainData.Count / BatchSize;
                 for (var i = 0; i < batchCount; i++)
                 {
@@ -71,11 +70,9 @@ namespace Blue.Demo
                     _target.SetData(y);
                     _model.Forward();
                     _model.Backward(_target);
-                    if (i % 8 == 0)
+                    if (i % 32 == 0)
                     {
-                        correctCount += GetCorrectCount(batchTargetLabel);
-                        testCount += BatchSize;
-                        infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{batchCount}\nAccuracy: {correctCount * 100f / testCount:0.00}%";
+                        infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{batchCount}";
                         yield return null;
                     }
                 }
@@ -85,13 +82,30 @@ namespace Blue.Demo
                     Debug.Log("Model saved");
                 }
             }
+            Test(mnistData);
+        }
+
+        private void Test(MnistData mnistData)
+        {
+            const int sampleCount = 1024;
+            _input.Resize(sampleCount, 784);
+            var x = new float[sampleCount * 784];
+            var y = new int[sampleCount];
+            for (var i = 0; i < sampleCount; i++)
+            {
+                Array.Copy(mnistData.TestData[i].ImageData, 0, x, i * 784, 784);
+                y[i] = mnistData.TestData[i].Label;
+            }
+            _input.GetOutput().SetData(x);
+            _model.Forward();
+            infoText.text = $"Accuracy: {GetCorrectCount(y) * 100f / sampleCount:0.00}%";
         }
 
         public int GetCorrectCount(int[] batchTargetLabel)
         {
             var correctCount = 0;
             var outputData = _model.Output.GetOutput().Sync();
-            for (var i = 0; i < BatchSize; i++)
+            for (var i = 0; i < batchTargetLabel.Length; i++)
             {
                 var max = outputData[i * 10];
                 var index = 0;
