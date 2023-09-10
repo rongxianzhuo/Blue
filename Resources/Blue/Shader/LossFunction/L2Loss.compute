@@ -1,6 +1,5 @@
 #pragma kernel CSMain
 
-uint total_count;
 StructuredBuffer<float> output;
 StructuredBuffer<float> target;
 RWStructuredBuffer<float> gradient;

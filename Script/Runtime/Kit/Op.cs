@@ -100,5 +100,17 @@ namespace Blue.Kit
                 .Dispatch(target.FlattenSize);
         }
         
+        private static Operate _l2LossOp;
+        private static Operate GetL2LossOp() => _l2LossOp ??= new Operate($"LossFunction/L2Loss", "CSMain"
+            , "output", "target", "gradient");
+        public static void L2Loss(Tensor output, Tensor target, Tensor gradient)
+        {
+            GetL2LossOp().CreateTask()
+                .SetTensor(output)
+                .SetTensor(target)
+                .SetTensor(gradient)
+                .Dispatch(target.FlattenSize);
+        }
+        
     }
 }

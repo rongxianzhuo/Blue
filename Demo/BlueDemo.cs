@@ -46,6 +46,7 @@ namespace Blue.Demo
         {
             _model.Destroy();
             _target.Release();
+            _optimizer.Destroy();
         }
 
         private IEnumerator Train()

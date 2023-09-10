@@ -60,6 +60,15 @@ namespace Blue.Kit
             return this;
         }
 
+        public ModelBuilder Concat()
+        {
+            var list = new List<IGraphNode>();
+            while (_inputNodeStack.Count > 0) list.Insert(0, _inputNodeStack.Pop());
+            var concatNode = new ConcatNode(list.ToArray());
+            Any(concatNode);
+            return this;
+        }
+
         public ModelBuilder Linear(int size)
         {
             Random(_inputNodeStack.Peek().GetOutput().Size[1], size);
