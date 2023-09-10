@@ -1,12 +1,17 @@
 #pragma kernel CSMain
 
-int src_offset;
-int dst_offset;
-StructuredBuffer<float> r_buffer1;
-RWStructuredBuffer<float> rw_buffer1;
+int src_start;
+int dst_start;
+int src_interval;
+int dst_interval;
+int stride;
+StructuredBuffer<float> src_buffer;
+RWStructuredBuffer<float> dst_buffer;
 
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    rw_buffer1[id.x + dst_offset] = r_buffer1[id.x + src_offset];
+    const uint i = id.x / stride;
+    const uint j = id.x % stride;
+    dst_buffer[dst_start + (dst_interval + stride) * i + j] = src_buffer[src_start + (src_interval + stride) * i + j];
 }

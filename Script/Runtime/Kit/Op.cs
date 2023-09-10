@@ -49,14 +49,17 @@ namespace Blue.Kit
         
         private static Operate _copyOp;
         private static Operate GetCopyOp() => _copyOp ??= new Operate("Common/Copy", "CSMain"
-            , "r_buffer1", "src_offset", "rw_buffer1", "dst_offset");
-        public static void Copy(Tensor src, int srcStartIndex, Tensor dst, int dstStartIndex, int length)
+            , "src_start", "dst_start", "src_interval", "dst_interval", "stride", "src_buffer", "dst_buffer");
+        public static void Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)
         {
             GetCopyOp().CreateTask()
+                .SetInt(srcStart)
+                .SetInt(dstStart)
+                .SetInt(srcInterval)
+                .SetInt(dstInterval)
+                .SetInt(stride)
                 .SetTensor(src)
-                .SetInt(srcStartIndex)
                 .SetTensor(dst)
-                .SetInt(dstStartIndex)
                 .Dispatch(length);
         }
         
