@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using Blue.Core;
 using Blue.Graph;
@@ -54,8 +55,15 @@ namespace Blue.Demo
             var batchTargetLabel = new int[BatchSize];
             var mnistData = new MnistData();
             yield return mnistData.DownloadData();
-            var x = new float[BatchSize * 784];
-            var y = new float[BatchSize * 10];
+            var xList = new List<float>();
+            var yList = new List<float>();
+            foreach (var data in mnistData.TrainData)
+            {
+                xList.AddRange(data.ImageData);
+                yList.AddRange(data.LabelArray);
+            }
+            var xTensor = new Tensor(xList);
+            var yTensor = new Tensor(yList);
             var epoch = 0;
             while (epoch < trainEpochs)
             {
@@ -65,13 +73,25 @@ namespace Blue.Demo
                 {
                     for (var j = 0; j < BatchSize; j++)
                     {
-                        Array.Copy(mnistData.TrainData[i * BatchSize + j].ImageData, 0, x, j * 784, 784);
-                        Array.Copy(mnistData.TrainData[i * BatchSize + j].LabelArray, 0, y, j * 10, 10);
                         batchTargetLabel[j] = mnistData.TrainData[i * BatchSize + j].Label;
                     }
-                    _input.GetOutput().SetData(x);
+                    Op.Copy(xTensor
+                        , i * BatchSize * 784
+                        , 0
+                        , _input.GetOutput()
+                        , 0
+                        , 0
+                        , BatchSize * 784
+                        , BatchSize * 784);
+                    Op.Copy(yTensor
+                        , i * BatchSize * 10
+                        , 0
+                        , _target
+                        , 0
+                        , 0
+                        , BatchSize * 10
+                        , BatchSize * 10);
                     _model.Forward();
-                    _target.SetData(y);
                     Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
                     _model.Backward();
                     _model.ForeachParameterNode(_optimizer.Step);
@@ -87,6 +107,8 @@ namespace Blue.Demo
                     Debug.Log("Model saved");
                 }
             }
+            xTensor.Release();
+            yTensor.Release();
             Test(mnistData);
         }
 
