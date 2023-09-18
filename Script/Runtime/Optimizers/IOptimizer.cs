@@ -5,7 +5,7 @@ namespace Blue.Optimizers
 {
     public interface IOptimizer
     {
-        void Step(IGraphNode node);
+        void Step(TensorNode node);
 
         void Destroy();
     }

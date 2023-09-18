@@ -7,61 +7,75 @@ namespace Blue.Optimizers
     public class AdamOptimizer : IOptimizer
     {
 
-        private static Operate _operate;
-
-        private static Operate GetOperate() => _operate ??= new Operate("Optimizer/Adam", "CSMain"
-            , "t", "beta1", "beta2", "learning_rate", "g", "m", "v", "theta");
-
         public float LearningRate = 0.001f;
-        
+
+        private readonly int _tId = OperateInstance.PropertyId("t");
         private readonly float _beta1 = 0.9f;
         private readonly float _beta2 = 0.999f;
-        private readonly Dictionary<Tensor, Tensor> _m = new Dictionary<Tensor, Tensor>();
-        private readonly Dictionary<Tensor, Tensor> _v = new Dictionary<Tensor, Tensor>();
-        private readonly Dictionary<Tensor, float> _t = new Dictionary<Tensor, float>();
+        private readonly List<Tensor> _m = new List<Tensor>();
+        private readonly List<Tensor> _v = new List<Tensor>();
+        private readonly List<float> _t = new List<float>();
+        private readonly List<OperateInstance> _op = new List<OperateInstance>();
         
-        public void Step(IGraphNode node)
+        public void Step(TensorNode node)
         {
             var param = node.GetOutput();
             var gradient = node.GetGradient();
-            if (!_m.TryGetValue(param, out var m))
+            while (_m.Count <= node.Id) _m.Add(null);
+            var m = _m[node.Id];
+            if (m == null)
             {
                 m = new Tensor(param.Size);
-                _m[param] = m;
+                _m[node.Id] = m;
             }
-            if (!_v.TryGetValue(param, out var v))
+            
+            while (_v.Count <= node.Id) _v.Add(null);
+            var v = _v[node.Id];
+            if (v == null)
             {
                 v = new Tensor(param.Size);
-                _v[param] = v;
+                _v[node.Id] = v;
+            }
+            
+            while (_op.Count <= node.Id) _op.Add(null);
+            var op = _op[node.Id];
+            if (op == null)
+            {
+                op = new OperateInstance("Optimizer/Adam", "CSMain")
+                    .SetFloat("t", 0f)
+                    .SetFloat("beta1", _beta1)
+                    .SetFloat("beta2", _beta2)
+                    .SetFloat("learning_rate", LearningRate)
+                    .SetTensor("g", gradient)
+                    .SetTensor("m", m)
+                    .SetTensor("v", v)
+                    .SetTensor("theta", param)
+                    .SetDispatchSize(param.FlattenSize);
+                _op[node.Id] = op;
             }
 
-            if (!_t.TryGetValue(param, out var t))
-            {
-                t = 0f;
-            }
+            while (_t.Count <= node.Id) _t.Add(0);
+            var t = _t[node.Id];
             t++;
-            _t[param] = t;
-            GetOperate().CreateTask()
-                .SetFloat(t)
-                .SetFloat(_beta1)
-                .SetFloat(_beta2)
-                .SetFloat(LearningRate)
-                .SetTensor(gradient)
-                .SetTensor(m)
-                .SetTensor(v)
-                .SetTensor(param)
-                .Dispatch(param.FlattenSize);
+            _t[node.Id] = t;
+            op.SetFloat(_tId, t);
+            op.Dispatch();
         }
 
         public void Destroy()
         {
-            foreach (var m in _m.Values)
+            foreach (var m in _m)
             {
-                m.Release();
+                m?.Release();
             }
-            foreach (var v in _v.Values)
+            foreach (var v in _v)
             {
-                v.Release();
+                v?.Release();
+            }
+
+            foreach (var op in _op)
+            {
+                op?.Destroy();
             }
         }
     }
