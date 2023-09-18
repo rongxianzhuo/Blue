@@ -16,23 +16,16 @@ namespace Blue.Kit
                 .SetTensor(buffer)
                 .Dispatch(buffer.FlattenSize);
         }
-
-        private static Operate _matMulOp;
-        private static Operate GetMatMulOp() => _matMulOp ??= new Operate("Common/MatMul", "CSMain"
-            , "wl"
-            , "wr"
-            , "left"
-            , "right"
-            , "result");
-        public static void MatMul(Tensor left, Tensor right, Tensor result)
+        
+        public static OperateInstance MatMul(Tensor left, Tensor right, Tensor result)
         {
-            GetMatMulOp().CreateTask()
-                .SetInt(left.Size[1])
-                .SetInt(right.Size[1])
-                .SetTensor(left)
-                .SetTensor(right)
-                .SetTensor(result)
-                .Dispatch(result.FlattenSize);
+            return new OperateInstance("Common/MatMul", "CSMain")
+                .SetInt("wl", left.Size[1])
+                .SetInt("wr", right.Size[1])
+                .SetTensor("left", left)
+                .SetTensor("right", right)
+                .SetTensor("result", result)
+                .SetDispatchSize(result.FlattenSize);
         }
         
         private static Operate _incrementOp;

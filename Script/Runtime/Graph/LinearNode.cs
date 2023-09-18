@@ -15,6 +15,11 @@ namespace Blue.Graph
         private readonly Tensor _tInput;
         private readonly Tensor _tWeight;
         private readonly Tensor _tBias;
+
+        private OperateInstance _matMulForward;
+        private OperateInstance _matMulBackward1;
+        private OperateInstance _matMulBackward2;
+        private OperateInstance _matMulBackward3;
         
         public LinearNode(IGraphNode input, IGraphNode weight, IGraphNode bias)
         {
@@ -28,6 +33,25 @@ namespace Blue.Graph
             _tWeight = weight.GetOutput().Transpose();
             _tBias = new Tensor(1, batchSize);
             Op.Clear(_tBias, 1f / batchSize);
+            UpdateOperate();
+        }
+
+        private void UpdateOperate()
+        {
+            _matMulForward?.Destroy();
+            _matMulForward = Op.MatMul(_input.GetOutput()
+                , _weight.GetOutput()
+                , _output);
+            _matMulBackward1?.Destroy();
+            _matMulBackward1 = Op.MatMul(_gradient
+                , _tWeight
+                , _input.GetGradient());
+            _matMulBackward2?.Destroy();
+            _matMulBackward2 = Op.MatMul(_tInput
+                , _gradient
+                , _weight.GetGradient());
+            _matMulBackward3?.Destroy();
+            _matMulBackward3 = Op.MatMul(_tBias, _gradient, _bias.GetGradient());
         }
 
         public Tensor GetOutput() => _output;
@@ -45,10 +69,9 @@ namespace Blue.Graph
                 _tInput.Resize(_input.GetOutput().Size[1], batchSize);
                 _tBias.Resize(1, batchSize);
                 Op.Clear(_tBias, 1f / batchSize);
+                UpdateOperate();
             }
-            Op.MatMul(_input.GetOutput()
-                , _weight.GetOutput()
-                , _output);
+            _matMulForward.Dispatch();
             Op.Increment(_output, _bias.GetOutput());
         }
 
@@ -56,16 +79,12 @@ namespace Blue.Graph
         {
             Op.Transpose(_weight.GetOutput()
                 , _tWeight);
-            Op.MatMul(_gradient
-                , _tWeight
-                , _input.GetGradient());
+            _matMulBackward1.Dispatch();
             Op.Transpose(_input.GetOutput()
                 , _tInput);
-            Op.MatMul(_tInput
-                , _gradient
-                , _weight.GetGradient());
+            _matMulBackward2.Dispatch();
             Op.Translate(_weight.GetGradient(), 1f / _input.GetOutput().Size[0], 0f);
-            Op.MatMul(_tBias, _gradient, _bias.GetGradient());
+            _matMulBackward3.Dispatch();
         }
 
         public void Destroy()
@@ -75,6 +94,10 @@ namespace Blue.Graph
             _tWeight.Release();
             _tInput.Release();
             _tBias.Release();
+            _matMulForward?.Destroy();
+            _matMulBackward1?.Destroy();
+            _matMulBackward2?.Destroy();
+            _matMulBackward3?.Destroy();
         }
 
         public void ForeachInputNode(Action<IGraphNode> action)
