@@ -62,9 +62,9 @@ namespace Blue.Core
             SetData(array);
         }
 
-        public void Resize(params int[] size)
+        public bool Resize(params int[] size)
         {
-            if (IsSize(size)) return;
+            if (IsSize(size)) return false;
             _syncArray = null;
             if (_buffer != null) _buffer.Release();
             Size = size;
@@ -76,6 +76,7 @@ namespace Blue.Core
             FlattenSize = totalSize;
             _buffer = new ComputeBuffer(totalSize, sizeof(float));
             Op.Clear(this, 0);
+            return true;
         }
 
         public void SaveToStream(Stream stream)
@@ -126,7 +127,9 @@ namespace Blue.Core
                 size[i] = Size[size.Length - i - 1];
             }
             var result = new Tensor(size);
-            Op.Transpose(this, result);
+            var op = Op.Transpose(this, result);
+            op.Dispatch();
+            op.Destroy();
             return result;
         }
 

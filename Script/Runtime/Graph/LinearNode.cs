@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
 
@@ -15,11 +16,8 @@ namespace Blue.Graph
         private readonly Tensor _tInput;
         private readonly Tensor _tWeight;
         private readonly Tensor _tBias;
-
-        private OperateInstance _matMulForward;
-        private OperateInstance _matMulBackward1;
-        private OperateInstance _matMulBackward2;
-        private OperateInstance _matMulBackward3;
+        private readonly List<OperateInstance> _forwardOpList = new List<OperateInstance>();
+        private readonly List<OperateInstance> _backwardOpList = new List<OperateInstance>();
         
         public LinearNode(IGraphNode input, IGraphNode weight, IGraphNode bias)
         {
@@ -38,20 +36,33 @@ namespace Blue.Graph
 
         private void UpdateOperate()
         {
-            _matMulForward?.Destroy();
-            _matMulForward = Op.MatMul(_input.GetOutput()
+            foreach (var op in _forwardOpList)
+            {
+                op.Destroy();
+            }
+            _forwardOpList.Clear();
+            _forwardOpList.Add(Op.MatMul(_input.GetOutput()
                 , _weight.GetOutput()
-                , _output);
-            _matMulBackward1?.Destroy();
-            _matMulBackward1 = Op.MatMul(_gradient
+                , _output));
+            _forwardOpList.Add(Op.Increment(_output, _bias.GetOutput()));
+            
+            foreach (var op in _backwardOpList)
+            {
+                op.Destroy();
+            }
+            _backwardOpList.Clear();
+            _backwardOpList.Add(Op.Transpose(_weight.GetOutput()
+                , _tWeight));
+            _backwardOpList.Add(Op.MatMul(_gradient
                 , _tWeight
-                , _input.GetGradient());
-            _matMulBackward2?.Destroy();
-            _matMulBackward2 = Op.MatMul(_tInput
+                , _input.GetGradient()));
+            _backwardOpList.Add(Op.Transpose(_input.GetOutput()
+                , _tInput));
+            _backwardOpList.Add(Op.MatMul(_tInput
                 , _gradient
-                , _weight.GetGradient());
-            _matMulBackward3?.Destroy();
-            _matMulBackward3 = Op.MatMul(_tBias, _gradient, _bias.GetGradient());
+                , _weight.GetGradient()));
+            _backwardOpList.Add(Op.Translate(_weight.GetGradient(), 1f / _input.GetOutput().Size[0], 0f));
+            _backwardOpList.Add(Op.MatMul(_tBias, _gradient, _bias.GetGradient()));
         }
 
         public Tensor GetOutput() => _output;
@@ -71,20 +82,19 @@ namespace Blue.Graph
                 Op.Clear(_tBias, 1f / batchSize);
                 UpdateOperate();
             }
-            _matMulForward.Dispatch();
-            Op.Increment(_output, _bias.GetOutput());
+
+            foreach (var op in _forwardOpList)
+            {
+                op.Dispatch();
+            }
         }
 
         public void Backward()
         {
-            Op.Transpose(_weight.GetOutput()
-                , _tWeight);
-            _matMulBackward1.Dispatch();
-            Op.Transpose(_input.GetOutput()
-                , _tInput);
-            _matMulBackward2.Dispatch();
-            Op.Translate(_weight.GetGradient(), 1f / _input.GetOutput().Size[0], 0f);
-            _matMulBackward3.Dispatch();
+            foreach (var op in _backwardOpList)
+            {
+                op.Dispatch();
+            }
         }
 
         public void Destroy()
@@ -94,10 +104,16 @@ namespace Blue.Graph
             _tWeight.Release();
             _tInput.Release();
             _tBias.Release();
-            _matMulForward?.Destroy();
-            _matMulBackward1?.Destroy();
-            _matMulBackward2?.Destroy();
-            _matMulBackward3?.Destroy();
+            foreach (var op in _forwardOpList)
+            {
+                op.Destroy();
+            }
+            _forwardOpList.Clear();
+            foreach (var op in _backwardOpList)
+            {
+                op.Destroy();
+            }
+            _backwardOpList.Clear();
         }
 
         public void ForeachInputNode(Action<IGraphNode> action)

@@ -5,16 +5,13 @@ namespace Blue.Kit
     public static class Op
     {
         
-        private static Operate _translateOp;
-        private static Operate GetTranslateOp() => _translateOp ??= new Operate("Common/Translate", "CSMain"
-            , "weight", "bias", "rw_buffer1");
-        public static void Translate(Tensor buffer, float weight, float bias)
+        public static OperateInstance Translate(Tensor buffer, float weight, float bias)
         {
-            GetTranslateOp().CreateTask()
-                .SetFloat(weight)
-                .SetFloat(bias)
-                .SetTensor(buffer)
-                .Dispatch(buffer.FlattenSize);
+            return new OperateInstance("Common/Translate", "CSMain")
+                .SetFloat("weight", weight)
+                .SetFloat("bias", bias)
+                .SetTensor("rw_buffer1", buffer)
+                .SetDispatchSize(buffer.FlattenSize);
         }
         
         public static OperateInstance MatMul(Tensor left, Tensor right, Tensor result)
@@ -28,16 +25,13 @@ namespace Blue.Kit
                 .SetDispatchSize(result.FlattenSize);
         }
         
-        private static Operate _incrementOp;
-        private static Operate GetIncrementOp() => _incrementOp ??= new Operate("Common/Increment", "CSMain"
-            , "other_count", "r_buffer1", "rw_buffer1");
-        public static void Increment(Tensor buffer, Tensor other)
+        public static OperateInstance Increment(Tensor buffer, Tensor other)
         {
-            GetIncrementOp().CreateTask()
-                .SetInt(other.FlattenSize)
-                .SetTensor(other)
-                .SetTensor(buffer)
-                .Dispatch(buffer.FlattenSize);
+            return new OperateInstance("Common/Increment", "CSMain")
+                .SetInt("other_count", other.FlattenSize)
+                .SetTensor("r_buffer1", other)
+                .SetTensor("rw_buffer1", buffer)
+                .SetDispatchSize(buffer.FlattenSize);
         }
         
         private static Operate _copyOp;
@@ -67,17 +61,14 @@ namespace Blue.Kit
                 .Dispatch(buffer.FlattenSize);
         }
         
-        private static Operate _transposeOp;
-        private static Operate GetTransposeOp() => _transposeOp ??= new Operate("Common/Transpose", "CSMain"
-            , "src_height", "src_width", "from", "to");
-        public static void Transpose(Tensor src, Tensor dst)
+        public static OperateInstance Transpose(Tensor src, Tensor dst)
         {
-            GetTransposeOp().CreateTask()
-                .SetInt(src.Size[0])
-                .SetInt(src.Size[1])
-                .SetTensor(src)
-                .SetTensor(dst)
-                .Dispatch(dst.FlattenSize);
+            return new OperateInstance("Common/Transpose", "CSMain")
+                .SetInt("src_height", src.Size[0])
+                .SetInt("src_width", src.Size[1])
+                .SetTensor("from", src)
+                .SetTensor("to", dst)
+                .SetDispatchSize(dst.FlattenSize);
         }
         
         private static Operate _crossEntropyLossOp;

@@ -6,12 +6,13 @@ namespace Blue.Graph
 {
     public class OperateNode : IGraphNode
     {
-        
-        private readonly Operate _forward;
+
+        private readonly string _shaderName;
+        private OperateInstance _forward;
         private readonly Tensor _output;
         private readonly Tensor _gradient;
-        private readonly List<IGraphNode> _inputs = new List<IGraphNode>();
-        private readonly List<Operate> _backward = new List<Operate>();
+        private readonly KeyValuePair<string, IGraphNode>[] _inputs;
+        private readonly List<OperateInstance> _backward = new List<OperateInstance>();
 
         public static OperateNode ReLU(IGraphNode input)
         {
@@ -33,24 +34,37 @@ namespace Blue.Graph
 
         public OperateNode(string shaderName, int[] size, params KeyValuePair<string, IGraphNode>[] inputs)
         {
-            var properties = new List<string>(inputs.Length + 2);
-            properties.Add("rw_output");
-            foreach (var pair in inputs)
-            {
-                properties.Add(pair.Key);
-                _inputs.Add(pair.Value);
-            }
-            _forward = new Operate(shaderName, "Forward", properties.ToArray());
-            properties[0] = "r_output";
-            properties.Add("input_gradient");
-            properties.Add("output_gradient");
-            var propertiesArray = properties.ToArray();
-            for (var i = 0; i < inputs.Length; i++)
-            {
-                _backward.Add(new Operate(shaderName, $"Backward_{inputs[i].Key}", propertiesArray));
-            }
+            _shaderName = shaderName;
             _output = new Tensor(size);
             _gradient = new Tensor(size);
+            _inputs = inputs;
+            UpdateOperate();
+        }
+
+        private void UpdateOperate()
+        {
+            _forward?.Destroy();
+            _forward = new OperateInstance(_shaderName, "Forward")
+                .SetTensor("rw_output", _output);
+            foreach (var pair in _inputs)
+            {
+                _forward.SetTensor(pair.Key, pair.Value.GetOutput());
+            }
+            _forward.SetDispatchSize(_output.FlattenSize);
+            
+            foreach (var t in _inputs)
+            {
+                var op = new OperateInstance(_shaderName, $"Backward_{t.Key}")
+                    .SetTensor("r_output", _output);
+                foreach (var pair in _inputs)
+                {
+                    op.SetTensor(pair.Key, pair.Value.GetOutput());
+                }
+                op.SetTensor("input_gradient", t.Value.GetGradient());
+                op.SetTensor("output_gradient", _gradient);
+                op.SetDispatchSize(t.Value.GetGradient().FlattenSize);
+                _backward.Add(op);
+            }
         }
         
         public Tensor GetOutput()
@@ -65,31 +79,17 @@ namespace Blue.Graph
 
         public void Forward()
         {
-            _output.Resize(_inputs[0].GetOutput().Size);
-            _gradient.Resize(_inputs[0].GetOutput().Size);
-            var handler = _forward.CreateTask();
-            handler.SetTensor(_output);
-            foreach (var node in _inputs)
-            {
-                handler.SetTensor(node.GetOutput());
-            }
-            handler.Dispatch(_output.FlattenSize);
+            var resize = _output.Resize(_inputs[0].Value.GetOutput().Size);
+            _gradient.Resize(_inputs[0].Value.GetOutput().Size);
+            if (resize) UpdateOperate();
+            _forward.Dispatch();
         }
 
         public void Backward()
         {
-            for (var i = 0; i < _inputs.Count; i++)
+            foreach (var op in _backward)
             {
-                var op = _backward[i];
-                var handler = op.CreateTask();
-                handler.SetTensor(_output);
-                foreach (var node in _inputs)
-                {
-                    handler.SetTensor(node.GetOutput());
-                }
-                handler.SetTensor(_inputs[i].GetGradient());
-                handler.SetTensor(_gradient);
-                handler.Dispatch(_inputs[i].GetOutput().FlattenSize);
+                op.Dispatch();
             }
         }
 
@@ -97,13 +97,20 @@ namespace Blue.Graph
         {
             _output.Release();
             _gradient.Release();
+            _forward?.Destroy();
+            _forward = null;
+            foreach (var op in _backward)
+            {
+                op.Destroy();
+            }
+            _backward.Clear();
         }
 
         public void ForeachInputNode(Action<IGraphNode> action)
         {
             foreach (var node in _inputs)
             {
-                action(node);
+                action(node.Value);
             }
         }
     }
