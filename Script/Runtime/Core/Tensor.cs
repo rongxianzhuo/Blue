@@ -65,6 +65,8 @@ namespace Blue.Core
         public void Resize(params int[] size)
         {
             if (IsSize(size)) return;
+            _syncArray = null;
+            if (_buffer != null) _buffer.Release();
             Size = size;
             var totalSize = 1;
             foreach (var i in size)
@@ -102,6 +104,11 @@ namespace Blue.Core
         public void SetToShader(ComputeShader cs, int kernel, int propertyId)
         {
             cs.SetBuffer(kernel, propertyId, _buffer);
+        }
+
+        public void SetToShader(ComputeShader cs, int kernel, string propertyName)
+        {
+            cs.SetBuffer(kernel, propertyName, _buffer);
         }
 
         public IReadOnlyList<float> Sync()
