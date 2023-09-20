@@ -47,9 +47,10 @@ namespace Blue.Core
             return this;
         }
 
-        public void Dispatch()
+        public OperateInstance Dispatch()
         {
             _cs.Dispatch(_kernel, _groupSizeX, _groupSizeY, _groupSizeZ);
+            return this;
         }
 
         public void Destroy()

@@ -64,6 +64,11 @@ namespace Blue.Core
 
         public bool Resize(params int[] size)
         {
+            return ResizeWithValue(0f, size);
+        }
+
+        public bool ResizeWithValue(float fillValue, params int[] size)
+        {
             if (IsSize(size)) return false;
             _syncArray = null;
             if (_buffer != null) _buffer.Release();
@@ -75,7 +80,7 @@ namespace Blue.Core
             }
             FlattenSize = totalSize;
             _buffer = new ComputeBuffer(totalSize, sizeof(float));
-            Op.Clear(this, 0);
+            Op.Clear(this, fillValue).Dispatch().Destroy();
             return true;
         }
 

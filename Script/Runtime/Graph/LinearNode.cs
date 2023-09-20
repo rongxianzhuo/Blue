@@ -30,7 +30,7 @@ namespace Blue.Graph
             _tInput = input.GetOutput().Transpose();
             _tWeight = weight.GetOutput().Transpose();
             _tBias = new Tensor(1, batchSize);
-            Op.Clear(_tBias, 1f / batchSize);
+            Op.Clear(_tBias, 1f / batchSize).Dispatch().Destroy();
             UpdateOperate();
         }
 
@@ -78,8 +78,7 @@ namespace Blue.Graph
                 _output.Resize(batchSize, outputSize);
                 _gradient.Resize(batchSize, outputSize);
                 _tInput.Resize(_input.GetOutput().Size[1], batchSize);
-                _tBias.Resize(1, batchSize);
-                Op.Clear(_tBias, 1f / batchSize);
+                _tBias.ResizeWithValue(1f / batchSize, 1, batchSize);
                 UpdateOperate();
             }
 

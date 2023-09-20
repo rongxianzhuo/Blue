@@ -50,15 +50,12 @@ namespace Blue.Kit
                 .Dispatch(length);
         }
         
-        private static Operate _clearOp;
-        private static Operate GetClearOp() => _clearOp ??= new Operate("Common/Clear", "CSMain"
-            , "clear_value", "buffer");
-        public static void Clear(Tensor buffer, float clearValue)
+        public static OperateInstance Clear(Tensor buffer, float clearValue)
         {
-            GetClearOp().CreateTask()
-                .SetFloat(clearValue)
-                .SetTensor(buffer)
-                .Dispatch(buffer.FlattenSize);
+            return new OperateInstance("Common/Clear", "CSMain")
+                .SetFloat("clear_value", clearValue)
+                .SetTensor("buffer", buffer)
+                .SetDispatchSize(buffer.FlattenSize);
         }
         
         public static OperateInstance Transpose(Tensor src, Tensor dst)
