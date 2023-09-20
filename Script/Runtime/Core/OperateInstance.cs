@@ -31,6 +31,12 @@ namespace Blue.Core
             return this;
         }
 
+        public OperateInstance SetFloat(int id, float f)
+        {
+            _cs.SetFloat(id, f);
+            return this;
+        }
+
         public OperateInstance SetFloat(string name, float f)
         {
             _cs.SetFloat(name, f);
