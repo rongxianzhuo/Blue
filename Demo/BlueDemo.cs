@@ -26,6 +26,7 @@ namespace Blue.Demo
         private TensorNode _input;
         private Tensor _target;
         private IOptimizer _optimizer;
+        private OperateInstance _crossEntropyLoss;
 
         private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
 
@@ -39,6 +40,7 @@ namespace Blue.Demo
                 .Linear(10)
                 .Build();
             _optimizer = new AdamOptimizer();
+            _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
             if (loadModel && Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
@@ -48,6 +50,7 @@ namespace Blue.Demo
             _model.Destroy();
             _target.Release();
             _optimizer.Destroy();
+            _crossEntropyLoss.Destroy();
         }
 
         private IEnumerator Train()
@@ -92,7 +95,7 @@ namespace Blue.Demo
                         , BatchSize * 10
                         , BatchSize * 10);
                     _model.Forward();
-                    Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
+                    _crossEntropyLoss.Dispatch();
                     _model.Backward();
                     _model.ForeachParameterNode(_optimizer.Step);
                     if (i % 32 == 0)

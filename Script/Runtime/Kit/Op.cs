@@ -71,29 +71,23 @@ namespace Blue.Kit
                 .SetDispatchSize(dst.FlattenSize);
         }
         
-        private static Operate _crossEntropyLossOp;
-        private static Operate GetCrossEntropyLossOp() => _crossEntropyLossOp ??= new Operate($"LossFunction/CrossEntropyLoss", "CSMain"
-            , "total_count", "output", "target", "gradient");
-        public static void CrossEntropyLoss(Tensor output, Tensor target, Tensor gradient)
+        public static OperateInstance CrossEntropyLoss(Tensor output, Tensor target, Tensor gradient)
         {
-            GetCrossEntropyLossOp().CreateTask()
-                .SetInt(target.Size[1])
-                .SetTensor(output)
-                .SetTensor(target)
-                .SetTensor(gradient)
-                .Dispatch(target.FlattenSize);
+            return new OperateInstance("LossFunction/CrossEntropyLoss", "CSMain")
+                .SetInt("total_count", target.Size[1])
+                .SetTensor("output", output)
+                .SetTensor("target", target)
+                .SetTensor("gradient", gradient)
+                .SetDispatchSize(target.FlattenSize);
         }
         
-        private static Operate _l2LossOp;
-        private static Operate GetL2LossOp() => _l2LossOp ??= new Operate($"LossFunction/L2Loss", "CSMain"
-            , "output", "target", "gradient");
-        public static void L2Loss(Tensor output, Tensor target, Tensor gradient)
+        public static OperateInstance L2Loss(Tensor output, Tensor target, Tensor gradient)
         {
-            GetL2LossOp().CreateTask()
-                .SetTensor(output)
-                .SetTensor(target)
-                .SetTensor(gradient)
-                .Dispatch(target.FlattenSize);
+            return new OperateInstance("LossFunction/L2Loss", "CSMain")
+                .SetTensor("output", output)
+                .SetTensor("target", target)
+                .SetTensor("gradient", gradient)
+                .SetDispatchSize(target.FlattenSize);
         }
         
     }
