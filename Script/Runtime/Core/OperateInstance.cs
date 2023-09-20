@@ -11,10 +11,18 @@ namespace Blue.Core
         private int _groupSizeY;
         private int _groupSizeZ;
 
+        public static int PropertyId(string propertyName) => Shader.PropertyToID(propertyName);
+
         public OperateInstance(string name, string kernel)
         {
             _cs = Object.Instantiate(Resources.Load<ComputeShader>($"Blue/Shader/{name}"));
             _kernel = _cs.FindKernel(kernel);
+        }
+
+        public OperateInstance SetInt(int id, int i)
+        {
+            _cs.SetInt(id, i);
+            return this;
         }
 
         public OperateInstance SetInt(string name, int i)

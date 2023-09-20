@@ -34,20 +34,17 @@ namespace Blue.Kit
                 .SetDispatchSize(buffer.FlattenSize);
         }
         
-        private static Operate _copyOp;
-        private static Operate GetCopyOp() => _copyOp ??= new Operate("Common/Copy", "CSMain"
-            , "src_start", "dst_start", "src_interval", "dst_interval", "stride", "src_buffer", "dst_buffer");
-        public static void Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)
+        public static OperateInstance Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)
         {
-            GetCopyOp().CreateTask()
-                .SetInt(srcStart)
-                .SetInt(dstStart)
-                .SetInt(srcInterval)
-                .SetInt(dstInterval)
-                .SetInt(stride)
-                .SetTensor(src)
-                .SetTensor(dst)
-                .Dispatch(length);
+            return new OperateInstance("Common/Copy", "CSMain")
+                .SetInt("src_start", srcStart)
+                .SetInt("dst_start", dstStart)
+                .SetInt("src_interval", srcInterval)
+                .SetInt("dst_interval", dstInterval)
+                .SetInt("stride", stride)
+                .SetTensor("src_buffer", src)
+                .SetTensor("dst_buffer", dst)
+                .SetDispatchSize(length);
         }
         
         public static OperateInstance Clear(Tensor buffer, float clearValue)

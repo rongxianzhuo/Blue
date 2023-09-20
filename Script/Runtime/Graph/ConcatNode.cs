@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
 
@@ -12,6 +13,8 @@ namespace Blue.Graph
         private readonly Tensor _output;
         private readonly Tensor _gradient;
         private readonly IGraphNode[] _inputs;
+        private readonly List<OperateInstance> _forward = new List<OperateInstance>();
+        private readonly List<OperateInstance> _backward = new List<OperateInstance>();
 
         public ConcatNode(params IGraphNode[] input)
         {
@@ -24,6 +27,42 @@ namespace Blue.Graph
 
             _output = new Tensor(_inputs[0].GetOutput().Size[0], ConcatSize);
             _gradient = new Tensor(_inputs[0].GetOutput().Size[0], ConcatSize);
+            UpdateOperate();
+        }
+
+        private void UpdateOperate()
+        {
+            foreach (var op in _forward)
+            {
+                op.Destroy();
+            }
+            foreach (var op in _backward)
+            {
+                op.Destroy();
+            }
+            _forward.Clear();
+            _backward.Clear();
+            var start = 0;
+            foreach (var t in _inputs)
+            {
+                var inputNode = t.GetOutput();
+                _forward.Add(Op.Copy(inputNode, 0, 0
+                    , _output, start, ConcatSize - inputNode.Size[1]
+                    , inputNode.Size[1]
+                    , inputNode.FlattenSize));
+                start += inputNode.Size[1];
+            }
+            
+            start = 0;
+            foreach (var t in _inputs)
+            {
+                var inputNode = t.GetGradient();
+                _backward.Add(Op.Copy(_gradient, start, ConcatSize - inputNode.Size[1]
+                    , inputNode, 0, 0
+                    , inputNode.Size[1]
+                    , inputNode.FlattenSize));
+                start += inputNode.Size[1];
+            }
         }
         
         public Tensor GetOutput()
@@ -39,29 +78,17 @@ namespace Blue.Graph
         public void Forward()
         {
             Resize();
-            var start = 0;
-            foreach (var t in _inputs)
+            foreach (var op in _forward)
             {
-                var inputNode = t.GetOutput();
-                Op.Copy(inputNode, 0, 0
-                    , _output, start, ConcatSize - inputNode.Size[1]
-                    , inputNode.Size[1]
-                    , inputNode.FlattenSize);
-                start += inputNode.Size[1];
+                op.Dispatch();
             }
         }
 
         public void Backward()
         {
-            var start = 0;
-            foreach (var t in _inputs)
+            foreach (var op in _backward)
             {
-                var inputNode = t.GetGradient();
-                Op.Copy(_gradient, start, ConcatSize - inputNode.Size[1]
-                    , inputNode, 0, 0
-                    , inputNode.Size[1]
-                    , inputNode.FlattenSize);
-                start += inputNode.Size[1];
+                op.Dispatch();
             }
         }
 
@@ -69,6 +96,16 @@ namespace Blue.Graph
         {
             _output.Release();
             _gradient.Release();
+            foreach (var op in _forward)
+            {
+                op.Destroy();
+            }
+            foreach (var op in _backward)
+            {
+                op.Destroy();
+            }
+            _forward.Clear();
+            _backward.Clear();
         }
 
         public void ForeachInputNode(Action<IGraphNode> action)
@@ -89,6 +126,7 @@ namespace Blue.Graph
             }
             _output.Resize(_inputs[0].GetOutput().Size[0], ConcatSize);
             _gradient.Resize(_inputs[0].GetOutput().Size[0], ConcatSize);
+            UpdateOperate();
         }
     }
 }

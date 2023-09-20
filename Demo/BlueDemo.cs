@@ -67,6 +67,23 @@ namespace Blue.Demo
             }
             var xTensor = new Tensor(xList);
             var yTensor = new Tensor(yList);
+            var xCopyOp = Op.Copy(xTensor
+                , 0
+                , 0
+                , _input.GetOutput()
+                , 0
+                , 0
+                , BatchSize * 784
+                , BatchSize * 784);
+            var yCopyOp = Op.Copy(yTensor
+                , 0
+                , 0
+                , _target
+                , 0
+                , 0
+                , BatchSize * 10
+                , BatchSize * 10);
+            var propertyId = OperateInstance.PropertyId("src_start");
             var epoch = 0;
             while (epoch < trainEpochs)
             {
@@ -78,22 +95,9 @@ namespace Blue.Demo
                     {
                         batchTargetLabel[j] = mnistData.TrainData[i * BatchSize + j].Label;
                     }
-                    Op.Copy(xTensor
-                        , i * BatchSize * 784
-                        , 0
-                        , _input.GetOutput()
-                        , 0
-                        , 0
-                        , BatchSize * 784
-                        , BatchSize * 784);
-                    Op.Copy(yTensor
-                        , i * BatchSize * 10
-                        , 0
-                        , _target
-                        , 0
-                        , 0
-                        , BatchSize * 10
-                        , BatchSize * 10);
+
+                    xCopyOp.SetInt(propertyId, i * BatchSize * 784).Dispatch();
+                    yCopyOp.SetInt(propertyId, i * BatchSize * 10).Dispatch();
                     _model.Forward();
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
@@ -112,6 +116,8 @@ namespace Blue.Demo
             }
             xTensor.Release();
             yTensor.Release();
+            xCopyOp.Destroy();
+            yCopyOp.Destroy();
             Test(mnistData);
         }
 
