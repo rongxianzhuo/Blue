@@ -5,49 +5,30 @@ using Blue.Kit;
 
 namespace Blue.Graph
 {
-    public class ConcatNode : IGraphNode
+    public class ConcatNode : BasicGraphNode
     {
 
-        public int ConcatSize { get; private set; }
-
-        private readonly Tensor _output;
-        private readonly Tensor _gradient;
+        private readonly int _size;
         private readonly IGraphNode[] _inputs;
-        private readonly List<OperateInstance> _forward = new List<OperateInstance>();
-        private readonly List<OperateInstance> _backward = new List<OperateInstance>();
 
         public ConcatNode(params IGraphNode[] input)
         {
             _inputs = input;
-            ConcatSize = 0;
+            _size = 0;
             foreach (var node in _inputs)
             {
-                ConcatSize += node.GetOutput().Size[1];
+                _size += node.GetOutput().Size[1];
             }
-
-            _output = new Tensor(_inputs[0].GetOutput().Size[0], ConcatSize);
-            _gradient = new Tensor(_inputs[0].GetOutput().Size[0], ConcatSize);
-            UpdateOperate();
         }
 
-        private void UpdateOperate()
+        protected override void UpdateOperate(int batchSize, List<OperateInstance> forward, List<OperateInstance> backward)
         {
-            foreach (var op in _forward)
-            {
-                op.Destroy();
-            }
-            foreach (var op in _backward)
-            {
-                op.Destroy();
-            }
-            _forward.Clear();
-            _backward.Clear();
             var start = 0;
             foreach (var t in _inputs)
             {
                 var inputNode = t.GetOutput();
-                _forward.Add(Op.Copy(inputNode, 0, 0
-                    , _output, start, ConcatSize - inputNode.Size[1]
+                forward.Add(Op.Copy(inputNode, 0, 0
+                    , GetOutput(), start, _size - inputNode.Size[1]
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
                 start += inputNode.Size[1];
@@ -57,76 +38,30 @@ namespace Blue.Graph
             foreach (var t in _inputs)
             {
                 var inputNode = t.GetGradient();
-                _backward.Add(Op.Copy(_gradient, start, ConcatSize - inputNode.Size[1]
+                backward.Add(Op.Copy(GetGradient(), start, _size - inputNode.Size[1]
                     , inputNode, 0, 0
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
                 start += inputNode.Size[1];
             }
         }
-        
-        public Tensor GetOutput()
+
+        protected override void GetOutputSize(out int batchSize, out int size)
         {
-            return _output;
+            batchSize = _inputs[0].GetOutput().Size[0];
+            size = _size;
         }
 
-        public Tensor GetGradient()
+        protected override void OnDestroy()
         {
-            return _gradient;
         }
 
-        public void Forward()
-        {
-            Resize();
-            foreach (var op in _forward)
-            {
-                op.Dispatch();
-            }
-        }
-
-        public void Backward()
-        {
-            foreach (var op in _backward)
-            {
-                op.Dispatch();
-            }
-        }
-
-        public void Destroy()
-        {
-            _output.Release();
-            _gradient.Release();
-            foreach (var op in _forward)
-            {
-                op.Destroy();
-            }
-            foreach (var op in _backward)
-            {
-                op.Destroy();
-            }
-            _forward.Clear();
-            _backward.Clear();
-        }
-
-        public void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<IGraphNode> action)
         {
             foreach (var node in _inputs)
             {
                 action(node);
             }
-        }
-
-        private void Resize()
-        {
-            if (_output.Size[0] == _inputs[0].GetOutput().Size[0]) return;
-            ConcatSize = 0;
-            foreach (var node in _inputs)
-            {
-                ConcatSize += node.GetOutput().Size[1];
-            }
-            _output.Resize(_inputs[0].GetOutput().Size[0], ConcatSize);
-            _gradient.Resize(_inputs[0].GetOutput().Size[0], ConcatSize);
-            UpdateOperate();
         }
     }
 }
