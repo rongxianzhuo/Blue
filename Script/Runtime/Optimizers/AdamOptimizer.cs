@@ -16,31 +16,34 @@ namespace Blue.Optimizers
         
         private readonly float _beta1 = 0.9f;
         private readonly float _beta2 = 0.999f;
-        private readonly Dictionary<Tensor, Tensor> _m = new Dictionary<Tensor, Tensor>();
-        private readonly Dictionary<Tensor, Tensor> _v = new Dictionary<Tensor, Tensor>();
-        private readonly Dictionary<Tensor, float> _t = new Dictionary<Tensor, float>();
+        private readonly List<Tensor> _m = new List<Tensor>();
+        private readonly List<Tensor> _v = new List<Tensor>();
+        private readonly List<float> _t = new List<float>();
         
-        public void Step(IGraphNode node)
+        public void Step(TensorNode node)
         {
             var param = node.GetOutput();
             var gradient = node.GetGradient();
-            if (!_m.TryGetValue(param, out var m))
+            while (_m.Count <= node.Id) _m.Add(null);
+            var m = _m[node.Id];
+            if (m == null)
             {
                 m = new Tensor(param.Size);
-                _m[param] = m;
+                _m[node.Id] = m;
             }
-            if (!_v.TryGetValue(param, out var v))
+            
+            while (_v.Count <= node.Id) _v.Add(null);
+            var v = _v[node.Id];
+            if (v == null)
             {
                 v = new Tensor(param.Size);
-                _v[param] = v;
+                _v[node.Id] = v;
             }
 
-            if (!_t.TryGetValue(param, out var t))
-            {
-                t = 0f;
-            }
+            while (_t.Count <= node.Id) _t.Add(0);
+            var t = _t[node.Id];
             t++;
-            _t[param] = t;
+            _t[node.Id] = t;
             GetOperate().CreateTask()
                 .SetFloat(t)
                 .SetFloat(_beta1)
@@ -55,13 +58,13 @@ namespace Blue.Optimizers
 
         public void Destroy()
         {
-            foreach (var m in _m.Values)
+            foreach (var m in _m)
             {
-                m.Release();
+                m?.Release();
             }
-            foreach (var v in _v.Values)
+            foreach (var v in _v)
             {
-                v.Release();
+                v?.Release();
             }
         }
     }
