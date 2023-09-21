@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Blue.Graph;
+using Blue.Optimizers;
 using UnityEngine;
 
 namespace Blue.Core
@@ -10,18 +10,26 @@ namespace Blue.Core
     {
 
         public readonly IGraphNode Output;
-        
+
+        private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
         private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
 
         public Model(IGraphNode outputNode)
         {
             Output = outputNode;
             outputNode.ForeachInputNode(input => AddNode(input, outputNode));
+            for (var i = _nodeLayer.Count - 1; i >= 0; i--)
+            {
+                foreach (var node in _nodeLayer[i])
+                {
+                    if (node is TensorNode dataNode && dataNode.IsParameter) _parameterNodes.Add(dataNode);
+                }
+            }
         }
 
         public void LoadParameterFile(string dirPath)
         {
-            ForeachParameterNode(node =>
+            foreach (var node in _parameterNodes)
             {
                 if (File.Exists($"{dirPath}/{node.Id}.bytes"))
                 {
@@ -37,28 +45,17 @@ namespace Blue.Core
                 {
                     Debug.LogWarning($"No parameter file: {node.Id}");
                 }
-            });
+            }
         }
 
         public void SaveParameterFile(string dirPath)
         {
             Directory.CreateDirectory(dirPath);
-            ForeachParameterNode(node =>
+            foreach (var node in _parameterNodes)
             {
                 using var stream = File.OpenWrite($"{dirPath}/{node.Id}.bytes");
                 node.GetOutput().SaveToStream(stream);
                 stream.Close();
-            });
-        }
-
-        public void ForeachParameterNode(Action<TensorNode> action)
-        {
-            for (var i = _nodeLayer.Count - 1; i >= 0; i--)
-            {
-                foreach (var node in _nodeLayer[i])
-                {
-                    if (node is TensorNode dataNode && dataNode.IsParameter) action(dataNode);
-                }
             }
         }
 
@@ -81,7 +78,7 @@ namespace Blue.Core
             }
         }
 
-        public virtual void Destroy()
+        public void Destroy()
         {
             Output.Destroy();
             foreach (var nodes in _nodeLayer)
@@ -90,6 +87,14 @@ namespace Blue.Core
                 {
                     node.Destroy();
                 }
+            }
+        }
+
+        public void UpdateParameters(IOptimizer optimizer)
+        {
+            foreach (var node in _parameterNodes)
+            {
+                optimizer.Step(node);
             }
         }
 
