@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Blue.Core;
+using Blue.Data;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
@@ -27,6 +28,7 @@ namespace Blue.Demo
         private Tensor _target;
         private IOptimizer _optimizer;
         private OperateInstance _crossEntropyLoss;
+        private DatasetLoader _datasetLoader;
 
         private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
 
@@ -51,6 +53,7 @@ namespace Blue.Demo
             _target.Release();
             _optimizer.Destroy();
             _crossEntropyLoss.Destroy();
+            _datasetLoader?.Destroy();
         }
 
         private IEnumerator Train()
@@ -58,32 +61,16 @@ namespace Blue.Demo
             var batchTargetLabel = new int[BatchSize];
             var mnistData = new MnistData();
             yield return mnistData.DownloadData();
-            var xList = new List<float>();
-            var yList = new List<float>();
+            var x = new List<float[]>();
+            var y = new List<float[]>();
             foreach (var data in mnistData.TrainData)
             {
-                xList.AddRange(data.ImageData);
-                yList.AddRange(data.LabelArray);
+                x.Add(data.ImageData);
+                y.Add(data.LabelArray);
             }
-            var xTensor = new Tensor(xList);
-            var yTensor = new Tensor(yList);
-            var xCopyOp = Op.Copy(xTensor
-                , 0
-                , 0
-                , _input.GetOutput()
-                , 0
-                , 0
-                , BatchSize * 784
-                , BatchSize * 784);
-            var yCopyOp = Op.Copy(yTensor
-                , 0
-                , 0
-                , _target
-                , 0
-                , 0
-                , BatchSize * 10
-                , BatchSize * 10);
-            var propertyId = OperateInstance.PropertyId("src_start");
+            _datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainData.Count);
+            _datasetLoader.LoadDataset(x, _input.GetOutput());
+            _datasetLoader.LoadDataset(y, _target);
             var epoch = 0;
             while (epoch < trainEpochs)
             {
@@ -95,9 +82,7 @@ namespace Blue.Demo
                     {
                         batchTargetLabel[j] = mnistData.TrainData[i * BatchSize + j].Label;
                     }
-
-                    xCopyOp.SetInt(propertyId, i * BatchSize * 784).Dispatch();
-                    yCopyOp.SetInt(propertyId, i * BatchSize * 10).Dispatch();
+                    _datasetLoader.LoadBatch(i);
                     _model.Forward();
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
@@ -114,10 +99,6 @@ namespace Blue.Demo
                     Debug.Log("Model saved");
                 }
             }
-            xTensor.Release();
-            yTensor.Release();
-            xCopyOp.Destroy();
-            yCopyOp.Destroy();
             Test(mnistData);
         }
 
