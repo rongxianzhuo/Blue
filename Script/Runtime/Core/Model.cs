@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Blue.Graph;
-using Blue.Optimizers;
 using UnityEngine;
 
 namespace Blue.Core
@@ -13,6 +12,8 @@ namespace Blue.Core
 
         private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
         private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
+
+        public IReadOnlyCollection<TensorNode> ParameterNodes => _parameterNodes;
 
         public Model(IGraphNode outputNode)
         {
@@ -88,11 +89,6 @@ namespace Blue.Core
                     node.Destroy();
                 }
             }
-        }
-
-        public void UpdateParameters(IOptimizer optimizer)
-        {
-            optimizer.Step(_parameterNodes);
         }
 
         private void AddNode(IGraphNode node, IGraphNode forwardNode)

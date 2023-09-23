@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Blue.Core;
 
 namespace Blue.Graph
@@ -19,15 +18,6 @@ namespace Blue.Graph
             Id = id;
             IsParameter = isParam;
             _output = new Tensor(size);
-            _gradient = new Tensor(size);
-        }
-
-        public TensorNode(int id, bool isParam, List<float> data)
-        {
-            Id = id;
-            IsParameter = isParam;
-            var size = data.Count;
-            _output = new Tensor(data);
             _gradient = new Tensor(size);
         }
 

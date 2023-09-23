@@ -101,7 +101,7 @@ namespace Blue.Demo
                     _model.Forward();
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
-                    _model.UpdateParameters(_optimizer);
+                    _optimizer.Step(_model.ParameterNodes);
                     if (i % 32 == 0)
                     {
                         infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{batchCount}";
