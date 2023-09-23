@@ -8,8 +8,9 @@ namespace Blue.Data
     public class DatasetLoader
     {
 
+        public readonly int BatchCount;
+
         private readonly int _batchSize;
-        private readonly int _batchCount;
         private readonly HashSet<Tensor> _tensors = new HashSet<Tensor>();
         private readonly HashSet<KeyValuePair<int, OperateInstance>> _ops = new HashSet<KeyValuePair<int, OperateInstance>>();
         private readonly int _srcStartPropertyId = OperateInstance.PropertyId("src_start");
@@ -17,7 +18,7 @@ namespace Blue.Data
         public DatasetLoader(int batchSize, int sampleCount)
         {
             _batchSize = batchSize;
-            _batchCount = sampleCount / batchSize;
+            BatchCount = sampleCount / batchSize;
         }
 
         public void LoadBatch(int batchIndex)
@@ -30,9 +31,9 @@ namespace Blue.Data
 
         public void LoadDataset(IReadOnlyList<float[]> samples, Tensor target)
         {
-            if (samples.Count < _batchSize * _batchCount) throw new Exception("Unknown error");
+            if (samples.Count < _batchSize * BatchCount) throw new Exception("Unknown error");
             var flatten = new List<float>();
-            for (var i = 0; i < _batchCount; i++)
+            for (var i = 0; i < BatchCount; i++)
             {
                 for (var j = 0; j < _batchSize; j++)
                 {
