@@ -12,71 +12,57 @@ namespace Blue.Optimizers
         private readonly int _tId = OperateInstance.PropertyId("t");
         private readonly float _beta1 = 0.9f;
         private readonly float _beta2 = 0.999f;
-        private readonly List<Tensor> _m = new List<Tensor>();
-        private readonly List<Tensor> _v = new List<Tensor>();
-        private readonly List<float> _t = new List<float>();
         private readonly List<OperateInstance> _op = new List<OperateInstance>();
-        
-        public void Step(TensorNode node)
-        {
-            var param = node.GetOutput();
-            var gradient = node.GetGradient();
-            while (_m.Count <= node.Id) _m.Add(null);
-            var m = _m[node.Id];
-            if (m == null)
-            {
-                m = new Tensor(param.Size);
-                _m[node.Id] = m;
-            }
-            
-            while (_v.Count <= node.Id) _v.Add(null);
-            var v = _v[node.Id];
-            if (v == null)
-            {
-                v = new Tensor(param.Size);
-                _v[node.Id] = v;
-            }
-            
-            while (_op.Count <= node.Id) _op.Add(null);
-            var op = _op[node.Id];
-            if (op == null)
-            {
-                op = new OperateInstance("Optimizer/Adam", "CSMain")
-                    .SetFloat("t", 0f)
-                    .SetFloat("beta1", _beta1)
-                    .SetFloat("beta2", _beta2)
-                    .SetFloat("learning_rate", LearningRate)
-                    .SetTensor("g", gradient)
-                    .SetTensor("m", m)
-                    .SetTensor("v", v)
-                    .SetTensor("theta", param)
-                    .SetDispatchSize(param.FlattenSize);
-                _op[node.Id] = op;
-            }
+        private readonly HashSet<Tensor> _tensors = new HashSet<Tensor>();
 
-            while (_t.Count <= node.Id) _t.Add(0);
-            var t = _t[node.Id];
-            t++;
-            _t[node.Id] = t;
-            op.SetFloat(_tId, t);
-            op.Dispatch();
+        private float _t;
+
+        public void Step(IReadOnlyCollection<TensorNode> nodes)
+        {
+            _t++;
+            foreach (var node in nodes)
+            {
+                while (_op.Count <= node.Id) _op.Add(null);
+                var op = _op[node.Id];
+                if (op == null)
+                {
+                    var param = node.GetOutput();
+                    var gradient = node.GetGradient();
+                    var m = new Tensor(param.Size);
+                    var v = new Tensor(param.Size);
+                    _tensors.Add(m);
+                    _tensors.Add(v);
+                    op = new OperateInstance("Optimizer/Adam", "CSMain")
+                        .SetFloat("t", 0f)
+                        .SetFloat("beta1", _beta1)
+                        .SetFloat("beta2", _beta2)
+                        .SetFloat("learning_rate", LearningRate)
+                        .SetTensor("g", gradient)
+                        .SetTensor("m", m)
+                        .SetTensor("v", v)
+                        .SetTensor("theta", param)
+                        .SetDispatchSize(param.FlattenSize);
+                    _op[node.Id] = op;
+                }
+
+                op.SetFloat(_tId, _t);
+                op.Dispatch();
+            }
         }
 
         public void Destroy()
         {
-            foreach (var m in _m)
+            foreach (var t in _tensors)
             {
-                m?.Release();
+                t?.Release();
             }
-            foreach (var v in _v)
-            {
-                v?.Release();
-            }
+            _tensors.Clear();
 
             foreach (var op in _op)
             {
                 op?.Destroy();
             }
+            _op.Clear();
         }
     }
 }

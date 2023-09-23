@@ -16,7 +16,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     m[id.x] = cm;
     float cv = beta2 * v[id.x] + (1.0 - beta2) * g[id.x] * g[id.x];
     v[id.x] = cv;
-    cm = cm/ (1.0 - pow(beta1, t));
-    cv = cv/ (1.0 - pow(beta2, t));
+    // 加 abs 只是为了避免unity警告
+    cm = cm/ (1.0 - pow(abs(beta1), t));
+    cv = cv/ (1.0 - pow(abs(beta2), t));
     theta[id.x] = theta[id.x] - learning_rate * cm / (sqrt(cv) + 0.0000001);
 }

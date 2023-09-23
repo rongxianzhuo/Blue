@@ -92,10 +92,7 @@ namespace Blue.Core
 
         public void UpdateParameters(IOptimizer optimizer)
         {
-            foreach (var node in _parameterNodes)
-            {
-                optimizer.Step(node);
-            }
+            optimizer.Step(_parameterNodes);
         }
 
         private void AddNode(IGraphNode node, IGraphNode forwardNode)
