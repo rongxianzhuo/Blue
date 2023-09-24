@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Blue.Core
 {
-    public class OperateInstance
+    public class Operate
     {
         
         private readonly ComputeShader _cs;
@@ -13,43 +13,43 @@ namespace Blue.Core
 
         public static int PropertyId(string propertyName) => Shader.PropertyToID(propertyName);
 
-        public OperateInstance(string name, string kernel)
+        public Operate(string name, string kernel)
         {
             _cs = Object.Instantiate(Resources.Load<ComputeShader>($"Blue/Shader/{name}"));
             _kernel = _cs.FindKernel(kernel);
         }
 
-        public OperateInstance SetInt(int id, int i)
+        public Operate SetInt(int id, int i)
         {
             _cs.SetInt(id, i);
             return this;
         }
 
-        public OperateInstance SetInt(string name, int i)
+        public Operate SetInt(string name, int i)
         {
             _cs.SetInt(name, i);
             return this;
         }
 
-        public OperateInstance SetFloat(int id, float f)
+        public Operate SetFloat(int id, float f)
         {
             _cs.SetFloat(id, f);
             return this;
         }
 
-        public OperateInstance SetFloat(string name, float f)
+        public Operate SetFloat(string name, float f)
         {
             _cs.SetFloat(name, f);
             return this;
         }
 
-        public OperateInstance SetTensor(string name, Tensor tensor)
+        public Operate SetTensor(string name, Tensor tensor)
         {
             tensor.SetToShader(_cs, _kernel, name);
             return this;
         }
 
-        public OperateInstance SetDispatchSize(int x, int y=1, int z=1)
+        public Operate SetDispatchSize(int x, int y=1, int z=1)
         {
             _cs.GetKernelThreadGroupSizes(_kernel, out var gx, out var gy, out var gz);
             _groupSizeX = x / (int) gx;
@@ -61,7 +61,7 @@ namespace Blue.Core
             return this;
         }
 
-        public OperateInstance Dispatch()
+        public Operate Dispatch()
         {
             _cs.Dispatch(_kernel, _groupSizeX, _groupSizeY, _groupSizeZ);
             return this;

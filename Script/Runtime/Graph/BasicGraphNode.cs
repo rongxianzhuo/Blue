@@ -7,8 +7,8 @@ namespace Blue.Graph
     public abstract class BasicGraphNode : IGraphNode
     {
         
-        private readonly List<OperateInstance> _forwardOperate = new List<OperateInstance>();
-        private readonly List<OperateInstance> _backwardOperate = new List<OperateInstance>();
+        private readonly List<Operate> _forwardOperate = new List<Operate>();
+        private readonly List<Operate> _backwardOperate = new List<Operate>();
         
         private Tensor _output;
         private Tensor _gradient;
@@ -19,7 +19,7 @@ namespace Blue.Graph
 
         public abstract void ForeachInputNode(Action<IGraphNode> action);
 
-        protected abstract void UpdateOperate(int batchSize, List<OperateInstance> forward, List<OperateInstance> backward);
+        protected abstract void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward);
 
         public Tensor GetOutput()
         {

@@ -36,10 +36,10 @@ namespace Blue.Graph
             _inputs = inputs;
         }
 
-        protected override void UpdateOperate(int batchSize, List<OperateInstance> forward, List<OperateInstance> backward)
+        protected override void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward)
         {
             {
-                var op = new OperateInstance(_shaderName, "Forward")
+                var op = new Operate(_shaderName, "Forward")
                     .SetTensor("rw_output", GetOutput());
                 foreach (var pair in _inputs)
                 {
@@ -51,7 +51,7 @@ namespace Blue.Graph
             
             foreach (var t in _inputs)
             {
-                var op = new OperateInstance(_shaderName, $"Backward_{t.Key}")
+                var op = new Operate(_shaderName, $"Backward_{t.Key}")
                     .SetTensor("r_output", GetOutput());
                 foreach (var pair in _inputs)
                 {

@@ -12,8 +12,8 @@ namespace Blue.Data
 
         private readonly int _batchSize;
         private readonly HashSet<Tensor> _tensors = new HashSet<Tensor>();
-        private readonly HashSet<KeyValuePair<int, OperateInstance>> _ops = new HashSet<KeyValuePair<int, OperateInstance>>();
-        private readonly int _srcStartPropertyId = OperateInstance.PropertyId("src_start");
+        private readonly HashSet<KeyValuePair<int, Operate>> _ops = new HashSet<KeyValuePair<int, Operate>>();
+        private readonly int _srcStartPropertyId = Operate.PropertyId("src_start");
 
         public DatasetLoader(int batchSize, int sampleCount)
         {
@@ -50,7 +50,7 @@ namespace Blue.Data
                 , 0
                 , _batchSize * samples[0].Length
                 , _batchSize * samples[0].Length);
-            _ops.Add(new KeyValuePair<int, OperateInstance>(samples[0].Length, op));
+            _ops.Add(new KeyValuePair<int, Operate>(samples[0].Length, op));
         }
 
         public void Destroy()

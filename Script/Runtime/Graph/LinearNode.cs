@@ -27,7 +27,7 @@ namespace Blue.Graph
             Op.Clear(_tBias, 1f / batchSize).Dispatch().Destroy();
         }
 
-        protected override void UpdateOperate(int batchSize, List<OperateInstance> forwardOpList, List<OperateInstance> backwardOpList)
+        protected override void UpdateOperate(int batchSize, List<Operate> forwardOpList, List<Operate> backwardOpList)
         {
             _tInput.Resize(_input.GetOutput().Size[1], batchSize);
             _tBias.ResizeWithValue(1f / batchSize, 1, batchSize);

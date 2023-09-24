@@ -21,7 +21,7 @@ namespace Blue.Graph
             }
         }
 
-        protected override void UpdateOperate(int batchSize, List<OperateInstance> forward, List<OperateInstance> backward)
+        protected override void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward)
         {
             var start = 0;
             foreach (var t in _inputs)

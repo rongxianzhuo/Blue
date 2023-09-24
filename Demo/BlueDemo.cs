@@ -27,7 +27,7 @@ namespace Blue.Demo
         private TensorNode _input;
         private Tensor _target;
         private IOptimizer _optimizer;
-        private OperateInstance _crossEntropyLoss;
+        private Operate _crossEntropyLoss;
         private DatasetLoader _datasetLoader;
 
         private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
