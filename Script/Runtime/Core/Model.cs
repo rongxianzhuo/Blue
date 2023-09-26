@@ -32,15 +32,15 @@ namespace Blue.Core
         {
             foreach (var node in _parameterNodes)
             {
-                if (File.Exists($"{dirPath}/{node.Id}.bytes"))
+                if (File.Exists(Path.Combine(dirPath, $"{node.Id}.bytes")))
                 {
-                    using var stream = File.OpenRead($"{dirPath}/{node.Id}.bytes");
+                    using var stream = File.OpenRead(Path.Combine(dirPath, $"{node.Id}.bytes"));
                     node.GetOutput().LoadFromStream(stream);
                     stream.Close();
                 }
-                else if (File.Exists($"{dirPath}/{node.Id}.json"))
+                else if (File.Exists(Path.Combine(dirPath, $"{node.Id}.json")))
                 {
-                    node.GetOutput().LoadFromJson(File.ReadAllText($"{dirPath}/{node.Id}.json"));
+                    node.GetOutput().LoadFromJson(File.ReadAllText(Path.Combine(dirPath, $"{node.Id}.bytes")));
                 }
                 else
                 {
@@ -54,7 +54,7 @@ namespace Blue.Core
             Directory.CreateDirectory(dirPath);
             foreach (var node in _parameterNodes)
             {
-                using var stream = File.OpenWrite($"{dirPath}/{node.Id}.bytes");
+                using var stream = File.OpenWrite(Path.Combine(dirPath, $"{node.Id}.bytes"));
                 node.GetOutput().SaveToStream(stream);
                 stream.Close();
             }

@@ -30,7 +30,7 @@ namespace Blue.Demo
         private Operate _crossEntropyLoss;
         private DatasetLoader _datasetLoader;
 
-        private string ModelSavePath => $"{Application.dataPath}/Blue/Demo/SavedModel";
+        private string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "SavedModel");
 
         private void Awake()
         {
