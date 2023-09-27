@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Blue.Data;
 using Blue.Kit;
 using UnityEngine;
 
@@ -67,38 +68,13 @@ namespace Blue.Core
 
         public void LoadFromStream(Stream stream)
         {
-            const int sizeOfFloat = sizeof(float);
-            var bytes = new byte[sizeOfFloat];
-            var array = new float[FlattenSize];
-            for (var i = 0; i < FlattenSize; i++)
-            {
-                for (var j = 0; j < sizeOfFloat; j++)
-                {
-                    bytes[j] = (byte) stream.ReadByte();
-                }
-
-                array[i] = BitConverter.ToSingle(bytes);
-            }
-            SetData(array);
+            SetData(new MessagePacker(stream).UnpackSingleArray(FlattenSize));
         }
 
         public void SaveToStream(Stream stream)
         {
             Sync();
-            const int sizeOfFloat = sizeof(float);
-            var bytes = new byte[sizeOfFloat];
-            foreach (var f in _syncArray)
-            {
-                if (!BitConverter.TryWriteBytes(bytes, f))
-                {
-                    throw new Exception("Unknown error");
-                }
-
-                for (var i = 0; i < sizeOfFloat; i++)
-                {
-                    stream.WriteByte(bytes[i]);
-                }
-            }
+            new MessagePacker(stream).Pack(_syncArray);
         }
 
         public void Release()
