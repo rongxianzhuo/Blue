@@ -93,11 +93,11 @@ namespace Blue.Demo
                         yield return null;
                     }
                 }
-                if (saveModel)
-                {
-                    _model.SaveParameterFile(ModelSavePath);
-                    Debug.Log("Model saved");
-                }
+            }
+            if (saveModel)
+            {
+                _model.SaveParameterFile(ModelSavePath);
+                Debug.Log("Model saved");
             }
             Test(mnistData);
         }

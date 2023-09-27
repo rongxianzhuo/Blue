@@ -11,12 +11,6 @@ namespace Blue.Core
     public class Tensor
     {
 
-        [Serializable]
-        public class FloatArrayData
-        {
-            public float[] data;
-        }
-
         private float[] _syncArray;
         private ComputeBuffer _buffer;
 
@@ -49,19 +43,6 @@ namespace Blue.Core
             _buffer.SetData(list);
         }
 
-        public void LoadFromJson(string json)
-        {
-            var data = JsonUtility.FromJson<FloatArrayData>(json);
-            SetData(data.data);
-        }
-
-        public void LoadFromStream(Stream stream)
-        {
-            var binaryFormatter = new BinaryFormatter();
-            var array = (float[])binaryFormatter.Deserialize(stream);
-            SetData(array);
-        }
-
         public bool Resize(params int[] size)
         {
             return ResizeWithValue(0f, size);
@@ -84,11 +65,40 @@ namespace Blue.Core
             return true;
         }
 
+        public void LoadFromStream(Stream stream)
+        {
+            const int sizeOfFloat = sizeof(float);
+            var bytes = new byte[sizeOfFloat];
+            var array = new float[FlattenSize];
+            for (var i = 0; i < FlattenSize; i++)
+            {
+                for (var j = 0; j < sizeOfFloat; j++)
+                {
+                    bytes[j] = (byte) stream.ReadByte();
+                }
+
+                array[i] = BitConverter.ToSingle(bytes);
+            }
+            SetData(array);
+        }
+
         public void SaveToStream(Stream stream)
         {
             Sync();
-            var binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(stream, _syncArray);
+            const int sizeOfFloat = sizeof(float);
+            var bytes = new byte[sizeOfFloat];
+            foreach (var f in _syncArray)
+            {
+                if (!BitConverter.TryWriteBytes(bytes, f))
+                {
+                    throw new Exception("Unknown error");
+                }
+
+                for (var i = 0; i < sizeOfFloat; i++)
+                {
+                    stream.WriteByte(bytes[i]);
+                }
+            }
         }
 
         public void Release()
@@ -107,11 +117,6 @@ namespace Blue.Core
             _buffer.GetData(array);
         }
 
-        public void SetToShader(ComputeShader cs, int kernel, int propertyId)
-        {
-            cs.SetBuffer(kernel, propertyId, _buffer);
-        }
-
         public void SetToShader(ComputeShader cs, int kernel, string propertyName)
         {
             cs.SetBuffer(kernel, propertyName, _buffer);
@@ -119,7 +124,10 @@ namespace Blue.Core
 
         public IReadOnlyList<float> Sync()
         {
-            _syncArray ??= new float[FlattenSize];
+            if (_syncArray == null || _syncArray.Length != FlattenSize)
+            {
+                _syncArray = new float[FlattenSize];
+            }
             _buffer.GetData(_syncArray);
             return _syncArray;
         }

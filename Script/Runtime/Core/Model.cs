@@ -38,10 +38,6 @@ namespace Blue.Core
                     node.GetOutput().LoadFromStream(stream);
                     stream.Close();
                 }
-                else if (File.Exists(Path.Combine(dirPath, $"{node.Id}.json")))
-                {
-                    node.GetOutput().LoadFromJson(File.ReadAllText(Path.Combine(dirPath, $"{node.Id}.bytes")));
-                }
                 else
                 {
                     Debug.LogWarning($"No parameter file: {node.Id}");
