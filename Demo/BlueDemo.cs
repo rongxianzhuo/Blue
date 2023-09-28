@@ -49,6 +49,7 @@ namespace Blue.Demo
 
         private void OnDestroy()
         {
+            _input.Destroy();
             _model.Destroy();
             _target.Release();
             _optimizer.Destroy();

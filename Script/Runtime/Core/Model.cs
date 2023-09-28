@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Blue.Graph;
 using UnityEngine;
 
@@ -10,14 +11,16 @@ namespace Blue.Core
 
         public readonly IGraphNode Output;
 
+        private readonly IGraphNode[] _inputNodes;
         private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
         private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
 
         public IReadOnlyCollection<TensorNode> ParameterNodes => _parameterNodes;
 
-        public Model(IGraphNode outputNode)
+        public Model(IGraphNode outputNode, params IGraphNode[] inputNodes)
         {
             Output = outputNode;
+            _inputNodes = inputNodes;
             outputNode.ForeachInputNode(input => AddNode(input, outputNode));
             for (var i = _nodeLayer.Count - 1; i >= 0; i--)
             {
@@ -89,6 +92,7 @@ namespace Blue.Core
 
         private void AddNode(IGraphNode node, IGraphNode forwardNode)
         {
+            if (_inputNodes.Contains(node)) return;
             var forwardLayer = GetNodeLayerIndex(forwardNode);
             var layer = GetNodeLayerIndex(node);
             var newLayer = Mathf.Max(forwardLayer + 1, layer);

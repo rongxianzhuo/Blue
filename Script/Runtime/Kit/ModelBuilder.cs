@@ -8,21 +8,25 @@ namespace Blue.Kit
     public class ModelBuilder
     {
 
+        private readonly List<IGraphNode> _inputNodes = new List<IGraphNode>(); 
         private readonly Stack<IGraphNode> _inputNodeStack = new Stack<IGraphNode>();
 
         private IGraphNode _outputNode;
 
         private int _nextTensorNodeId;
 
-        public void Any(IGraphNode node)
+        public ModelBuilder Input(IGraphNode node)
         {
             _outputNode = node;
             _inputNodeStack.Push(node);
+            _inputNodes.Add(node);
+            return this;
         }
 
         public ModelBuilder Tensor(bool isParameter, out TensorNode node, params int[] size)
         {
             node = new TensorNode(_nextTensorNodeId++, isParameter, size);
+            if (!isParameter) _inputNodes.Add(node);
             Any(node);
             return this;
         }
@@ -82,7 +86,14 @@ namespace Blue.Kit
 
         public Model Build()
         {
-            return new Model(_outputNode);
+            return new Model(_outputNode, _inputNodes.ToArray());
+        }
+
+        private void Any(IGraphNode node)
+        {
+            _outputNode = node;
+            _inputNodeStack.Push(node);
+            return;
         }
 
     }
