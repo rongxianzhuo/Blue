@@ -1,0 +1,13 @@
+#pragma kernel CSMain
+
+StructuredBuffer<float> output;
+StructuredBuffer<float> target;
+StructuredBuffer<float> weight;
+RWStructuredBuffer<float> gradient;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (output[id.x] > target[id.x]) gradient[id.x] = weight[id.x];
+    else gradient[id.x] = -weight[id.x];
+}

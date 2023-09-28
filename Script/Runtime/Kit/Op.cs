@@ -84,5 +84,15 @@ namespace Blue.Kit
                 .SetDispatchSize(target.FlattenSize);
         }
         
+        public static Operate WeightedL1Loss(Tensor output, Tensor target, Tensor gradient, Tensor weight)
+        {
+            return new Operate("LossFunction/WeightedL1Loss", "CSMain")
+                .SetTensor("output", output)
+                .SetTensor("target", target)
+                .SetTensor("gradient", gradient)
+                .SetTensor("weight", weight)
+                .SetDispatchSize(target.FlattenSize);
+        }
+        
     }
 }
