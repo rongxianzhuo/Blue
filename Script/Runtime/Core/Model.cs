@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Blue.Graph;
+using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Core
@@ -13,6 +14,7 @@ namespace Blue.Core
 
         private readonly IGraphNode[] _inputNodes;
         private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
+        private readonly List<Operate> _clearGradientOps = new List<Operate>();
         private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
 
         public IReadOnlyCollection<TensorNode> ParameterNodes => _parameterNodes;
@@ -28,6 +30,11 @@ namespace Blue.Core
                 {
                     if (node is TensorNode dataNode && dataNode.IsParameter) _parameterNodes.Add(dataNode);
                 }
+            }
+
+            foreach (var node in _parameterNodes)
+            {
+                _clearGradientOps.Add(Op.Clear(node.TotalGradient, 0f));
             }
         }
 
@@ -72,10 +79,6 @@ namespace Blue.Core
         public void Backward()
         {
             Output.Backward();
-            foreach (var nodes in _nodeLayer)
-            {
-                foreach (var node in nodes) node.Backward();
-            }
         }
 
         public void Destroy()
@@ -87,6 +90,19 @@ namespace Blue.Core
                 {
                     node.Destroy();
                 }
+            }
+
+            foreach (var op in _clearGradientOps)
+            {
+                op.Destroy();
+            }
+        }
+
+        public void ClearGradient()
+        {
+            foreach (var op in _clearGradientOps)
+            {
+                op.Dispatch();
             }
         }
 

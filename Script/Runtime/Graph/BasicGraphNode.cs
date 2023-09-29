@@ -12,6 +12,7 @@ namespace Blue.Graph
         
         private Tensor _output;
         private Tensor _gradient;
+        private List<IGraphNode> _inputNodes;
 
         protected abstract void GetOutputSize(out int batchSize, out int size);
         
@@ -73,6 +74,17 @@ namespace Blue.Graph
             foreach (var op in _backwardOperate)
             {
                 op.Dispatch();
+            }
+
+            if (_inputNodes == null)
+            {
+                _inputNodes = new List<IGraphNode>();
+                ForeachInputNode(node => _inputNodes.Add(node));
+            }
+
+            foreach (var node in _inputNodes)
+            {
+                node.Backward();
             }
         }
 

@@ -85,6 +85,7 @@ namespace Blue.Demo
                     }
                     _datasetLoader.LoadBatch(i);
                     _model.Forward();
+                    _model.ClearGradient();
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
                     _optimizer.Step(_model.ParameterNodes);

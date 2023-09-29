@@ -27,7 +27,7 @@ namespace Blue.Optimizers
                 if (op == null)
                 {
                     var param = node.GetOutput();
-                    var gradient = node.GetGradient();
+                    var gradient = node.TotalGradient;
                     var m = new Tensor(param.Size);
                     var v = new Tensor(param.Size);
                     _tensors.Add(m);
