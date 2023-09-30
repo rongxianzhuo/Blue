@@ -1,0 +1,14 @@
+#pragma kernel CSMain
+
+float weight_decay;
+StructuredBuffer<float> gradient;
+StructuredBuffer<float> weight;
+RWStructuredBuffer<float> total_gradient;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    total_gradient[id.x] += gradient[id.x] + weight[id.x] * weight_decay;
+}
+
+

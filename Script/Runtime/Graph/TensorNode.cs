@@ -1,6 +1,5 @@
 using System;
 using Blue.Core;
-using Blue.Kit;
 
 namespace Blue.Graph
 {
@@ -23,7 +22,19 @@ namespace Blue.Graph
             TotalGradient = isParam ? new Tensor(size) : null;
             _output = new Tensor(size);
             _gradient = new Tensor(size);
-            _increase = isParam ? Op.Increment(TotalGradient, _gradient) : null;
+            if (isParam)
+            {
+                _increase = new Operate("Common/GradientIncrease", "CSMain")
+                    .SetFloat("weight_decay", 0.000f)
+                    .SetTensor("gradient", _gradient)
+                    .SetTensor("weight", _output)
+                    .SetTensor("total_gradient", TotalGradient)
+                    .SetDispatchSize(TotalGradient.FlattenSize);
+            }
+            else
+            {
+                _increase = null;
+            }
         }
 
         public void Resize(params int[] size)
