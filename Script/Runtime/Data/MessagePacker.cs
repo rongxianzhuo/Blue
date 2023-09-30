@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace Blue.Data
 {
     public class MessagePacker
     {
-        
-        private const int SizeOfFloat = sizeof(float);
 
         private readonly Stream _stream;
         private readonly byte[] _byte4 = new byte[4];
+
+        public bool IsEnd => _stream.Position >= _stream.Length;
 
         public MessagePacker(Stream stream)
         {
@@ -65,6 +66,38 @@ namespace Blue.Data
             }
 
             return array;
+        }
+
+        public Vector3 UnpackVector3()
+        {
+            var x = UnpackSingle();
+            var y = UnpackSingle();
+            var z = UnpackSingle();
+            return new Vector3(x, y, z);
+        }
+
+        public Quaternion UnpackQuaternion()
+        {
+            var x = UnpackSingle();
+            var y = UnpackSingle();
+            var z = UnpackSingle();
+            var w = UnpackSingle();
+            return new Quaternion(x, y, z, w);
+        }
+
+        public void Pack(Quaternion quaternion)
+        {
+            Pack(quaternion.x);
+            Pack(quaternion.y);
+            Pack(quaternion.z);
+            Pack(quaternion.w);
+        }
+
+        public void Pack(Vector3 vector3)
+        {
+            Pack(vector3.x);
+            Pack(vector3.y);
+            Pack(vector3.z);
         }
 
         public void Pack(float f)
