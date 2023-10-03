@@ -25,7 +25,9 @@ namespace Blue.Kit
 
         public ModelBuilder Tensor(bool isParameter, out TensorNode node, params int[] size)
         {
-            node = new TensorNode(_nextTensorNodeId++, isParameter, size);
+            var id = 0;
+            if (isParameter) id = _nextTensorNodeId++;
+            node = new TensorNode(id, isParameter, size);
             if (!isParameter) _inputNodes.Add(node);
             Any(node);
             return this;
