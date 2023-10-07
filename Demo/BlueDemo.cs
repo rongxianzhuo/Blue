@@ -106,7 +106,7 @@ namespace Blue.Demo
 
         private void Test(MnistData mnistData)
         {
-            const int sampleCount = 2048;
+            var sampleCount = mnistData.TestData.Count;
             _input.Resize(sampleCount, 784);
             var x = new float[sampleCount * 784];
             var y = new int[sampleCount];

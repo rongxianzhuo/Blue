@@ -86,6 +86,12 @@ namespace Blue.Kit
             return this;
         }
 
+        public ModelBuilder Dropout(float dropout)
+        {
+            Any(new DropoutNode(_inputNodeStack.Pop(), dropout));
+            return this;
+        }
+
         public Model Build()
         {
             return new Model(_outputNode, _inputNodes.ToArray());
