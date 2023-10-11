@@ -8,14 +8,14 @@ namespace Blue.Graph
     public class LinearNode : BasicGraphNode
     {
 
-        private readonly IGraphNode _input;
-        private readonly IGraphNode _weight;
-        private readonly IGraphNode _bias;
+        private readonly GraphNode _input;
+        private readonly GraphNode _weight;
+        private readonly GraphNode _bias;
         private readonly Tensor _tInput;
         private readonly Tensor _tWeight;
         private readonly Tensor _tBias;
         
-        public LinearNode(IGraphNode input, IGraphNode weight, IGraphNode bias)
+        public LinearNode(GraphNode input, GraphNode weight, GraphNode bias)
         {
             var batchSize = input.GetOutput().Size[0];
             _input = input;
@@ -62,7 +62,7 @@ namespace Blue.Graph
             _tBias.Release();
         }
 
-        public override void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<GraphNode> action)
         {
             action(_input);
             action(_weight);

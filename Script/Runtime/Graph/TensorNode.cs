@@ -3,7 +3,7 @@ using Blue.Core;
 
 namespace Blue.Graph
 {
-    public class TensorNode : IGraphNode
+    public class TensorNode : GraphNode
     {
 
         public readonly int Id;
@@ -36,27 +36,27 @@ namespace Blue.Graph
                 _increase = null;
             }
         }
-        
-        public Tensor GetOutput()
+
+        public override Tensor GetOutput()
         {
             return _output;
         }
 
-        public Tensor GetGradient()
+        public override Tensor GetGradient()
         {
             return _gradient;
         }
 
-        public void Forward()
+        public override void Forward()
         {
         }
 
-        public void Backward()
+        public override void Backward()
         {
             _increase?.Dispatch();
         }
 
-        public void Destroy()
+        public override void Destroy()
         {
             _output.Release();
             _gradient.Release();
@@ -64,7 +64,7 @@ namespace Blue.Graph
             _increase?.Destroy();
         }
 
-        public void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<GraphNode> action)
         {
         }
     }

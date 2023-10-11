@@ -8,14 +8,14 @@ namespace Blue.Kit
     public class ModelBuilder
     {
 
-        private readonly List<IGraphNode> _inputNodes = new List<IGraphNode>(); 
-        private readonly Stack<IGraphNode> _inputNodeStack = new Stack<IGraphNode>();
+        private readonly List<GraphNode> _inputNodes = new List<GraphNode>(); 
+        private readonly Stack<GraphNode> _inputNodeStack = new Stack<GraphNode>();
 
-        private IGraphNode _outputNode;
+        private GraphNode _outputNode;
 
         private int _nextTensorNodeId;
 
-        public ModelBuilder Input(IGraphNode node)
+        public ModelBuilder Input(GraphNode node)
         {
             _outputNode = node;
             _inputNodeStack.Push(node);
@@ -68,7 +68,7 @@ namespace Blue.Kit
 
         public ModelBuilder Concat()
         {
-            var list = new List<IGraphNode>();
+            var list = new List<GraphNode>();
             while (_inputNodeStack.Count > 0) list.Insert(0, _inputNodeStack.Pop());
             var concatNode = new ConcatNode(list.ToArray());
             Any(concatNode);
@@ -97,7 +97,7 @@ namespace Blue.Kit
             return new Model(_outputNode, _inputNodes.ToArray());
         }
 
-        private void Any(IGraphNode node)
+        private void Any(GraphNode node)
         {
             _outputNode = node;
             _inputNodeStack.Push(node);

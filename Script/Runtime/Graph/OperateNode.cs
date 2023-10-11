@@ -9,27 +9,27 @@ namespace Blue.Graph
 
         private readonly int _size;
         private readonly string _shaderName;
-        private readonly KeyValuePair<string, IGraphNode>[] _inputs;
+        private readonly KeyValuePair<string, GraphNode>[] _inputs;
 
-        public static OperateNode ReLU(IGraphNode input)
+        public static OperateNode ReLU(GraphNode input)
         {
             return new OperateNode("Graph/ReLU", input.GetOutput().Size[1]
-                , new KeyValuePair<string, IGraphNode>("input", input));
+                , new KeyValuePair<string, GraphNode>("input", input));
         }
 
-        public static OperateNode ELU(IGraphNode input)
+        public static OperateNode ELU(GraphNode input)
         {
             return new OperateNode("Graph/ELU", input.GetOutput().Size[1]
-                , new KeyValuePair<string, IGraphNode>("input", input));
+                , new KeyValuePair<string, GraphNode>("input", input));
         }
 
-        public static OperateNode Sigmoid(IGraphNode input)
+        public static OperateNode Sigmoid(GraphNode input)
         {
             return new OperateNode("Graph/Sigmoid", input.GetOutput().Size[1]
-                , new KeyValuePair<string, IGraphNode>("input", input));
+                , new KeyValuePair<string, GraphNode>("input", input));
         }
 
-        public OperateNode(string shaderName, int size, params KeyValuePair<string, IGraphNode>[] inputs)
+        public OperateNode(string shaderName, int size, params KeyValuePair<string, GraphNode>[] inputs)
         {
             _size = size;
             _shaderName = shaderName;
@@ -74,7 +74,7 @@ namespace Blue.Graph
         {
         }
 
-        public override void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<GraphNode> action)
         {
             foreach (var node in _inputs)
             {

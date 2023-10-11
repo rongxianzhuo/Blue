@@ -3,11 +3,11 @@ using Blue.Core;
 
 namespace Blue.Graph
 {
-    public class DropoutNode : IGraphNode
+    public class DropoutNode : GraphNode
     {
 
         private readonly float _dropout;
-        private readonly IGraphNode _input;
+        private readonly GraphNode _input;
         private readonly Tensor _weight;
         private readonly Tensor _output;
         private readonly Tensor _gradient;
@@ -15,7 +15,7 @@ namespace Blue.Graph
         private Operate _forward;
         private Operate _backward;
         
-        public DropoutNode(IGraphNode input, float dropout)
+        public DropoutNode(GraphNode input, float dropout)
         {
             _input = input;
             _dropout = dropout;
@@ -25,17 +25,17 @@ namespace Blue.Graph
             _weight = new Tensor(input.GetOutput().Size);
         }
 
-        public Tensor GetOutput()
+        public override Tensor GetOutput()
         {
             return _output;
         }
 
-        public Tensor GetGradient()
+        public override Tensor GetGradient()
         {
             return _gradient;
         }
 
-        public void Forward()
+        public override void Forward()
         {
 
             _forward ??= new Operate("Common/Mul", "CSMain")
@@ -56,13 +56,13 @@ namespace Blue.Graph
             _forward.Dispatch();
         }
 
-        public void Backward()
+        public override void Backward()
         {
             _backward.Dispatch();
             _input.Backward();
         }
 
-        public void Destroy()
+        public override void Destroy()
         {
             _weight.Release();
             _output.Release();
@@ -71,7 +71,7 @@ namespace Blue.Graph
             _backward?.Destroy();
         }
 
-        public void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<GraphNode> action)
         {
             action(_input);
         }

@@ -4,7 +4,7 @@ using Blue.Core;
 
 namespace Blue.Graph
 {
-    public abstract class BasicGraphNode : IGraphNode
+    public abstract class BasicGraphNode : GraphNode
     {
         
         private readonly List<Operate> _forwardOperate = new List<Operate>();
@@ -12,17 +12,15 @@ namespace Blue.Graph
         
         private Tensor _output;
         private Tensor _gradient;
-        private List<IGraphNode> _inputNodes;
+        private List<GraphNode> _inputNodes;
 
         protected abstract void GetOutputSize(out int batchSize, out int size);
         
         protected abstract void OnDestroy();
 
-        public abstract void ForeachInputNode(Action<IGraphNode> action);
-
         protected abstract void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward);
 
-        public Tensor GetOutput()
+        public override Tensor GetOutput()
         {
             if (_output == null)
             {
@@ -33,7 +31,7 @@ namespace Blue.Graph
             return _output;
         }
 
-        public Tensor GetGradient()
+        public override Tensor GetGradient()
         {
             if (_gradient == null)
             {
@@ -44,7 +42,7 @@ namespace Blue.Graph
             return _gradient;
         }
 
-        public void Forward()
+        public override void Forward()
         {
             GetOutputSize(out var batchSize, out var size);
             if (_forwardOperate.Count == 0)
@@ -57,7 +55,7 @@ namespace Blue.Graph
             }
         }
 
-        public void Backward()
+        public override void Backward()
         {
             foreach (var op in _backwardOperate)
             {
@@ -66,7 +64,7 @@ namespace Blue.Graph
 
             if (_inputNodes == null)
             {
-                _inputNodes = new List<IGraphNode>();
+                _inputNodes = new List<GraphNode>();
                 ForeachInputNode(node => _inputNodes.Add(node));
             }
 
@@ -76,7 +74,7 @@ namespace Blue.Graph
             }
         }
 
-        public void Destroy()
+        public override void Destroy()
         {
             OnDestroy();
             _output?.Release();

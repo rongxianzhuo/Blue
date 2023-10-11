@@ -9,9 +9,9 @@ namespace Blue.Graph
     {
 
         private readonly int _size;
-        private readonly IGraphNode[] _inputs;
+        private readonly GraphNode[] _inputs;
 
-        public ConcatNode(params IGraphNode[] input)
+        public ConcatNode(params GraphNode[] input)
         {
             _inputs = input;
             _size = 0;
@@ -56,7 +56,7 @@ namespace Blue.Graph
         {
         }
 
-        public override void ForeachInputNode(Action<IGraphNode> action)
+        public override void ForeachInputNode(Action<GraphNode> action)
         {
             foreach (var node in _inputs)
             {

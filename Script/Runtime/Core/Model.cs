@@ -10,16 +10,16 @@ namespace Blue.Core
     public class Model
     {
 
-        public readonly IGraphNode Output;
+        public readonly GraphNode Output;
 
-        private readonly IGraphNode[] _inputNodes;
+        private readonly GraphNode[] _inputNodes;
         private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
         private readonly List<Operate> _clearGradientOps = new List<Operate>();
-        private readonly List<HashSet<IGraphNode>> _nodeLayer = new List<HashSet<IGraphNode>>();
+        private readonly List<HashSet<GraphNode>> _nodeLayer = new List<HashSet<GraphNode>>();
 
         public IReadOnlyCollection<TensorNode> ParameterNodes => _parameterNodes;
 
-        public Model(IGraphNode outputNode, params IGraphNode[] inputNodes)
+        public Model(GraphNode outputNode, params GraphNode[] inputNodes)
         {
             Output = outputNode;
             _inputNodes = inputNodes;
@@ -106,7 +106,7 @@ namespace Blue.Core
             }
         }
 
-        private void AddNode(IGraphNode node, IGraphNode forwardNode)
+        private void AddNode(GraphNode node, GraphNode forwardNode)
         {
             if (_inputNodes.Contains(node)) return;
             var forwardLayer = GetNodeLayerIndex(forwardNode);
@@ -114,12 +114,12 @@ namespace Blue.Core
             var newLayer = Mathf.Max(forwardLayer + 1, layer);
             if (newLayer == layer) return;
             if (layer != -1) _nodeLayer[layer].Remove(node);
-            while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<IGraphNode>());
+            while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<GraphNode>());
             _nodeLayer[newLayer].Add(node);
             node.ForeachInputNode(input => AddNode(input, node));
         }
 
-        private int GetNodeLayerIndex(IGraphNode node)
+        private int GetNodeLayerIndex(GraphNode node)
         {
             for (var i = 0; i < _nodeLayer.Count; i++)
             {
