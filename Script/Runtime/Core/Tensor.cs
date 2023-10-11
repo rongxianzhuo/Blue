@@ -12,9 +12,9 @@ namespace Blue.Core
 
         public readonly int[] Size;
         public readonly int FlattenSize;
+        private readonly ComputeBuffer _buffer;
 
         private float[] _syncArray;
-        private ComputeBuffer _buffer;
 
         public Tensor(params int[] size)
         {

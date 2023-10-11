@@ -95,8 +95,12 @@ namespace Blue.Demo
                     }
                 }
             }
-            _model.SaveParameterFile(ModelSavePath);
-            Debug.Log("Model saved");
+
+            if (trainEpochs > 0)
+            {
+                _model.SaveParameterFile(ModelSavePath);
+                Debug.Log("Model saved");
+            }
             Test(mnistData);
         }
 
