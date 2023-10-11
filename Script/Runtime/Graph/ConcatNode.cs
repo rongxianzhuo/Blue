@@ -5,29 +5,29 @@ using Blue.Kit;
 
 namespace Blue.Graph
 {
-    public class ConcatNode : BasicGraphNode
+    public class ConcatNode : GraphNode
     {
 
-        private readonly int _size;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
 
         public ConcatNode(params GraphNode[] input)
         {
             InputNodes.AddRange(input);
-            _size = 0;
+            var size = 0;
             foreach (var node in input)
             {
-                _size += node.GetOutput().Size[1];
+                size += node.GetOutput().Size[1];
             }
-        }
-
-        protected override void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward)
-        {
+            _output = new Tensor(input[0].GetOutput().Size[0], size);
+            _gradient = new Tensor(_output.Size);
+            
             var start = 0;
             foreach (var t in InputNodes)
             {
                 var inputNode = t.GetOutput();
-                forward.Add(Op.Copy(inputNode, 0, 0
-                    , GetOutput(), start, _size - inputNode.Size[1]
+                ForwardOperates.Add(Op.Copy(inputNode, 0, 0
+                    , _output, start, size - inputNode.Size[1]
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
                 start += inputNode.Size[1];
@@ -37,7 +37,7 @@ namespace Blue.Graph
             foreach (var t in InputNodes)
             {
                 var inputNode = t.GetGradient();
-                backward.Add(Op.Copy(GetGradient(), start, _size - inputNode.Size[1]
+                BackwardOperates.Add(Op.Copy(_gradient, start, size - inputNode.Size[1]
                     , inputNode, 0, 0
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
@@ -45,14 +45,20 @@ namespace Blue.Graph
             }
         }
 
-        protected override void GetOutputSize(out int batchSize, out int size)
+        public override Tensor GetOutput()
         {
-            batchSize = InputNodes[0].GetOutput().Size[0];
-            size = _size;
+            return _output;
+        }
+
+        public override Tensor GetGradient()
+        {
+            return _gradient;
         }
 
         protected override void OnDestroy()
         {
+            _output.Release();
+            _gradient.Release();
         }
     }
 }

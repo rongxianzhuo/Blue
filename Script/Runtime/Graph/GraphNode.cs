@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Blue.Core;
 
@@ -10,16 +9,51 @@ namespace Blue.Graph
         public IReadOnlyList<GraphNode> ReadOnlyInputNodes => InputNodes;
 
         protected readonly List<GraphNode> InputNodes = new List<GraphNode>();
+        protected readonly List<Operate> ForwardOperates = new List<Operate>();
+        protected readonly List<Operate> BackwardOperates = new List<Operate>();
 
         public abstract Tensor GetOutput();
 
         public abstract Tensor GetGradient();
 
-        public abstract void Forward();
+        public void Forward()
+        {
+            foreach (var o in ForwardOperates)
+            {
+                o.Dispatch();
+            }
+        }
 
-        public abstract void Backward();
+        public void Backward()
+        {
+            foreach (var o in BackwardOperates)
+            {
+                o.Dispatch();
+            }
 
-        public abstract void Destroy();
+            foreach (var node in InputNodes)
+            {
+                node.Backward();
+            }
+        }
+
+        public void Destroy()
+        {
+            OnDestroy();
+            foreach (var o in ForwardOperates)
+            {
+                o.Destroy();
+            }
+            foreach (var o in BackwardOperates)
+            {
+                o.Destroy();
+            }
+        }
+
+        protected virtual void OnDestroy()
+        {
+            
+        }
 
     }
 }

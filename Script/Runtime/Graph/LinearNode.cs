@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
 
 namespace Blue.Graph
 {
-    public class LinearNode : BasicGraphNode
+    public class LinearNode : GraphNode
     {
 
-        private readonly GraphNode _input;
-        private readonly GraphNode _weight;
-        private readonly GraphNode _bias;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
         private readonly Tensor _tInput;
         private readonly Tensor _tWeight;
         private readonly Tensor _tBias;
@@ -18,9 +15,8 @@ namespace Blue.Graph
         public LinearNode(GraphNode input, GraphNode weight, GraphNode bias)
         {
             var batchSize = input.GetOutput().Size[0];
-            _input = input;
-            _weight = weight;
-            _bias = bias;
+            _output = new Tensor(input.GetOutput().Size[0], bias.GetOutput().FlattenSize);
+            _gradient = new Tensor(_output.Size);
             _tInput = input.GetOutput().Transpose();
             _tWeight = weight.GetOutput().Transpose();
             _tBias = new Tensor(1, batchSize);
@@ -28,34 +24,33 @@ namespace Blue.Graph
             InputNodes.Add(input);
             InputNodes.Add(weight);
             InputNodes.Add(bias);
-        }
-
-        protected override void UpdateOperate(int batchSize, List<Operate> forwardOpList, List<Operate> backwardOpList)
-        {
+            ForwardOperates.Add(Op.MatMul(input.GetOutput()
+                , weight.GetOutput()
+                , _output));
+            ForwardOperates.Add(Op.Increment(_output, bias.GetOutput()));
             
-            forwardOpList.Add(Op.MatMul(_input.GetOutput()
-                , _weight.GetOutput()
-                , GetOutput()));
-            forwardOpList.Add(Op.Increment(GetOutput(), _bias.GetOutput()));
-            
-            backwardOpList.Add(Op.Transpose(_weight.GetOutput()
+            BackwardOperates.Add(Op.Transpose(weight.GetOutput()
                 , _tWeight));
-            backwardOpList.Add(Op.MatMul(GetGradient()
+            BackwardOperates.Add(Op.MatMul(_gradient
                 , _tWeight
-                , _input.GetGradient()));
-            backwardOpList.Add(Op.Transpose(_input.GetOutput()
+                , input.GetGradient()));
+            BackwardOperates.Add(Op.Transpose(input.GetOutput()
                 , _tInput));
-            backwardOpList.Add(Op.MatMul(_tInput
-                , GetGradient()
-                , _weight.GetGradient()));
-            backwardOpList.Add(Op.Translate(_weight.GetGradient(), 1f / _input.GetOutput().Size[0], 0f));
-            backwardOpList.Add(Op.MatMul(_tBias, GetGradient(), _bias.GetGradient()));
+            BackwardOperates.Add(Op.MatMul(_tInput
+                , _gradient
+                , weight.GetGradient()));
+            BackwardOperates.Add(Op.Translate(weight.GetGradient(), 1f / input.GetOutput().Size[0], 0f));
+            BackwardOperates.Add(Op.MatMul(_tBias, _gradient, bias.GetGradient()));
         }
 
-        protected override void GetOutputSize(out int batchSize, out int size)
+        public override Tensor GetOutput()
         {
-            batchSize = _input.GetOutput().Size[0];
-            size = _bias.GetOutput().FlattenSize;
+            return _output;
+        }
+
+        public override Tensor GetGradient()
+        {
+            return _gradient;
         }
 
         protected override void OnDestroy()
@@ -63,6 +58,8 @@ namespace Blue.Graph
             _tWeight.Release();
             _tInput.Release();
             _tBias.Release();
+            _output.Release();
+            _gradient.Release();
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Blue.Graph
 
         private readonly Tensor _output;
         private readonly Tensor _gradient;
-        private readonly Operate _increase;
 
         public bool IsParameter => TotalGradient != null;
 
@@ -23,16 +22,12 @@ namespace Blue.Graph
             _gradient = new Tensor(size);
             if (isParam)
             {
-                _increase = new Operate("Common/GradientIncrease", "CSMain")
+                BackwardOperates.Add(new Operate("Common/GradientIncrease", "CSMain")
                     .SetFloat("weight_decay", 0.000f)
                     .SetTensor("gradient", _gradient)
                     .SetTensor("weight", _output)
                     .SetTensor("total_gradient", TotalGradient)
-                    .SetDispatchSize(TotalGradient.FlattenSize);
-            }
-            else
-            {
-                _increase = null;
+                    .SetDispatchSize(TotalGradient.FlattenSize));
             }
         }
 
@@ -46,21 +41,12 @@ namespace Blue.Graph
             return _gradient;
         }
 
-        public override void Forward()
-        {
-        }
-
-        public override void Backward()
-        {
-            _increase?.Dispatch();
-        }
-
-        public override void Destroy()
+        protected override void OnDestroy()
         {
             _output.Release();
             _gradient.Release();
             TotalGradient?.Release();
-            _increase?.Destroy();
+            base.OnDestroy();
         }
     }
 }

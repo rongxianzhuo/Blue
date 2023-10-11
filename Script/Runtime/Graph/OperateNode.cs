@@ -4,10 +4,11 @@ using Blue.Core;
 
 namespace Blue.Graph
 {
-    public class OperateNode : BasicGraphNode
+    public class OperateNode : GraphNode
     {
 
-        private readonly int _size;
+        private readonly Tensor _output;
+        private readonly Tensor _gradient;
         private readonly string _shaderName;
         private readonly KeyValuePair<string, GraphNode>[] _inputs;
 
@@ -31,51 +32,54 @@ namespace Blue.Graph
 
         public OperateNode(string shaderName, int size, params KeyValuePair<string, GraphNode>[] inputs)
         {
-            _size = size;
             _shaderName = shaderName;
             _inputs = inputs;
+            _output = new Tensor(_inputs[0].Value.GetOutput().Size[0], size);
+            _gradient = new Tensor(_output.Size);
             foreach (var pair in inputs)
             {
                 InputNodes.Add(pair.Value);
             }
-        }
-
-        protected override void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward)
-        {
             {
                 var op = new Operate(_shaderName, "Forward")
-                    .SetTensor("rw_output", GetOutput());
+                    .SetTensor("rw_output", _output);
                 foreach (var pair in _inputs)
                 {
                     op.SetTensor(pair.Key, pair.Value.GetOutput());
                 }
-                op.SetDispatchSize(GetOutput().FlattenSize);
-                forward.Add(op);
+                op.SetDispatchSize(_output.FlattenSize);
+                ForwardOperates.Add(op);
             }
             
             foreach (var t in _inputs)
             {
                 var op = new Operate(_shaderName, $"Backward_{t.Key}")
-                    .SetTensor("r_output", GetOutput());
+                    .SetTensor("r_output", _output);
                 foreach (var pair in _inputs)
                 {
                     op.SetTensor(pair.Key, pair.Value.GetOutput());
                 }
                 op.SetTensor("input_gradient", t.Value.GetGradient());
-                op.SetTensor("output_gradient", GetGradient());
+                op.SetTensor("output_gradient", _gradient);
                 op.SetDispatchSize(t.Value.GetGradient().FlattenSize);
-                backward.Add(op);
+                BackwardOperates.Add(op);
             }
         }
 
-        protected override void GetOutputSize(out int batchSize, out int size)
+        public override Tensor GetOutput()
         {
-            batchSize = _inputs[0].Value.GetOutput().Size[0];
-            size = _size;
+            return _output;
+        }
+
+        public override Tensor GetGradient()
+        {
+            return _gradient;
         }
 
         protected override void OnDestroy()
         {
+            _output.Release();
+            _gradient.Release();
         }
     }
 }
