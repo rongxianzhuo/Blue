@@ -7,11 +7,17 @@ namespace Blue.Core
         
         private readonly ComputeShader _cs;
         private readonly int _kernel;
+        private readonly System.Action _dispatchAction;
         private int _groupSizeX;
         private int _groupSizeY;
         private int _groupSizeZ;
 
         public static int PropertyId(string propertyName) => Shader.PropertyToID(propertyName);
+
+        public Operate(System.Action dispatchAction)
+        {
+            _dispatchAction = dispatchAction;
+        }
 
         public Operate(string name, string kernel)
         {
@@ -63,7 +69,14 @@ namespace Blue.Core
 
         public Operate Dispatch()
         {
-            _cs.Dispatch(_kernel, _groupSizeX, _groupSizeY, _groupSizeZ);
+            if (_dispatchAction == null)
+            {
+                _cs.Dispatch(_kernel, _groupSizeX, _groupSizeY, _groupSizeZ);
+            }
+            else
+            {
+                _dispatchAction();
+            }
             return this;
         }
 
