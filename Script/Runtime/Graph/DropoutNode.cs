@@ -17,6 +17,7 @@ namespace Blue.Graph
         
         public DropoutNode(GraphNode input, float dropout)
         {
+            InputNodes.Add(input);
             _input = input;
             _dropout = dropout;
             _weightArray = new float[input.GetOutput().FlattenSize];
@@ -69,11 +70,6 @@ namespace Blue.Graph
             _gradient.Release();
             _forward?.Destroy();
             _backward?.Destroy();
-        }
-
-        public override void ForeachInputNode(Action<GraphNode> action)
-        {
-            action(_input);
         }
     }
 }

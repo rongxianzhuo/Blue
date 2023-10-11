@@ -25,6 +25,9 @@ namespace Blue.Graph
             _tWeight = weight.GetOutput().Transpose();
             _tBias = new Tensor(1, batchSize);
             Op.Clear(_tBias, 1f / batchSize).Dispatch().Destroy();
+            InputNodes.Add(input);
+            InputNodes.Add(weight);
+            InputNodes.Add(bias);
         }
 
         protected override void UpdateOperate(int batchSize, List<Operate> forwardOpList, List<Operate> backwardOpList)
@@ -60,13 +63,6 @@ namespace Blue.Graph
             _tWeight.Release();
             _tInput.Release();
             _tBias.Release();
-        }
-
-        public override void ForeachInputNode(Action<GraphNode> action)
-        {
-            action(_input);
-            action(_weight);
-            action(_bias);
         }
     }
 }

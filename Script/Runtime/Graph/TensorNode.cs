@@ -1,4 +1,3 @@
-using System;
 using Blue.Core;
 
 namespace Blue.Graph
@@ -62,10 +61,6 @@ namespace Blue.Graph
             _gradient.Release();
             TotalGradient?.Release();
             _increase?.Destroy();
-        }
-
-        public override void ForeachInputNode(Action<GraphNode> action)
-        {
         }
     }
 }

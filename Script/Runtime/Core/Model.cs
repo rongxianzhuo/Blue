@@ -23,7 +23,10 @@ namespace Blue.Core
         {
             Output = outputNode;
             _inputNodes = inputNodes;
-            outputNode.ForeachInputNode(input => AddNode(input, outputNode));
+            foreach (var node in outputNode.ReadOnlyInputNodes)
+            {
+                AddNode(node, outputNode);
+            }
             for (var i = _nodeLayer.Count - 1; i >= 0; i--)
             {
                 foreach (var node in _nodeLayer[i])
@@ -116,7 +119,10 @@ namespace Blue.Core
             if (layer != -1) _nodeLayer[layer].Remove(node);
             while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<GraphNode>());
             _nodeLayer[newLayer].Add(node);
-            node.ForeachInputNode(input => AddNode(input, node));
+            foreach (var i in node.ReadOnlyInputNodes)
+            {
+                AddNode(i, node);
+            }
         }
 
         private int GetNodeLayerIndex(GraphNode node)

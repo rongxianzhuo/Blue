@@ -34,6 +34,10 @@ namespace Blue.Graph
             _size = size;
             _shaderName = shaderName;
             _inputs = inputs;
+            foreach (var pair in inputs)
+            {
+                InputNodes.Add(pair.Value);
+            }
         }
 
         protected override void UpdateOperate(int batchSize, List<Operate> forward, List<Operate> backward)
@@ -72,14 +76,6 @@ namespace Blue.Graph
 
         protected override void OnDestroy()
         {
-        }
-
-        public override void ForeachInputNode(Action<GraphNode> action)
-        {
-            foreach (var node in _inputs)
-            {
-                action(node.Value);
-            }
         }
     }
 }
