@@ -37,17 +37,6 @@ namespace Blue.Graph
 
         public void Forward()
         {
-            if (_input.GetOutput().FlattenSize != _output.FlattenSize)
-            {
-                _weightArray = new float[_input.GetOutput().FlattenSize];
-                _output.Resize(_input.GetOutput().Size);
-                _gradient.Resize(_input.GetOutput().Size);
-                _weight.Resize(_input.GetOutput().Size);
-                _forward?.Destroy();
-                _backward?.Destroy();
-                _forward = null;
-                _backward = null;
-            }
 
             _forward ??= new Operate("Common/Mul", "CSMain")
                 .SetTensor("a", _input.GetOutput())

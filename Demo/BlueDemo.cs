@@ -18,8 +18,6 @@ namespace Blue.Demo
 
         private const int BatchSize = 32;
 
-        public bool loadModel;
-        public bool saveModel;
         public Text infoText;
         public int trainEpochs = 2;
 
@@ -39,11 +37,12 @@ namespace Blue.Demo
                 .Tensor(false, out _input, BatchSize, 784)
                 .Linear(128)
                 .Activation("relu")
+                .Dropout(0.2f)
                 .Linear(10)
                 .Build();
             _optimizer = new AdamOptimizer();
             _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
-            if (loadModel && Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
+            if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
 
@@ -96,18 +95,21 @@ namespace Blue.Demo
                     }
                 }
             }
-            if (saveModel)
-            {
-                _model.SaveParameterFile(ModelSavePath);
-                Debug.Log("Model saved");
-            }
+            _model.SaveParameterFile(ModelSavePath);
+            Debug.Log("Model saved");
             Test(mnistData);
         }
 
         private void Test(MnistData mnistData)
         {
             var sampleCount = mnistData.TestData.Count;
-            _input.Resize(sampleCount, 784);
+            var model = new ModelBuilder()
+                .Tensor(false, out var input, sampleCount, 784)
+                .Linear(128)
+                .Activation("relu")
+                .Linear(10)
+                .Build();
+            if (Directory.Exists(ModelSavePath)) model.LoadParameterFile(ModelSavePath);
             var x = new float[sampleCount * 784];
             var y = new int[sampleCount];
             for (var i = 0; i < sampleCount; i++)
@@ -115,15 +117,17 @@ namespace Blue.Demo
                 Array.Copy(mnistData.TestData[i].ImageData, 0, x, i * 784, 784);
                 y[i] = mnistData.TestData[i].Label;
             }
-            _input.GetOutput().SetData(x);
-            _model.Forward();
-            infoText.text = $"Accuracy: {GetCorrectCount(y) * 100f / sampleCount:0.00}%";
+            input.GetOutput().SetData(x);
+            model.Forward();
+            infoText.text = $"Accuracy: {GetCorrectCount(model, y) * 100f / sampleCount:0.00}%";
+            model.Destroy();
+            input.Destroy();
         }
 
-        public int GetCorrectCount(int[] batchTargetLabel)
+        public static int GetCorrectCount(Model model, int[] batchTargetLabel)
         {
             var correctCount = 0;
-            var outputData = _model.Output.GetOutput().Sync();
+            var outputData = model.Output.GetOutput().Sync();
             for (var i = 0; i < batchTargetLabel.Length; i++)
             {
                 var max = outputData[i * 10];

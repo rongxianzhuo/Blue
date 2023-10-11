@@ -29,8 +29,6 @@ namespace Blue.Graph
 
         protected override void UpdateOperate(int batchSize, List<Operate> forwardOpList, List<Operate> backwardOpList)
         {
-            _tInput.Resize(_input.GetOutput().Size[1], batchSize);
-            _tBias.ResizeWithValue(1f / batchSize, 1, batchSize);
             
             forwardOpList.Add(Op.MatMul(_input.GetOutput()
                 , _weight.GetOutput()

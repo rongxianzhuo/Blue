@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using Blue.Data;
 using Blue.Kit;
 using UnityEngine;
@@ -12,48 +10,14 @@ namespace Blue.Core
     public class Tensor
     {
 
+        public readonly int[] Size;
+        public readonly int FlattenSize;
+
         private float[] _syncArray;
         private ComputeBuffer _buffer;
 
-        public int[] Size { get; private set; }
-
-        public int FlattenSize { get; private set; }
-
         public Tensor(params int[] size)
         {
-            Resize(size);
-        }
-
-        public bool IsSize(params int[] size)
-        {
-            if (Size == null) return false;
-            if (size.Length != Size.Length) return false;
-            for (var i = 0; i < size.Length; i++)
-            {
-                if (size[i] != Size[i]) return false;
-            }
-
-            return true;
-        }
-
-        public Tensor(List<float> list)
-        {
-            Size = new []{list.Count};
-            FlattenSize = list.Count;
-            _buffer = new ComputeBuffer(list.Count, sizeof(float));
-            _buffer.SetData(list);
-        }
-
-        public bool Resize(params int[] size)
-        {
-            return ResizeWithValue(0f, size);
-        }
-
-        public bool ResizeWithValue(float fillValue, params int[] size)
-        {
-            if (IsSize(size)) return false;
-            _syncArray = null;
-            if (_buffer != null) _buffer.Release();
             Size = size;
             var totalSize = 1;
             foreach (var i in size)
@@ -62,8 +26,15 @@ namespace Blue.Core
             }
             FlattenSize = totalSize;
             _buffer = new ComputeBuffer(totalSize, sizeof(float));
-            Op.Clear(this, fillValue).Dispatch().Destroy();
-            return true;
+            Op.Clear(this, 0).Dispatch().Destroy();
+        }
+
+        public Tensor(List<float> list)
+        {
+            Size = new []{list.Count};
+            FlattenSize = list.Count;
+            _buffer = new ComputeBuffer(list.Count, sizeof(float));
+            _buffer.SetData(list);
         }
 
         public void LoadFromStream(Stream stream)

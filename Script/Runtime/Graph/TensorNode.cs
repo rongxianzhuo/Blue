@@ -36,12 +36,6 @@ namespace Blue.Graph
                 _increase = null;
             }
         }
-
-        public void Resize(params int[] size)
-        {
-            _output.Resize(size);
-            _gradient.Resize(size);
-        }
         
         public Tensor GetOutput()
         {

@@ -47,20 +47,8 @@ namespace Blue.Graph
         public void Forward()
         {
             GetOutputSize(out var batchSize, out var size);
-            if (_forwardOperate.Count == 0 || batchSize != GetOutput().Size[0])
+            if (_forwardOperate.Count == 0)
             {
-                GetOutput().Resize(batchSize, size);
-                GetGradient().Resize(batchSize, size);
-                foreach (var op in _forwardOperate)
-                {
-                    op.Destroy();
-                }
-                _forwardOperate.Clear();
-                foreach (var op in _backwardOperate)
-                {
-                    op.Destroy();
-                }
-                _backwardOperate.Clear();
                 UpdateOperate(batchSize, _forwardOperate, _backwardOperate);
             }
             foreach (var op in _forwardOperate)

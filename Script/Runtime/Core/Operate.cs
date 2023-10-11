@@ -69,7 +69,11 @@ namespace Blue.Core
 
         public void Destroy()
         {
+#if UNITY_EDITOR
+            Object.DestroyImmediate(_cs);
+#else
             Object.Destroy(_cs);
+#endif
         }
         
     }
