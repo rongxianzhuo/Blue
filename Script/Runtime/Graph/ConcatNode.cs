@@ -19,8 +19,8 @@ namespace Blue.Graph
             {
                 size += node.GetOutput().Size[1];
             }
-            _output = new Tensor(input[0].GetOutput().Size[0], size);
-            _gradient = new Tensor(_output.Size);
+            _output = CreateTensor(input[0].GetOutput().Size[0], size);
+            _gradient = CreateTensor(_output.Size);
             
             var start = 0;
             foreach (var t in InputNodes)
@@ -53,12 +53,6 @@ namespace Blue.Graph
         public override Tensor GetGradient()
         {
             return _gradient;
-        }
-
-        protected override void OnDestroy()
-        {
-            _output.Release();
-            _gradient.Release();
         }
     }
 }

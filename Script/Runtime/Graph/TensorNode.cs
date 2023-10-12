@@ -17,9 +17,9 @@ namespace Blue.Graph
         public TensorNode(int id, bool isParam, params int[] size)
         {
             Id = id;
-            TotalGradient = isParam ? new Tensor(size) : null;
-            _output = new Tensor(size);
-            _gradient = new Tensor(size);
+            TotalGradient = isParam ? CreateTensor(size) : null;
+            _output = CreateTensor(size);
+            _gradient = CreateTensor(size);
             if (isParam)
             {
                 BackwardOperates.Add(new Operate("Common/GradientIncrease", "CSMain")
@@ -39,14 +39,6 @@ namespace Blue.Graph
         public override Tensor GetGradient()
         {
             return _gradient;
-        }
-
-        protected override void OnDestroy()
-        {
-            _output.Release();
-            _gradient.Release();
-            TotalGradient?.Release();
-            base.OnDestroy();
         }
     }
 }

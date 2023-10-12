@@ -9,8 +9,6 @@ namespace Blue.Graph
 
         private readonly Tensor _output;
         private readonly Tensor _gradient;
-        private readonly string _shaderName;
-        private readonly KeyValuePair<string, GraphNode>[] _inputs;
 
         public static OperateNode ReLU(GraphNode input)
         {
@@ -32,18 +30,16 @@ namespace Blue.Graph
 
         public OperateNode(string shaderName, int size, params KeyValuePair<string, GraphNode>[] inputs)
         {
-            _shaderName = shaderName;
-            _inputs = inputs;
-            _output = new Tensor(_inputs[0].Value.GetOutput().Size[0], size);
-            _gradient = new Tensor(_output.Size);
+            _output = CreateTensor(inputs[0].Value.GetOutput().Size[0], size);
+            _gradient = CreateTensor(_output.Size);
             foreach (var pair in inputs)
             {
                 InputNodes.Add(pair.Value);
             }
             {
-                var op = new Operate(_shaderName, "Forward")
+                var op = new Operate(shaderName, "Forward")
                     .SetTensor("rw_output", _output);
-                foreach (var pair in _inputs)
+                foreach (var pair in inputs)
                 {
                     op.SetTensor(pair.Key, pair.Value.GetOutput());
                 }
@@ -51,11 +47,11 @@ namespace Blue.Graph
                 ForwardOperates.Add(op);
             }
             
-            foreach (var t in _inputs)
+            foreach (var t in inputs)
             {
-                var op = new Operate(_shaderName, $"Backward_{t.Key}")
+                var op = new Operate(shaderName, $"Backward_{t.Key}")
                     .SetTensor("r_output", _output);
-                foreach (var pair in _inputs)
+                foreach (var pair in inputs)
                 {
                     op.SetTensor(pair.Key, pair.Value.GetOutput());
                 }
@@ -74,12 +70,6 @@ namespace Blue.Graph
         public override Tensor GetGradient()
         {
             return _gradient;
-        }
-
-        protected override void OnDestroy()
-        {
-            _output.Release();
-            _gradient.Release();
         }
     }
 }

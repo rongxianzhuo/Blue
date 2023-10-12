@@ -12,9 +12,18 @@ namespace Blue.Graph
         protected readonly List<Operate> ForwardOperates = new List<Operate>();
         protected readonly List<Operate> BackwardOperates = new List<Operate>();
 
+        private readonly HashSet<Tensor> _bindTensors = new HashSet<Tensor>();
+
         public abstract Tensor GetOutput();
 
         public abstract Tensor GetGradient();
+
+        public Tensor CreateTensor(params int[] shape)
+        {
+            var tensor = new Tensor(shape);
+            _bindTensors.Add(tensor);
+            return tensor;
+        }
 
         public void Forward()
         {
@@ -39,20 +48,22 @@ namespace Blue.Graph
 
         public void Destroy()
         {
-            OnDestroy();
             foreach (var o in ForwardOperates)
             {
                 o.Destroy();
             }
+            ForwardOperates.Clear();
             foreach (var o in BackwardOperates)
             {
                 o.Destroy();
             }
-        }
+            BackwardOperates.Clear();
 
-        protected virtual void OnDestroy()
-        {
-            
+            foreach (var t in _bindTensors)
+            {
+                t.Release();
+            }
+            _bindTensors.Clear();
         }
 
     }

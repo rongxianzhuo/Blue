@@ -29,6 +29,16 @@ namespace Blue.Core
             Op.Clear(this, 0).Dispatch().Destroy();
         }
 
+        public int[] TransposeSize()
+        {
+            var size = new int[Size.Length];
+            for (var i = 0; i < size.Length; i++)
+            {
+                size[i] = Size[size.Length - i - 1];
+            }
+            return size;
+        }
+
         public Tensor(List<float> list)
         {
             Size = new []{list.Count};
