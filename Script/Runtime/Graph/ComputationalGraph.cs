@@ -36,7 +36,7 @@ namespace Blue.Graph
             var size = 0;
             foreach (var node in nodes)
             {
-                size += node.GetOutput().Size[1];
+                size += node.Output.Size[1];
             }
             var concat = new ComputationalNode(this, false, nodes[0].Output.Size[0], size);
             concat.AddInputNode(nodes);
@@ -44,7 +44,7 @@ namespace Blue.Graph
             var start = 0;
             foreach (var t in nodes)
             {
-                var inputNode = t.GetOutput();
+                var inputNode = t.Output;
                 concat.AddForwardOperate(Op.Copy(inputNode, 0, 0
                     , concat.Output, start, size - inputNode.Size[1]
                     , inputNode.Size[1]
@@ -55,7 +55,7 @@ namespace Blue.Graph
             start = 0;
             foreach (var t in nodes)
             {
-                var inputNode = t.GetGradient();
+                var inputNode = t.Gradient;
                 concat.AddBackwardOperate(Op.Copy(concat.Gradient, start, size - inputNode.Size[1]
                     , inputNode, 0, 0
                     , inputNode.Size[1]

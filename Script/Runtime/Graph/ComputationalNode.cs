@@ -1,7 +1,6 @@
 using System;
 using Blue.Core;
 using Blue.Kit;
-using UnityEditor;
 using UnityEngine;
 
 namespace Blue.Graph
@@ -49,16 +48,6 @@ namespace Blue.Graph
             Graph = graph;
             Output = CreateTensor(shape);
             Gradient = CreateTensor(shape);
-        }
-        
-        public override Tensor GetOutput()
-        {
-            return Output;
-        }
-
-        public override Tensor GetGradient()
-        {
-            return Gradient;
         }
 
         public ComputationalNode Activation(string activationName)

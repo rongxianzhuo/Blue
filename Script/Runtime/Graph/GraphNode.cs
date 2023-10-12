@@ -14,10 +14,6 @@ namespace Blue.Graph
 
         private readonly HashSet<Tensor> _bindTensors = new HashSet<Tensor>();
 
-        public abstract Tensor GetOutput();
-
-        public abstract Tensor GetGradient();
-
         public void AddInputNode(params ComputationalNode[] node)
         {
             InputNodes.AddRange(node);

@@ -36,7 +36,7 @@ namespace Blue.Demo
             _input = new ComputationalNode(false, BatchSize, 784);
             _model = new Model(_input.Linear(128).Activation("relu").Dropout(0.2f).Linear(10));
             _optimizer = new AdamOptimizer();
-            _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
+            _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.Output, _target, _model.Output.Gradient);
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
@@ -64,7 +64,7 @@ namespace Blue.Demo
                 y.Add(data.LabelArray);
             }
             _datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainData.Count);
-            _datasetLoader.LoadDataset(x, _input.GetOutput());
+            _datasetLoader.LoadDataset(x, _input.Output);
             _datasetLoader.LoadDataset(y, _target);
             var epoch = 0;
             while (epoch < trainEpochs)
@@ -112,7 +112,7 @@ namespace Blue.Demo
                 Array.Copy(mnistData.TestData[i].ImageData, 0, x, i * 784, 784);
                 y[i] = mnistData.TestData[i].Label;
             }
-            input.GetOutput().SetData(x);
+            input.Output.SetData(x);
             model.Forward();
             infoText.text = $"Accuracy: {GetCorrectCount(model, y) * 100f / sampleCount:0.00}%";
             model.Destroy();
@@ -122,7 +122,7 @@ namespace Blue.Demo
         public static int GetCorrectCount(Model model, int[] batchTargetLabel)
         {
             var correctCount = 0;
-            var outputData = model.Output.GetOutput().Sync();
+            var outputData = model.Output.Output.Sync();
             for (var i = 0; i < batchTargetLabel.Length; i++)
             {
                 var max = outputData[i * 10];
