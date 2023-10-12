@@ -10,16 +10,16 @@ namespace Blue.Core
     public class Model
     {
 
-        public readonly GraphNode Output;
+        public readonly ComputationalNode Output;
 
         private readonly GraphNode[] _inputNodes;
-        private readonly List<TensorNode> _parameterNodes = new List<TensorNode>();
+        private readonly List<ComputationalNode> _parameterNodes = new List<ComputationalNode>();
         private readonly List<Operate> _clearGradientOps = new List<Operate>();
         private readonly List<HashSet<GraphNode>> _nodeLayer = new List<HashSet<GraphNode>>();
 
-        public IReadOnlyCollection<TensorNode> ParameterNodes => _parameterNodes;
+        public IReadOnlyCollection<ComputationalNode> ParameterNodes => _parameterNodes;
 
-        public Model(GraphNode outputNode, params GraphNode[] inputNodes)
+        public Model(ComputationalNode outputNode, params ComputationalNode[] inputNodes)
         {
             Output = outputNode;
             _inputNodes = inputNodes;
@@ -31,7 +31,7 @@ namespace Blue.Core
             {
                 foreach (var node in _nodeLayer[i])
                 {
-                    if (node is TensorNode dataNode && dataNode.IsParameter) _parameterNodes.Add(dataNode);
+                    if (node is ComputationalNode dataNode && dataNode.IsParameter) _parameterNodes.Add(dataNode);
                 }
             }
 

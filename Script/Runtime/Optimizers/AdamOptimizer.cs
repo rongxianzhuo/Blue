@@ -17,7 +17,7 @@ namespace Blue.Optimizers
 
         private float _t;
 
-        public void Step(IReadOnlyCollection<TensorNode> nodes)
+        public void Step(IReadOnlyCollection<ComputationalNode> nodes)
         {
             _t++;
             foreach (var node in nodes)

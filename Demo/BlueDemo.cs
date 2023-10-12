@@ -22,7 +22,7 @@ namespace Blue.Demo
         public int trainEpochs = 2;
 
         private Model _model;
-        private TensorNode _input;
+        private ComputationalNode _input;
         private Tensor _target;
         private IOptimizer _optimizer;
         private Operate _crossEntropyLoss;
@@ -33,13 +33,8 @@ namespace Blue.Demo
         private void Awake()
         {
             _target = new Tensor(BatchSize, 10);
-            _model = new ModelBuilder()
-                .Tensor(false, out _input, BatchSize, 784)
-                .Linear(128)
-                .Activation("relu")
-                .Dropout(0.2f)
-                .Linear(10)
-                .Build();
+            _input = new ComputationalNode(false, BatchSize, 784);
+            _model = new Model(_input.Linear(128).Activation("relu").Dropout(0.2f).Linear(10));
             _optimizer = new AdamOptimizer();
             _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.GetOutput(), _target, _model.Output.GetGradient());
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
@@ -107,12 +102,8 @@ namespace Blue.Demo
         private void Test(MnistData mnistData)
         {
             var sampleCount = mnistData.TestData.Count;
-            var model = new ModelBuilder()
-                .Tensor(false, out var input, sampleCount, 784)
-                .Linear(128)
-                .Activation("relu")
-                .Linear(10)
-                .Build();
+            var input = new ComputationalNode(false, sampleCount, 784);
+            var model = new Model(input.Linear(128).Activation("relu").Linear(10));
             if (Directory.Exists(ModelSavePath)) model.LoadParameterFile(ModelSavePath);
             var x = new float[sampleCount * 784];
             var y = new int[sampleCount];

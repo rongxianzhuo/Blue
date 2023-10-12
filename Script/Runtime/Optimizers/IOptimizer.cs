@@ -6,7 +6,7 @@ namespace Blue.Optimizers
 {
     public interface IOptimizer
     {
-        void Step(IReadOnlyCollection<TensorNode> node);
+        void Step(IReadOnlyCollection<ComputationalNode> node);
 
         void Destroy();
     }

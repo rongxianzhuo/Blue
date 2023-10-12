@@ -18,6 +18,21 @@ namespace Blue.Graph
 
         public abstract Tensor GetGradient();
 
+        public void AddInputNode(params ComputationalNode[] node)
+        {
+            InputNodes.AddRange(node);
+        }
+
+        public void AddForwardOperate(Operate operate)
+        {
+            ForwardOperates.Add(operate);
+        }
+
+        public void AddBackwardOperate(Operate operate)
+        {
+            BackwardOperates.Add(operate);
+        }
+
         public Tensor CreateTensor(params int[] shape)
         {
             var tensor = new Tensor(shape);

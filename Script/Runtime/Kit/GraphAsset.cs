@@ -72,16 +72,5 @@ namespace Blue.Kit
             }
         }
 
-        public ModelBuilder CreateBuilder()
-        {
-            var modelBuilderType = typeof(ModelBuilder);
-            var builder = new ModelBuilder();
-            foreach (var name in _nodeTree)
-            {
-                modelBuilderType.GetMethod(_methods[name])?.Invoke(builder, _parameters[name]);
-            }
-            return builder;
-        }
-
     }
 }
