@@ -12,10 +12,10 @@ namespace Blue.Core
 
         public readonly ComputationalNode Output;
 
-        private readonly GraphNode[] _inputNodes;
+        private readonly ComputationalNode[] _inputNodes;
         private readonly List<ComputationalNode> _parameterNodes = new List<ComputationalNode>();
         private readonly List<Operate> _clearGradientOps = new List<Operate>();
-        private readonly List<HashSet<GraphNode>> _nodeLayer = new List<HashSet<GraphNode>>();
+        private readonly List<HashSet<ComputationalNode>> _nodeLayer = new List<HashSet<ComputationalNode>>();
 
         public IReadOnlyCollection<ComputationalNode> ParameterNodes => _parameterNodes;
 
@@ -109,7 +109,7 @@ namespace Blue.Core
             }
         }
 
-        private void AddNode(GraphNode node, GraphNode forwardNode)
+        private void AddNode(ComputationalNode node, ComputationalNode forwardNode)
         {
             if (_inputNodes.Contains(node)) return;
             var forwardLayer = GetNodeLayerIndex(forwardNode);
@@ -117,7 +117,7 @@ namespace Blue.Core
             var newLayer = Mathf.Max(forwardLayer + 1, layer);
             if (newLayer == layer) return;
             if (layer != -1) _nodeLayer[layer].Remove(node);
-            while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<GraphNode>());
+            while (_nodeLayer.Count <= newLayer) _nodeLayer.Add(new HashSet<ComputationalNode>());
             _nodeLayer[newLayer].Add(node);
             foreach (var i in node.ReadOnlyInputNodes)
             {
@@ -125,7 +125,7 @@ namespace Blue.Core
             }
         }
 
-        private int GetNodeLayerIndex(GraphNode node)
+        private int GetNodeLayerIndex(ComputationalNode node)
         {
             for (var i = 0; i < _nodeLayer.Count; i++)
             {

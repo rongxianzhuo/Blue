@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Graph
 {
-    public class ComputationalNode : GraphNode
+    public class ComputationalNode
     {
 
         public readonly int Id;
@@ -13,8 +14,15 @@ namespace Blue.Graph
         public readonly Tensor Output;
         public readonly Tensor Gradient;
         public readonly Tensor TotalGradient;
+        
+        private readonly List<ComputationalNode> _inputNodes = new List<ComputationalNode>();
+        private readonly List<Operate> _forwardOperates = new List<Operate>();
+        private readonly List<Operate> _backwardOperates = new List<Operate>();
+        private readonly HashSet<Tensor> _bindTensors = new HashSet<Tensor>();
 
         public bool IsParameter => Id > 0;
+        
+        public IReadOnlyList<ComputationalNode> ReadOnlyInputNodes => _inputNodes;
 
         public ComputationalNode(bool isParameter, params int[] shape)
         {
@@ -48,6 +56,69 @@ namespace Blue.Graph
             Graph = graph;
             Output = CreateTensor(shape);
             Gradient = CreateTensor(shape);
+        }
+
+        public Tensor CreateTensor(params int[] shape)
+        {
+            var tensor = new Tensor(shape);
+            _bindTensors.Add(tensor);
+            return tensor;
+        }
+
+        public void AddInputNode(params ComputationalNode[] node)
+        {
+            _inputNodes.AddRange(node);
+        }
+
+        public void AddForwardOperate(Operate operate)
+        {
+            _forwardOperates.Add(operate);
+        }
+
+        public void AddBackwardOperate(Operate operate)
+        {
+            _backwardOperates.Add(operate);
+        }
+
+        public void Backward()
+        {
+            foreach (var o in _backwardOperates)
+            {
+                o.Dispatch();
+            }
+
+            foreach (var node in _inputNodes)
+            {
+                node.Backward();
+            }
+        }
+
+        public void Forward()
+        {
+            foreach (var o in _forwardOperates)
+            {
+                o.Dispatch();
+            }
+        }
+
+        public void Destroy()
+        {
+            foreach (var o in _forwardOperates)
+            {
+                o.Destroy();
+            }
+            _forwardOperates.Clear();
+            foreach (var o in _backwardOperates)
+            {
+                o.Destroy();
+            }
+            _backwardOperates.Clear();
+
+            foreach (var t in _bindTensors)
+            {
+                t.Release();
+            }
+            _bindTensors.Clear();
         }
 
         public ComputationalNode Activation(string activationName)
