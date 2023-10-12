@@ -10,11 +10,11 @@ namespace Blue.Graph
     {
 
         public readonly int Id;
-        public readonly ComputationalGraph Graph;
         public readonly Tensor Output;
         public readonly Tensor Gradient;
         public readonly Tensor TotalGradient;
         
+        private readonly ComputationalGraph _graph;
         private readonly List<ComputationalNode> _inputNodes = new List<ComputationalNode>();
         private readonly List<Operate> _forwardOperates = new List<Operate>();
         private readonly List<Operate> _backwardOperates = new List<Operate>();
@@ -26,10 +26,10 @@ namespace Blue.Graph
 
         public ComputationalNode(bool isParameter, params int[] shape)
         {
-            Graph = new ComputationalGraph();
+            _graph = new ComputationalGraph();
             if (isParameter)
             {
-                Id = Graph.AllocateParameterId();
+                Id = _graph.AllocateParameterId();
                 TotalGradient = CreateTensor(shape);
             }
             else
@@ -53,7 +53,7 @@ namespace Blue.Graph
                 Id = 0;
                 TotalGradient = null;
             }
-            Graph = graph;
+            _graph = graph;
             Output = CreateTensor(shape);
             Gradient = CreateTensor(shape);
         }
@@ -130,7 +130,7 @@ namespace Blue.Graph
                 "sigmoid" => "Graph/Sigmoid",
                 _ => throw new Exception("Unknown activation name")
             };
-            var activation = new ComputationalNode(Graph, false, Output.Size);
+            var activation = new ComputationalNode(_graph, false, Output.Size);
             
             activation.AddInputNode(this);
             
@@ -150,7 +150,7 @@ namespace Blue.Graph
 
         public ComputationalNode Linear(int size, bool newGraph=false)
         {
-            var graph = newGraph ? new ComputationalGraph() : Graph;
+            var graph = newGraph ? new ComputationalGraph() : _graph;
             var batchSize = Output.Size[0];
             var weight = graph.ParameterNode(Output.Size[1], size);
             var bias = graph.ParameterNode(size);
@@ -197,7 +197,7 @@ namespace Blue.Graph
 
         public ComputationalNode Dropout(float dropout)
         {
-            var dropoutNode = new ComputationalNode(Graph, false, Output.Size);
+            var dropoutNode = new ComputationalNode(_graph, false, Output.Size);
             dropoutNode.AddInputNode(this);
             var weightArray = new float[Output.FlattenSize];
             var weight = dropoutNode.CreateTensor(Output.Size);
