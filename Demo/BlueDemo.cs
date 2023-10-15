@@ -34,7 +34,7 @@ namespace Blue.Demo
         {
             _target = new Tensor(BatchSize, 10);
             _input = new ComputationalNode(false, BatchSize, 784);
-            _model = new Model(_input.Linear(128).Activation("relu").Dropout(0.2f).Linear(10));
+            _model = new Model(_input.Linear(128).Activation("relu").Linear(10));
             _optimizer = new AdamOptimizer();
             _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.Output, _target, _model.Output.Gradient);
             if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
@@ -81,7 +81,7 @@ namespace Blue.Demo
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
                     _optimizer.Step(_model.ParameterNodes);
-                    if (i % 128 != 0) continue;
+                    if (i % 64 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{_datasetLoader.BatchCount}";
                     yield return null;
                 }
@@ -116,26 +116,26 @@ namespace Blue.Demo
             infoText.text = $"Accuracy: {GetCorrectCount(model, y) * 100f / sampleCount:0.00}%";
             model.Destroy();
             input.Destroy();
-        }
-
-        public static int GetCorrectCount(Model model, int[] batchTargetLabel)
-        {
-            var correctCount = 0;
-            var outputData = model.Output.Output.Sync();
-            for (var i = 0; i < batchTargetLabel.Length; i++)
+            return;
+            static int GetCorrectCount(Model model, IReadOnlyList<int> batchTargetLabel)
             {
-                var max = outputData[i * 10];
-                var index = 0;
-                for (var j = 1; j < 10; j++)
+                var correctCount = 0;
+                var outputData = model.Output.Output.Sync();
+                for (var i = 0; i < batchTargetLabel.Count; i++)
                 {
-                    if (outputData[i * 10 + j] <= max) continue;
-                    max = outputData[i * 10 + j];
-                    index = j;
-                }
+                    var max = outputData[i * 10];
+                    var index = 0;
+                    for (var j = 1; j < 10; j++)
+                    {
+                        if (outputData[i * 10 + j] <= max) continue;
+                        max = outputData[i * 10 + j];
+                        index = j;
+                    }
 
-                if (index == batchTargetLabel[i]) correctCount++;
+                    if (index == batchTargetLabel[i]) correctCount++;
+                }
+                return correctCount;
             }
-            return correctCount;
         }
     }
 
