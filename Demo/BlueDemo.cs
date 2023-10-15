@@ -28,7 +28,7 @@ namespace Blue.Demo
         private Operate _crossEntropyLoss;
         private DatasetLoader _datasetLoader;
 
-        private string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "SavedModel");
+        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "SavedModel");
 
         private void Awake()
         {
@@ -53,9 +53,11 @@ namespace Blue.Demo
 
         private IEnumerator Train()
         {
-            var batchTargetLabel = new int[BatchSize];
+            // download mnist data
             var mnistData = new MnistData();
             yield return mnistData.DownloadData();
+            
+            // init dataset loader
             var x = new List<float[]>();
             var y = new List<float[]>();
             foreach (var data in mnistData.TrainData)
@@ -66,40 +68,37 @@ namespace Blue.Demo
             _datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainData.Count);
             _datasetLoader.LoadDataset(x, _input.Output);
             _datasetLoader.LoadDataset(y, _target);
+            
+            // train model
             var epoch = 0;
-            while (epoch < trainEpochs)
+            while (epoch++ < trainEpochs)
             {
-                epoch++;
-                var batchCount = mnistData.TrainData.Count / BatchSize;
-                for (var i = 0; i < batchCount; i++)
+                for (var i = 0; i < _datasetLoader.BatchCount; i++)
                 {
-                    for (var j = 0; j < BatchSize; j++)
-                    {
-                        batchTargetLabel[j] = mnistData.TrainData[i * BatchSize + j].Label;
-                    }
                     _datasetLoader.LoadBatch(i);
                     _model.Forward();
                     _model.ClearGradient();
                     _crossEntropyLoss.Dispatch();
                     _model.Backward();
                     _optimizer.Step(_model.ParameterNodes);
-                    if (i % 32 == 0)
-                    {
-                        infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{batchCount}";
-                        yield return null;
-                    }
+                    if (i % 128 != 0) continue;
+                    infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{_datasetLoader.BatchCount}";
+                    yield return null;
                 }
             }
 
+            // save model
             if (trainEpochs > 0)
             {
                 _model.SaveParameterFile(ModelSavePath);
                 Debug.Log("Model saved");
             }
-            Test(mnistData);
+            
+            // evaluate
+            Evaluate(mnistData);
         }
 
-        private void Test(MnistData mnistData)
+        private void Evaluate(MnistData mnistData)
         {
             var sampleCount = mnistData.TestData.Count;
             var input = new ComputationalNode(false, sampleCount, 784);
