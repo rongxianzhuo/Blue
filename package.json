@@ -1,0 +1,20 @@
+{
+    "name": "com.rongxianzhuo.blue",
+    "version": "0.0.1",
+    "displayName": "Blue",
+    "description": "Blue",
+    "category": "Runtime",
+    "documentationUrl": "",
+    "changelogUrl": "",
+    "licensesUrl": "",
+    "dependencies": {
+    },
+    "keywords": [
+      "AI"
+    ],
+    "author": {
+      "name": "Rong Xianzhuo",
+      "email": "rongxianzhuo@gmail.com",
+      "url": "https://github.com/rongxianzhuo"
+    }
+  }
