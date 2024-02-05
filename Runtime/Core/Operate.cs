@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Blue.Core
 {
-    public class Operate
+    public class Operate : IDisposable
     {
         
         private readonly ComputeShader _cs;
@@ -80,7 +82,7 @@ namespace Blue.Core
             return this;
         }
 
-        public void Destroy()
+        public void Dispose()
         {
 #if UNITY_EDITOR
             Object.DestroyImmediate(_cs);
@@ -88,6 +90,5 @@ namespace Blue.Core
             Object.Destroy(_cs);
 #endif
         }
-        
     }
 }

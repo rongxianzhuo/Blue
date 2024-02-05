@@ -5,7 +5,7 @@ using Blue.Kit;
 
 namespace Blue.Data
 {
-    public class DatasetLoader
+    public class DatasetLoader : IDisposable
     {
 
         public readonly int BatchCount;
@@ -61,20 +61,19 @@ namespace Blue.Data
             }
         }
 
-        public void Destroy()
+        public void Dispose()
         {
             foreach (var t in _tensors.Values)
             {
-                t.Release();
+                t.Dispose();
             }
             _tensors.Clear();
 
             foreach (var pair in _ops)
             {
-                pair.Value.Destroy();
+                pair.Value.Dispose();
             }
             _ops.Clear();
         }
-        
     }
 }

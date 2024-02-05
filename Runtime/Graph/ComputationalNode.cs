@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Blue.Graph
 {
-    public class ComputationalNode
+    public class ComputationalNode : IDisposable
     {
 
         public readonly int Id;
@@ -101,26 +101,6 @@ namespace Blue.Graph
             }
         }
 
-        public void Destroy()
-        {
-            foreach (var o in _forwardOperates)
-            {
-                o.Destroy();
-            }
-            _forwardOperates.Clear();
-            foreach (var o in _backwardOperates)
-            {
-                o.Destroy();
-            }
-            _backwardOperates.Clear();
-
-            foreach (var t in _bindTensors)
-            {
-                t.Release();
-            }
-            _bindTensors.Clear();
-        }
-
         public ComputationalNode Activation(string activationName)
         {
             var shaderName = activationName switch
@@ -158,7 +138,7 @@ namespace Blue.Graph
             var tInput = linearNode.CreateTensor(Output.TransposeSize());
             var tWeight = linearNode.CreateTensor(weight.Output.TransposeSize());
             var tBias = linearNode.CreateTensor(1, batchSize);
-            Op.Clear(tBias, 1f / batchSize).Dispatch().Destroy();
+            Op.Clear(tBias, 1f / batchSize).Dispatch().Dispose();
             linearNode.AddInputNode(this);
             linearNode.AddInputNode(weight);
             linearNode.AddInputNode(bias);
@@ -221,6 +201,26 @@ namespace Blue.Graph
                 .SetDispatchSize(Gradient.FlattenSize));
 
             return dropoutNode;
+        }
+
+        public void Dispose()
+        {
+            foreach (var o in _forwardOperates)
+            {
+                o.Dispose();
+            }
+            _forwardOperates.Clear();
+            foreach (var o in _backwardOperates)
+            {
+                o.Dispose();
+            }
+            _backwardOperates.Clear();
+
+            foreach (var t in _bindTensors)
+            {
+                t.Dispose();
+            }
+            _bindTensors.Clear();
         }
     }
 }

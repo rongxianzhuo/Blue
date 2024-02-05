@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace Blue.Core
 {
     
-    public class Tensor
+    public class Tensor : IDisposable
     {
 
         public readonly int[] Size;
@@ -46,7 +47,7 @@ namespace Blue.Core
             }
             FlattenSize = totalSize;
             _buffer = new ComputeBuffer(totalSize, sizeof(float));
-            Op.Clear(this, 0).Dispatch().Destroy();
+            Op.Clear(this, 0).Dispatch().Dispose();
         }
 
         public int[] TransposeSize()
@@ -76,11 +77,6 @@ namespace Blue.Core
         {
             Sync();
             new MessagePacker(stream).Pack(_syncArray);
-        }
-
-        public void Release()
-        {
-            _buffer.Release();
         }
 
         public void SetData(float[] data)
@@ -139,9 +135,13 @@ namespace Blue.Core
             var result = new Tensor(size);
             var op = Op.Transpose(this, result);
             op.Dispatch();
-            op.Destroy();
+            op.Dispose();
             return result;
         }
 
+        public void Dispose()
+        {
+            _buffer.Release();
+        }
     }
 }

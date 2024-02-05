@@ -17,7 +17,7 @@ namespace Blue.Optimizers
 
         private float _t;
 
-        public void Step(IReadOnlyCollection<ComputationalNode> nodes)
+        public void Step(IEnumerable<ComputationalNode> nodes)
         {
             _t++;
             foreach (var node in nodes)
@@ -50,17 +50,17 @@ namespace Blue.Optimizers
             }
         }
 
-        public void Destroy()
+        public void Dispose()
         {
             foreach (var t in _tensors)
             {
-                t?.Release();
+                t?.Dispose();
             }
             _tensors.Clear();
 
             foreach (var op in _op)
             {
-                op?.Destroy();
+                op?.Dispose();
             }
             _op.Clear();
         }

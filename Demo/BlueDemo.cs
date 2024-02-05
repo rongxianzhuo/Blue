@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using Blue.Core;
 using Blue.Data;
 using Blue.Graph;
@@ -33,14 +31,14 @@ namespace Blue.Demo
             yield return mnistData.DownloadData();
             
             // create model
-            var trainInput = new ComputationalNode(false, BatchSize, 784);
-            var trainModel = new Model(trainInput.Linear(128).Activation("relu").Linear(10));
-            var target = new Tensor(BatchSize, 10);
-            var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output.Output, target, trainModel.Output.Gradient);
-            var optimizer = new AdamOptimizer();
+            using var trainInput = new ComputationalNode(false, BatchSize, 784);
+            using var trainModel = new Model(trainInput.Linear(128).Activation("relu").Linear(10));
+            using var target = new Tensor(BatchSize, 10);
+            using var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output.Output, target, trainModel.Output.Gradient);
+            using var optimizer = new AdamOptimizer();
             
             // init dataset loader
-            var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
+            using var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
             datasetLoader.LoadDataset(mnistData.TrainInputData, trainInput.Output);
             datasetLoader.LoadDataset(mnistData.TrainOutputData, target);
             
@@ -64,22 +62,12 @@ namespace Blue.Demo
             
             // evaluate
             var sampleCount = mnistData.TestInputData.Count;
-            var input = new ComputationalNode(false, sampleCount, 784);
-            var model = new Model(input.Linear(128).Activation("relu").Linear(10));
+            using var input = new ComputationalNode(false, sampleCount, 784);
+            using var model = new Model(input.Linear(128).Activation("relu").Linear(10));
             trainModel.CopyParameterTo(model);
             input.Output.SetData(mnistData.TestInputData);
             model.Forward();
             infoText.text = $"Accuracy: {GetCorrectCount(model, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
-            model.Destroy();
-            input.Destroy();
-            
-            // destroy model
-            trainInput.Destroy();
-            trainModel.Destroy();
-            crossEntropyLoss.Destroy();
-            target.Release();
-            optimizer.Destroy();
-            datasetLoader.Destroy();
         }
         
         private static int GetCorrectCount(Model model, IReadOnlyList<int> batchTargetLabel)

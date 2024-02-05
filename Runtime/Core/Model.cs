@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace Blue.Core
 {
-    public class Model
+    public class Model : IDisposable
     {
 
         public readonly ComputationalNode Output;
@@ -92,23 +93,6 @@ namespace Blue.Core
             Output.Backward();
         }
 
-        public void Destroy()
-        {
-            Output.Destroy();
-            foreach (var nodes in _nodeLayer)
-            {
-                foreach (var node in nodes)
-                {
-                    node.Destroy();
-                }
-            }
-
-            foreach (var op in _clearGradientOps)
-            {
-                op.Destroy();
-            }
-        }
-
         public void ClearGradient()
         {
             foreach (var op in _clearGradientOps)
@@ -141,6 +125,23 @@ namespace Blue.Core
             }
 
             return -1;
+        }
+
+        public void Dispose()
+        {
+            Output.Dispose();
+            foreach (var nodes in _nodeLayer)
+            {
+                foreach (var node in nodes)
+                {
+                    node.Dispose();
+                }
+            }
+
+            foreach (var op in _clearGradientOps)
+            {
+                op.Dispose();
+            }
         }
     }
 }
