@@ -35,7 +35,7 @@ namespace Blue.Demo
             using var trainModel = new Model(trainInput.Linear(128).Activation("relu").Linear(10));
             using var target = new Tensor(BatchSize, 10);
             using var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output, target, trainModel.Output.Gradient);
-            using var optimizer = new AdamOptimizer();
+            using var optimizer = new AdamOptimizer(trainModel.ParameterNodes);
             
             // init dataset loader
             using var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
@@ -53,7 +53,7 @@ namespace Blue.Demo
                     trainModel.ClearGradient();
                     crossEntropyLoss.Dispatch();
                     trainModel.Backward();
-                    optimizer.Step(trainModel.ParameterNodes);
+                    optimizer.Step();
                     if (i % 64 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
                     yield return null;

@@ -7,6 +7,6 @@ namespace Blue.Optimizers
 {
     public interface IOptimizer : IDisposable
     {
-        void Step(IEnumerable<ComputationalNode> node);
+        void Step();
     }
 }

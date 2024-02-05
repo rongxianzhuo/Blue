@@ -133,7 +133,7 @@ namespace Blue.Demo
             if (Directory.Exists(ModelSavePath)) _trainDqn.LoadParameterFile(ModelSavePath);
             _target = new Tensor(BatchSize, ActionSize);
             _loss = Op.L2Loss(_trainDqn.Output, _target, _trainDqn.Output.Gradient);
-            _optimizer = new AdamOptimizer();
+            _optimizer = new AdamOptimizer(_trainDqn.ParameterNodes);
             _datasetLoader = new DatasetLoader(BatchSize, BatchSize * ReplayBufferSize);
         }
 
@@ -188,7 +188,7 @@ namespace Blue.Demo
                 _trainDqn.ClearGradient();
                 _loss.Dispatch();
                 _trainDqn.Backward();
-                _optimizer.Step(_trainDqn.ParameterNodes);
+                _optimizer.Step();
                 _trainDqn.CopyParameterTo(_runtimeDqn);
             }
             
