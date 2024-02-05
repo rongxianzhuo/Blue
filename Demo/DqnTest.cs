@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Blue.Core;
 using Blue.Data;
 using Blue.Graph;
@@ -110,6 +111,8 @@ namespace Blue.Demo
         private Tensor _target;
         private IOptimizer _optimizer;
         private DatasetLoader _datasetLoader;
+        
+        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "DqnSavedModel");
 
         private void Awake()
         {
@@ -122,10 +125,12 @@ namespace Blue.Demo
             _runtimeInput = new ComputationalNode(false, 1, 4);
             var runtimeOutput = _runtimeInput.Linear(128).Activation("relu").Linear(ActionSize);
             _runtimeDqn = new Model(runtimeOutput, _runtimeInput);
+            if (Directory.Exists(ModelSavePath)) _runtimeDqn.LoadParameterFile(ModelSavePath);
             
             _trainInput = new ComputationalNode(false, BatchSize, 4);
             var trainOutput = _trainInput.Linear(128).Activation("relu").Linear(ActionSize);
             _trainDqn = new Model(trainOutput, _trainInput);
+            if (Directory.Exists(ModelSavePath)) _trainDqn.LoadParameterFile(ModelSavePath);
             _target = new Tensor(BatchSize, ActionSize);
             _loss = Op.L2Loss(_trainDqn.Output, _target, _trainDqn.Output.Gradient);
             _optimizer = new AdamOptimizer();
@@ -193,6 +198,7 @@ namespace Blue.Demo
 
         private void OnDestroy()
         {
+            _trainDqn.SaveParameterFile(ModelSavePath);
             _runtimeDqn.Dispose();
             _runtimeInput.Dispose();
             _trainDqn.Dispose();
