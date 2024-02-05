@@ -69,6 +69,14 @@ namespace Blue.Core
             }
         }
 
+        public void CopyParameterTo(Model other)
+        {
+            for (var i = 0; i < _parameterNodes.Count; i++)
+            {
+                other._parameterNodes[i].Output.SetData(_parameterNodes[i].Output.InternalSync());
+            }
+        }
+
         public void Forward()
         {
             for (var i = _nodeLayer.Count - 1; i >= 0; i--)

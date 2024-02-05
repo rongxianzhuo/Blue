@@ -89,6 +89,20 @@ namespace Blue.Core
             _buffer.SetData(data);
         }
 
+        public void SetData(IEnumerable<float[]> data)
+        {
+            Sync();
+            var i = 0;
+            foreach (var array in data)
+            {
+                foreach (var f in array)
+                {
+                    _syncArray[i++] = f;
+                }
+            }
+            _buffer.SetData(_syncArray);
+        }
+
         public void GetData(float[] array)
         {
             _buffer.GetData(array);
