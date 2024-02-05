@@ -11,7 +11,7 @@ namespace Blue.Data
         public readonly int BatchCount;
 
         private readonly int _batchSize;
-        private readonly HashSet<Tensor> _tensors = new HashSet<Tensor>();
+        private readonly Dictionary<Tensor, Tensor> _tensors = new Dictionary<Tensor, Tensor>();
         private readonly HashSet<KeyValuePair<int, Operate>> _ops = new HashSet<KeyValuePair<int, Operate>>();
         private readonly int _srcStartPropertyId = Operate.PropertyId("src_start");
 
@@ -31,31 +31,39 @@ namespace Blue.Data
 
         public void LoadDataset(IReadOnlyList<float[]> samples, Tensor target)
         {
-            if (samples.Count < _batchSize * BatchCount) throw new Exception("Unknown error");
-            var flatten = new List<float>();
-            for (var i = 0; i < BatchCount; i++)
+            if (samples.Count != _batchSize * BatchCount) throw new Exception("Unknown error");
+
+            if (_tensors.TryGetValue(target, out var tensor))
             {
-                for (var j = 0; j < _batchSize; j++)
-                {
-                    flatten.AddRange(samples[i * _batchSize + j]);
-                }
+                tensor.SetData(samples);
             }
-            var tensor = new Tensor(flatten);
-            _tensors.Add(tensor);
-            var op = Op.Copy(tensor
-                , 0
-                , 0
-                , target
-                , 0
-                , 0
-                , _batchSize * samples[0].Length
-                , _batchSize * samples[0].Length);
-            _ops.Add(new KeyValuePair<int, Operate>(samples[0].Length, op));
+            else
+            {
+                var flatten = new List<float>();
+                for (var i = 0; i < BatchCount; i++)
+                {
+                    for (var j = 0; j < _batchSize; j++)
+                    {
+                        flatten.AddRange(samples[i * _batchSize + j]);
+                    }
+                }
+                tensor = new Tensor(flatten);
+                _tensors[target] = tensor;
+                var op = Op.Copy(tensor
+                    , 0
+                    , 0
+                    , target
+                    , 0
+                    , 0
+                    , _batchSize * samples[0].Length
+                    , _batchSize * samples[0].Length);
+                _ops.Add(new KeyValuePair<int, Operate>(samples[0].Length, op));
+            }
         }
 
         public void Destroy()
         {
-            foreach (var t in _tensors)
+            foreach (var t in _tensors.Values)
             {
                 t.Release();
             }
