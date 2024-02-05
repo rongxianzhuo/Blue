@@ -139,7 +139,7 @@ namespace Blue.Core
             return result;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _buffer.Release();
         }

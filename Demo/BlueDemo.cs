@@ -34,12 +34,12 @@ namespace Blue.Demo
             using var trainInput = new ComputationalNode(false, BatchSize, 784);
             using var trainModel = new Model(trainInput.Linear(128).Activation("relu").Linear(10));
             using var target = new Tensor(BatchSize, 10);
-            using var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output.Output, target, trainModel.Output.Gradient);
+            using var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output, target, trainModel.Output.Gradient);
             using var optimizer = new AdamOptimizer();
             
             // init dataset loader
             using var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
-            datasetLoader.LoadDataset(mnistData.TrainInputData, trainInput.Output);
+            datasetLoader.LoadDataset(mnistData.TrainInputData, trainInput);
             datasetLoader.LoadDataset(mnistData.TrainOutputData, target);
             
             // train model
@@ -65,7 +65,7 @@ namespace Blue.Demo
             using var input = new ComputationalNode(false, sampleCount, 784);
             using var model = new Model(input.Linear(128).Activation("relu").Linear(10));
             trainModel.CopyParameterTo(model);
-            input.Output.SetData(mnistData.TestInputData);
+            input.SetData(mnistData.TestInputData);
             model.Forward();
             infoText.text = $"Accuracy: {GetCorrectCount(model, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
         }
@@ -73,7 +73,7 @@ namespace Blue.Demo
         private static int GetCorrectCount(Model model, IReadOnlyList<int> batchTargetLabel)
         {
             var correctCount = 0;
-            var outputData = model.Output.Output.Sync();
+            var outputData = model.Output.Sync();
             for (var i = 0; i < batchTargetLabel.Count; i++)
             {
                 var max = outputData[i * 10];

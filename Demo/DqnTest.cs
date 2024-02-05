@@ -127,7 +127,7 @@ namespace Blue.Demo
             var trainOutput = _trainInput.Linear(128).Activation("relu").Linear(ActionSize);
             _trainDqn = new Model(trainOutput, _trainInput);
             _target = new Tensor(BatchSize, ActionSize);
-            _loss = Op.L2Loss(_trainDqn.Output.Output, _target, _trainDqn.Output.Gradient);
+            _loss = Op.L2Loss(_trainDqn.Output, _target, _trainDqn.Output.Gradient);
             _optimizer = new AdamOptimizer();
             _datasetLoader = new DatasetLoader(BatchSize, BatchSize * ReplayBufferSize);
         }
@@ -143,10 +143,10 @@ namespace Blue.Demo
                     _inputReplay.Add(state);
                     _targetReplay.Add(qArray);
                 
-                    _runtimeInput.Output.SetData(state);
+                    _runtimeInput.SetData(state);
                     _runtimeDqn.Forward();
-                    _runtimeDqn.Output.Output.GetData(qArray);
-                    var action = _runtimeDqn.Output.Output.MaxIndex;
+                    _runtimeDqn.Output.GetData(qArray);
+                    var action = _runtimeDqn.Output.MaxIndex;
                     if (Random.Range(0f, 1f) < 0.1f) action = Random.Range(0, ActionSize);
                     var reward = env.Update(action);
                     if (reward < -99)
@@ -156,24 +156,24 @@ namespace Blue.Demo
                     else
                     {
                         var nextState = env.GetState();
-                        _runtimeInput.Output.SetData(nextState);
+                        _runtimeInput.SetData(nextState);
                         _runtimeDqn.Forward();
-                        var targetQ = reward + 0.9f * _runtimeDqn.Output.Output.Max;
+                        var targetQ = reward + 0.9f * _runtimeDqn.Output.Max;
                         qArray[action] = targetQ;
                     }
                 }
             }
 
             {
-                _runtimeInput.Output.SetData(_runtimeEnv.GetState());
+                _runtimeInput.SetData(_runtimeEnv.GetState());
                 _runtimeDqn.Forward();
-                var action = _runtimeDqn.Output.Output.MaxIndex;
+                var action = _runtimeDqn.Output.MaxIndex;
                 _runtimeEnv.Update(action);
                 _runtimeEnv.Render(player, ball);
             }
             Shuffle();
             
-            _datasetLoader.LoadDataset(_inputReplay, _trainInput.Output);
+            _datasetLoader.LoadDataset(_inputReplay, _trainInput);
             _datasetLoader.LoadDataset(_targetReplay, _target);
             
             for (var i = 0; i < _datasetLoader.BatchCount; i++)

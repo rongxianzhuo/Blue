@@ -20,7 +20,7 @@ namespace Blue.Graph
             node.AddBackwardOperate(new Operate("Common/GradientIncrease", "CSMain")
                 .SetFloat("weight_decay", 0.000f)
                 .SetTensor("gradient", node.Gradient)
-                .SetTensor("weight", node.Output)
+                .SetTensor("weight", node)
                 .SetTensor("total_gradient", node.TotalGradient)
                 .SetDispatchSize(node.TotalGradient.FlattenSize));
             return node;
@@ -36,17 +36,17 @@ namespace Blue.Graph
             var size = 0;
             foreach (var node in nodes)
             {
-                size += node.Output.Size[1];
+                size += node.Size[1];
             }
-            var concat = new ComputationalNode(this, false, nodes[0].Output.Size[0], size);
+            var concat = new ComputationalNode(this, false, nodes[0].Size[0], size);
             concat.AddInputNode(nodes);
             
             var start = 0;
             foreach (var t in nodes)
             {
-                var inputNode = t.Output;
+                var inputNode = t;
                 concat.AddForwardOperate(Op.Copy(inputNode, 0, 0
-                    , concat.Output, start, size - inputNode.Size[1]
+                    , concat, start, size - inputNode.Size[1]
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
                 start += inputNode.Size[1];

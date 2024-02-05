@@ -49,7 +49,7 @@ namespace Blue.Core
                 if (File.Exists(Path.Combine(dirPath, $"{node.Id}.bytes")))
                 {
                     using var stream = File.OpenRead(Path.Combine(dirPath, $"{node.Id}.bytes"));
-                    node.Output.LoadFromStream(stream);
+                    node.LoadFromStream(stream);
                     stream.Close();
                 }
                 else
@@ -65,7 +65,7 @@ namespace Blue.Core
             foreach (var node in _parameterNodes)
             {
                 using var stream = File.OpenWrite(Path.Combine(dirPath, $"{node.Id}.bytes"));
-                node.Output.SaveToStream(stream);
+                node.SaveToStream(stream);
                 stream.Close();
             }
         }
@@ -74,7 +74,7 @@ namespace Blue.Core
         {
             for (var i = 0; i < _parameterNodes.Count; i++)
             {
-                other._parameterNodes[i].Output.SetData(_parameterNodes[i].Output.InternalSync());
+                other._parameterNodes[i].SetData(_parameterNodes[i].InternalSync());
             }
         }
 
