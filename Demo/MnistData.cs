@@ -51,15 +51,27 @@ namespace Blue.Demo
 
         private bool _isLoaded;
 
-        private readonly List<SingleData> _trainData = new List<SingleData>();
+        private readonly List<float[]> _trainInputData = new List<float[]>();
 
-        private readonly List<SingleData> _testData = new List<SingleData>();
+        private readonly List<float[]> _trainOutputData = new List<float[]>();
 
-        public IReadOnlyList<SingleData> TrainData => _trainData;
+        private readonly List<float[]> _testInputData = new List<float[]>();
 
-        public IReadOnlyList<SingleData> TestData => _testData;
+        private readonly List<float[]> _testOutputData = new List<float[]>();
 
-        private void LoadSample(string labelPath, string imagePath, List<SingleData> target)
+        private readonly List<int> _testOutputLabel = new List<int>();
+
+        public IReadOnlyList<float[]> TrainInputData => _trainInputData;
+
+        public IReadOnlyList<float[]> TrainOutputData => _trainOutputData;
+
+        public IReadOnlyList<float[]> TestInputData => _testInputData;
+
+        public IReadOnlyList<float[]> TestOutputData => _testOutputData;
+
+        public IReadOnlyList<int> TestOutputLabel => _testOutputLabel;
+
+        private void LoadSample(string labelPath, string imagePath, ICollection<float[]> input, ICollection<float[]> output, ICollection<int> labels)
         {
             var trainLabelBytes = File.ReadAllBytes(labelPath);
             var trainImageBytes = File.ReadAllBytes(imagePath);
@@ -78,7 +90,9 @@ namespace Blue.Demo
                     singleData.ImageData[j] = trainImageBytes[imagePosition++] / 255f;
                 }
                 labelPosition++;
-                target.Add(singleData);
+                input.Add(singleData.ImageData);
+                output.Add(singleData.LabelArray);
+                labels?.Add(label);
             }
         }
 
@@ -98,8 +112,16 @@ namespace Blue.Demo
             yield return DownloadGZip("http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz"
                 , directory,
                 "t10k-labels-idx1-ubyte");
-            LoadSample($"{directory}/train-labels-idx1-ubyte", $"{directory}/train-images-idx3-ubyte", _trainData);
-            LoadSample($"{directory}/t10k-labels-idx1-ubyte", $"{directory}/t10k-images-idx3-ubyte", _testData);
+            LoadSample($"{directory}/train-labels-idx1-ubyte"
+                , $"{directory}/train-images-idx3-ubyte"
+                , _trainInputData
+                , _trainOutputData
+                , null);
+            LoadSample($"{directory}/t10k-labels-idx1-ubyte"
+                , $"{directory}/t10k-images-idx3-ubyte"
+                , _testInputData
+                , _testOutputData
+                , _testOutputLabel);
         }
 
         private static IEnumerator DownloadGZip(string url, string directory, string fileName)
