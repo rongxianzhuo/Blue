@@ -28,8 +28,6 @@ namespace Blue.Demo
         private Operate _crossEntropyLoss;
         private DatasetLoader _datasetLoader;
 
-        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "SavedModel");
-
         private void Awake()
         {
             _target = new Tensor(BatchSize, 10);
@@ -37,7 +35,6 @@ namespace Blue.Demo
             _model = new Model(_input.Linear(128).Activation("relu").Linear(10));
             _optimizer = new AdamOptimizer();
             _crossEntropyLoss = Op.CrossEntropyLoss(_model.Output.Output, _target, _model.Output.Gradient);
-            if (Directory.Exists(ModelSavePath)) _model.LoadParameterFile(ModelSavePath);
             StartCoroutine(Train());
         }
 
@@ -86,13 +83,6 @@ namespace Blue.Demo
                     yield return null;
                 }
             }
-
-            // save model
-            if (trainEpochs > 0)
-            {
-                _model.SaveParameterFile(ModelSavePath);
-                Debug.Log("Model saved");
-            }
             
             // evaluate
             Evaluate(mnistData);
@@ -103,7 +93,7 @@ namespace Blue.Demo
             var sampleCount = mnistData.TestData.Count;
             var input = new ComputationalNode(false, sampleCount, 784);
             var model = new Model(input.Linear(128).Activation("relu").Linear(10));
-            if (Directory.Exists(ModelSavePath)) model.LoadParameterFile(ModelSavePath);
+            _model.CopyParameterTo(model);
             var x = new float[sampleCount * 784];
             var y = new int[sampleCount];
             for (var i = 0; i < sampleCount; i++)
