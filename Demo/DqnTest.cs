@@ -103,8 +103,8 @@ namespace Blue.Demo
 
         private Env _runtimeEnv;
         private readonly Env[] _env = new Env[BatchSize];
-        private Model _runtimeDqn;
-        private Model _trainDqn;
+        private ComputationalGraph _runtimeDqn;
+        private ComputationalGraph _trainDqn;
         private ComputationalNode _runtimeInput;
         private ComputationalNode _trainInput;
         private Operate _loss;
@@ -121,15 +121,15 @@ namespace Blue.Demo
             {
                 _env[i] = new Env();
             }
-            
-            _runtimeInput = new ComputationalNode(false, 1, 4);
-            var runtimeOutput = _runtimeInput.Linear(128).Activation("relu").Linear(ActionSize);
-            _runtimeDqn = new Model(runtimeOutput, _runtimeInput);
+
+            _runtimeDqn = new ComputationalGraph();
+            _runtimeInput = _runtimeDqn.InputNode(1, 4);
+            _runtimeInput.Linear(128).Activation("relu").Linear(ActionSize);
             if (Directory.Exists(ModelSavePath)) _runtimeDqn.LoadParameterFile(ModelSavePath);
             
-            _trainInput = new ComputationalNode(false, BatchSize, 4);
-            var trainOutput = _trainInput.Linear(128).Activation("relu").Linear(ActionSize);
-            _trainDqn = new Model(trainOutput, _trainInput);
+            _trainDqn = new ComputationalGraph();
+            _trainInput = _trainDqn.InputNode(BatchSize, 4);
+            _trainInput.Linear(128).Activation("relu").Linear(ActionSize);
             if (Directory.Exists(ModelSavePath)) _trainDqn.LoadParameterFile(ModelSavePath);
             _target = new Tensor(BatchSize, ActionSize);
             _loss = Op.L2Loss(_trainDqn.Output, _target, _trainDqn.Output.Gradient);
@@ -200,9 +200,7 @@ namespace Blue.Demo
         {
             _trainDqn.SaveParameterFile(ModelSavePath);
             _runtimeDqn.Dispose();
-            _runtimeInput.Dispose();
             _trainDqn.Dispose();
-            _trainInput.Dispose();
             _target.Dispose();
             _loss.Dispose();
             _optimizer.Dispose();

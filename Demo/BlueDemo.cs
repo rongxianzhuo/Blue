@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Blue.Core;
 using Blue.Data;
 using Blue.Graph;
@@ -16,8 +17,11 @@ namespace Blue.Demo
 
         private const int BatchSize = 32;
 
+        public bool saveModel;
         public Text infoText;
         public int trainEpochs = 2;
+        
+        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "MnistSavedModel");
 
         private void Awake()
         {
@@ -31,11 +35,12 @@ namespace Blue.Demo
             yield return mnistData.DownloadData();
             
             // create model
-            using var trainInput = new ComputationalNode(false, BatchSize, 784);
-            using var trainModel = new Model(trainInput.Linear(128).Activation("relu").Linear(10));
+            using var trainGraph = new ComputationalGraph();
+            var trainInput = trainGraph.InputNode(BatchSize, 784);
+            var output = trainInput.Linear(128).Activation("relu").Linear(10);
             using var target = new Tensor(BatchSize, 10);
-            using var crossEntropyLoss = Op.CrossEntropyLoss(trainModel.Output, target, trainModel.Output.Gradient);
-            using var optimizer = new AdamOptimizer(trainModel.ParameterNodes);
+            using var crossEntropyLoss = Op.CrossEntropyLoss(output, target, output.Gradient);
+            using var optimizer = new AdamOptimizer(trainGraph.ParameterNodes);
             
             // init dataset loader
             using var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
@@ -49,10 +54,10 @@ namespace Blue.Demo
                 for (var i = 0; i < datasetLoader.BatchCount; i++)
                 {
                     datasetLoader.LoadBatch(i);
-                    trainModel.Forward();
-                    trainModel.ClearGradient();
+                    trainGraph.Forward();
+                    trainGraph.ClearGradient();
                     crossEntropyLoss.Dispatch();
-                    trainModel.Backward();
+                    trainGraph.Backward();
                     optimizer.Step();
                     if (i % 64 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
@@ -60,20 +65,24 @@ namespace Blue.Demo
                 }
             }
             
+            if (saveModel) trainGraph.SaveParameterFile(ModelSavePath);
+            
             // evaluate
+            using var testGraph = new ComputationalGraph();
             var sampleCount = mnistData.TestInputData.Count;
-            using var input = new ComputationalNode(false, sampleCount, 784);
-            using var model = new Model(input.Linear(128).Activation("relu").Linear(10));
-            trainModel.CopyParameterTo(model);
+            var input = testGraph.InputNode(sampleCount, 784);
+            var testOutput = input.Linear(128).Activation("relu").Linear(10);
+            if (Directory.Exists(ModelSavePath)) testGraph.LoadParameterFile(ModelSavePath);
+            else trainGraph.CopyParameterTo(testGraph);
             input.SetData(mnistData.TestInputData);
-            model.Forward();
-            infoText.text = $"Accuracy: {GetCorrectCount(model, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
+            testGraph.Forward();
+            infoText.text = $"Accuracy: {GetCorrectCount(testOutput, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
         }
         
-        private static int GetCorrectCount(Model model, IReadOnlyList<int> batchTargetLabel)
+        private static int GetCorrectCount(ComputationalNode output, IReadOnlyList<int> batchTargetLabel)
         {
             var correctCount = 0;
-            var outputData = model.Output.Sync();
+            var outputData = output.Sync();
             for (var i = 0; i < batchTargetLabel.Count; i++)
             {
                 var max = outputData[i * 10];

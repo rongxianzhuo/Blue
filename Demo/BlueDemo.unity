@@ -493,6 +493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45ed6bf1408fa4278aa8c5a46d16570a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  saveModel: 1
   infoText: {fileID: 1626112876}
   trainEpochs: 5
 --- !u!4 &1895136504
