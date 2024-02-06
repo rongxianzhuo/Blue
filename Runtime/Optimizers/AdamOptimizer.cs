@@ -7,8 +7,6 @@ namespace Blue.Optimizers
     public class AdamOptimizer : IOptimizer
     {
 
-        public float LearningRate = 0.001f;
-
         private readonly int _tId = Operate.PropertyId("t");
         private readonly float _beta1 = 0.9f;
         private readonly float _beta2 = 0.999f;
@@ -17,7 +15,7 @@ namespace Blue.Optimizers
 
         private float _t;
 
-        public AdamOptimizer(IEnumerable<ComputationalNode> nodes)
+        public AdamOptimizer(IEnumerable<ComputationalNode> nodes, float learningRate=0.001f)
         {
             foreach (var node in nodes)
             {
@@ -30,7 +28,7 @@ namespace Blue.Optimizers
                     .SetFloat("t", 0f)
                     .SetFloat("beta1", _beta1)
                     .SetFloat("beta2", _beta2)
-                    .SetFloat("learning_rate", LearningRate)
+                    .SetFloat("learning_rate", learningRate)
                     .SetTensor("g", gradient)
                     .SetTensor("m", m)
                     .SetTensor("v", v)

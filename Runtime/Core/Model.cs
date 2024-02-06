@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Blue.Graph;
-using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Core
@@ -15,7 +14,6 @@ namespace Blue.Core
 
         private readonly ComputationalNode[] _inputNodes;
         private readonly List<ComputationalNode> _parameterNodes = new List<ComputationalNode>();
-        private readonly List<Operate> _clearGradientOps = new List<Operate>();
         private readonly List<HashSet<ComputationalNode>> _nodeLayer = new List<HashSet<ComputationalNode>>();
 
         public IReadOnlyCollection<ComputationalNode> ParameterNodes => _parameterNodes;
@@ -34,11 +32,6 @@ namespace Blue.Core
                 {
                     if (node is ComputationalNode dataNode && dataNode.IsParameter) _parameterNodes.Add(dataNode);
                 }
-            }
-
-            foreach (var node in _parameterNodes)
-            {
-                _clearGradientOps.Add(Op.Clear(node.TotalGradient, 0f));
             }
         }
 
@@ -95,9 +88,9 @@ namespace Blue.Core
 
         public void ClearGradient()
         {
-            foreach (var op in _clearGradientOps)
+            foreach (var node in _parameterNodes)
             {
-                op.Dispatch();
+                node.ClearGradient();
             }
         }
 
@@ -136,11 +129,6 @@ namespace Blue.Core
                 {
                     node.Dispose();
                 }
-            }
-
-            foreach (var op in _clearGradientOps)
-            {
-                op.Dispose();
             }
         }
     }

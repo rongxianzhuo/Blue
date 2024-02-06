@@ -12,7 +12,8 @@ namespace Blue.Graph
         public readonly int Id;
         public readonly Tensor Gradient;
         public readonly Tensor TotalGradient;
-        
+
+        private readonly Operate _clearGradientOp;
         private readonly ComputationalGraph _graph;
         private readonly List<ComputationalNode> _inputNodes = new List<ComputationalNode>();
         private readonly List<Operate> _forwardOperates = new List<Operate>();
@@ -30,6 +31,7 @@ namespace Blue.Graph
             {
                 Id = _graph.AllocateParameterId();
                 TotalGradient = CreateTensor(shape);
+                _clearGradientOp = Op.Clear(TotalGradient, 0f);
             }
             else
             {
@@ -45,6 +47,7 @@ namespace Blue.Graph
             {
                 Id = graph.AllocateParameterId();
                 TotalGradient = CreateTensor(shape);
+                _clearGradientOp = Op.Clear(TotalGradient, 0f);
             }
             else
             {
@@ -200,8 +203,14 @@ namespace Blue.Graph
             return dropoutNode;
         }
 
+        public void ClearGradient()
+        {
+            _clearGradientOp?.Dispatch();
+        }
+
         public override void Dispose()
         {
+            _clearGradientOp?.Dispose();
             foreach (var o in _forwardOperates)
             {
                 o.Dispose();
