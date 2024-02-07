@@ -15,7 +15,7 @@ namespace Blue.Graph
 
         public IEnumerable<ComputationalNode> ParameterNodes => _parameterNodes.Values;
 
-        public ComputationalNode Output => _nodeLayer[_nodeLayer.Count - 1].First();
+        public ComputationalNode Output { get; private set; }
 
         public void LoadParameterFile(string dirPath)
         {
@@ -68,6 +68,7 @@ namespace Blue.Graph
             if (isParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
             while (_nodeLayer.Count <= node.Layer) _nodeLayer.Add(new HashSet<ComputationalNode>());
             _nodeLayer[node.Layer].Add(node);
+            if (node.Layer == _nodeLayer.Count - 1) Output = node;
             return node;
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Blue.Data;
 using Blue.Kit;
 using UnityEngine;
@@ -18,25 +17,6 @@ namespace Blue.Core
 
         private float[] _syncArray;
 
-        public float Max => Sync().Max();
-
-        public int MaxIndex
-        {
-            get
-            {
-                Sync();
-                var max = 0;
-                var maxValue = _syncArray[0];
-                for (var i = 1; i < _syncArray.Length; i++)
-                {
-                    if (_syncArray[i] < maxValue) continue;
-                    max = i;
-                    maxValue = _syncArray[i];
-                }
-                return max;
-            }
-        }
-
         public Tensor(params int[] size)
         {
             Size = size;
@@ -48,6 +28,20 @@ namespace Blue.Core
             FlattenSize = totalSize;
             _buffer = new ComputeBuffer(totalSize, sizeof(float));
             Op.Clear(this, 0).Dispatch().Dispose();
+        }
+
+        public float Max(out int index)
+        {
+            Sync();
+            index = 0;
+            var maxValue = _syncArray[0];
+            for (var i = 1; i < _syncArray.Length; i++)
+            {
+                if (_syncArray[i] < maxValue) continue;
+                index = i;
+                maxValue = _syncArray[i];
+            }
+            return maxValue;
         }
 
         public int[] TransposeSize()
