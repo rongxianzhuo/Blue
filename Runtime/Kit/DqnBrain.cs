@@ -40,12 +40,12 @@ namespace Blue.Kit
             _actionSize = actionSize;
             _tempState = new float[stateSize];
             
-            _runtimeDqn = new ComputationalGraph();
-            _runtimeInput = _runtimeDqn.InputNode(1, stateSize);
+            _runtimeDqn = new ComputationalGraph(1);
+            _runtimeInput = _runtimeDqn.InputNode(stateSize);
             _runtimeInput.Linear(128).Activation("relu").Linear(actionSize);
             
-            _trainDqn = new ComputationalGraph();
-            _trainInput = _trainDqn.InputNode(BatchSize, stateSize);
+            _trainDqn = new ComputationalGraph(BatchSize);
+            _trainInput = _trainDqn.InputNode(stateSize);
             _trainInput.Linear(128).Activation("relu").Linear(actionSize);
             _target = new Tensor(BatchSize, actionSize);
             _loss = Op.L2Loss(_trainDqn.Output, _target, _trainDqn.Output.Gradient);

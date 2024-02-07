@@ -13,9 +13,16 @@ namespace Blue.Graph
         private readonly Dictionary<int, ComputationalNode> _parameterNodes = new Dictionary<int, ComputationalNode>();
         private readonly List<HashSet<ComputationalNode>> _nodeLayer = new List<HashSet<ComputationalNode>>();
 
+        public readonly int BatchSize;
+
         public IEnumerable<ComputationalNode> ParameterNodes => _parameterNodes.Values;
 
         public ComputationalNode Output { get; private set; }
+
+        public ComputationalGraph(int batchSize)
+        {
+            BatchSize = batchSize;
+        }
 
         public void LoadParameterFile(string dirPath)
         {
@@ -57,9 +64,9 @@ namespace Blue.Graph
             return node;
         }
 
-        public ComputationalNode InputNode(params int[] shape)
+        public ComputationalNode InputNode(int size)
         {
-            return GeneralNode(false, null, shape);
+            return GeneralNode(false, null, BatchSize, size);
         }
 
         public ComputationalNode GeneralNode(bool isParameter, ComputationalNode[] inputNodes, params int[] shape)
