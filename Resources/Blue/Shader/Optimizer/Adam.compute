@@ -3,6 +3,7 @@
 float t;
 float beta1;
 float beta2;
+float weight_decay;
 float learning_rate;
 StructuredBuffer<float> g;
 RWStructuredBuffer<float> m;
@@ -12,9 +13,10 @@ RWStructuredBuffer<float> theta;
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float cm = beta1 * m[id.x] + (1.0 - beta1) * g[id.x];
+    const float weight_decay_g = g[id.x] + theta[id.x] * weight_decay;
+    float cm = beta1 * m[id.x] + (1.0 - beta1) * weight_decay_g;
     m[id.x] = cm;
-    float cv = beta2 * v[id.x] + (1.0 - beta2) * g[id.x] * g[id.x];
+    float cv = beta2 * v[id.x] + (1.0 - beta2) * weight_decay_g * weight_decay_g;
     v[id.x] = cv;
     // 加 abs 只是为了避免unity警告
     cm = cm/ (1.0 - pow(abs(beta1), t));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Blue.Core;
+using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Graph
@@ -55,12 +56,7 @@ namespace Blue.Graph
         public ComputationalNode ParameterNode(params int[] shape)
         {
             var node = GeneralNode(true, null, shape);
-            node.AddBackwardOperate(new Operate("Common/GradientIncrease", "CSMain")
-                .SetFloat("weight_decay", 0.000f)
-                .SetTensor("gradient", node.Gradient)
-                .SetTensor("weight", node)
-                .SetTensor("total_gradient", node.TotalGradient)
-                .SetDispatchSize(node.TotalGradient.FlattenSize));
+            node.AddBackwardOperate(Op.Increment(node.TotalGradient, node.Gradient));
             return node;
         }
 
