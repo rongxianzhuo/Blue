@@ -90,11 +90,10 @@ namespace Blue.Data
 
         public void Shuffle()
         {
-            for (var i = 0; i < _shuffleIndex.Count; i++)
+            for (var i = _shuffleIndex.Count - 1; i >= 0; i--)
             {
-                var j = UnityEngine.Random.Range(0, _shuffleIndex.Count);
-                var k = UnityEngine.Random.Range(0, _shuffleIndex.Count);
-                (_shuffleIndex[j], _shuffleIndex[k]) = (_shuffleIndex[k], _shuffleIndex[j]);
+                var j = UnityEngine.Random.Range(0, i + 1);
+                (_shuffleIndex[i], _shuffleIndex[j]) = (_shuffleIndex[j], _shuffleIndex[i]);
             }
         }
     }
