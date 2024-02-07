@@ -95,8 +95,7 @@ namespace Blue.Kit
             if (_replayIndex < ReplayBufferSize * BatchSize) return;
             _replayIndex = 0;
             
-            Shuffle();
-            
+            _datasetLoader.Shuffle();
             _datasetLoader.LoadDataset(_inputReplay, _trainInput);
             _datasetLoader.LoadDataset(_targetReplay, _target);
             
@@ -121,17 +120,6 @@ namespace Blue.Kit
             _target.Dispose();
             _optimizer.Dispose();
             _datasetLoader.Dispose();
-        }
-
-        private void Shuffle()
-        {
-            for (var i = 0; i < _inputReplay.Count; i++)
-            {
-                var j = Random.Range(0, _inputReplay.Count);
-                var k = Random.Range(0, _inputReplay.Count);
-                (_inputReplay[j], _inputReplay[k]) = (_inputReplay[k], _inputReplay[j]);
-                (_targetReplay[j], _targetReplay[k]) = (_targetReplay[k], _targetReplay[j]);
-            }
         }
     }
 }

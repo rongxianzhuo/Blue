@@ -11,6 +11,8 @@ namespace Blue.Data
         public readonly int BatchCount;
 
         private readonly int _batchSize;
+        private readonly List<int> _shuffleIndex = new List<int>();
+        private readonly List<float[]> _shuffleSample = new List<float[]>();
         private readonly Dictionary<Tensor, Tensor> _tensors = new Dictionary<Tensor, Tensor>();
         private readonly HashSet<KeyValuePair<int, Operate>> _ops = new HashSet<KeyValuePair<int, Operate>>();
         private readonly int _srcStartPropertyId = Operate.PropertyId("src_start");
@@ -19,6 +21,11 @@ namespace Blue.Data
         {
             _batchSize = batchSize;
             BatchCount = sampleCount / batchSize;
+            for (var i = 0; i < sampleCount; i++)
+            {
+                _shuffleIndex.Add(i);
+                _shuffleSample.Add(null);
+            }
         }
 
         public void LoadBatch(int batchIndex)
@@ -33,9 +40,14 @@ namespace Blue.Data
         {
             if (samples.Count != _batchSize * BatchCount) throw new Exception("Unknown error");
 
+            for (var i = 0; i < samples.Count; i++)
+            {
+                _shuffleSample[i] = samples[_shuffleIndex[i]];
+            }
+
             if (_tensors.TryGetValue(target, out var tensor))
             {
-                tensor.SetData(samples);
+                tensor.SetData(_shuffleSample);
             }
             else
             {
@@ -44,7 +56,7 @@ namespace Blue.Data
                 {
                     for (var j = 0; j < _batchSize; j++)
                     {
-                        flatten.AddRange(samples[i * _batchSize + j]);
+                        flatten.AddRange(_shuffleSample[i * _batchSize + j]);
                     }
                 }
                 tensor = new Tensor(flatten);
@@ -74,6 +86,16 @@ namespace Blue.Data
                 pair.Value.Dispose();
             }
             _ops.Clear();
+        }
+
+        public void Shuffle()
+        {
+            for (var i = 0; i < _shuffleIndex.Count; i++)
+            {
+                var j = UnityEngine.Random.Range(0, _shuffleIndex.Count);
+                var k = UnityEngine.Random.Range(0, _shuffleIndex.Count);
+                (_shuffleIndex[j], _shuffleIndex[k]) = (_shuffleIndex[k], _shuffleIndex[j]);
+            }
         }
     }
 }
