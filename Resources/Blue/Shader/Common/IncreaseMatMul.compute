@@ -1,0 +1,21 @@
+#pragma kernel CSMain
+
+int wl;
+int wr;
+
+StructuredBuffer<float> left;
+StructuredBuffer<float> right;
+RWStructuredBuffer<float> result;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    const int i = id.x / wr;
+    const int j = id.x % wr;
+    float sum = 0.0;
+    for (int k = 0; k < wl; k++)
+    {
+        sum += left[i * wl + k] * right[j + wr * k];
+    }
+    result[i * wr + j] += sum;
+}

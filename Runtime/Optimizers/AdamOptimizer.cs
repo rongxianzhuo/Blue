@@ -19,7 +19,7 @@ namespace Blue.Optimizers
         {
             foreach (var node in nodes)
             {
-                var gradient = node.TotalGradient;
+                var gradient = node.Gradient;
                 var m = new Tensor(node.Size);
                 var v = new Tensor(node.Size);
                 _tensors.Add(m);

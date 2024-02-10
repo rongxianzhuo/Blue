@@ -100,12 +100,12 @@ namespace Blue.Graph
             
             linearNode.AddBackwardOperate(Op.Transpose(node
                 , tInput));
-            linearNode.AddBackwardOperate(Op.MatMul(tInput
+            linearNode.AddBackwardOperate(Op.Translate(tInput, 1f / node.Size[0], 0f));
+            linearNode.AddBackwardOperate(Op.IncreaseMatMul(tInput
                 , linearNode.Gradient
                 , weight.Gradient));
             
-            linearNode.AddBackwardOperate(Op.Translate(weight.Gradient, 1f / node.Size[0], 0f));
-            linearNode.AddBackwardOperate(Op.MatMul(tBias, linearNode.Gradient, bias.Gradient));
+            linearNode.AddBackwardOperate(Op.IncreaseMatMul(tBias, linearNode.Gradient, bias.Gradient));
 
             return linearNode;
         }

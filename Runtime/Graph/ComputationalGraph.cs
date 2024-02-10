@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Graph
@@ -54,7 +53,6 @@ namespace Blue.Graph
         public ComputationalNode ParameterNode(params int[] shape)
         {
             var node = GeneralNode(true, null, shape);
-            node.AddBackwardOperate(Op.Increment(node.TotalGradient, node.Gradient));
             return node;
         }
 
@@ -65,7 +63,7 @@ namespace Blue.Graph
 
         public ComputationalNode GeneralNode(bool isParameter, ComputationalNode[] inputNodes, params int[] shape)
         {
-            var node = new ComputationalNode(this, isParameter, inputNodes, shape);
+            var node = new ComputationalNode(this, inputNodes, shape);
             if (isParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
             while (_nodeLayer.Count <= node.Layer) _nodeLayer.Add(new HashSet<ComputationalNode>());
             _nodeLayer[node.Layer].Add(node);

@@ -10,7 +10,6 @@ namespace Blue.Graph
     {
 
         public readonly Tensor Gradient;
-        public readonly Tensor TotalGradient;
         public readonly ComputationalGraph Graph;
 
         internal readonly int Layer;
@@ -21,7 +20,7 @@ namespace Blue.Graph
         private readonly List<Operate> _backwardOperates = new List<Operate>();
         private readonly HashSet<Tensor> _tempTensors = new HashSet<Tensor>();
 
-        internal ComputationalNode(ComputationalGraph graph, bool isParameter, ComputationalNode[] inputNodes, params int[] shape) : base(shape)
+        internal ComputationalNode(ComputationalGraph graph, ComputationalNode[] inputNodes, params int[] shape) : base(shape)
         {
             Layer = 0;
             _inputNodes = inputNodes ?? Array.Empty<ComputationalNode>();
@@ -30,17 +29,9 @@ namespace Blue.Graph
                 if (node.Graph != graph) continue;
                 Layer = Mathf.Max(Layer, node.Layer + 1);
             }
-            if (isParameter)
-            {
-                TotalGradient = CreateTempTensor(shape);
-                _clearGradientOp = Op.Clear(TotalGradient, 0f);
-            }
-            else
-            {
-                TotalGradient = null;
-            }
             Graph = graph;
             Gradient = CreateTempTensor(shape);
+            _clearGradientOp = Op.Clear(Gradient, 0f);
         }
 
         internal Tensor CreateTempTensor(params int[] shape)
@@ -83,12 +74,12 @@ namespace Blue.Graph
 
         public void ClearGradient()
         {
-            _clearGradientOp?.Dispatch();
+            _clearGradientOp.Dispatch();
         }
 
         public override void Dispose()
         {
-            _clearGradientOp?.Dispose();
+            _clearGradientOp.Dispose();
             foreach (var o in _forwardOperates)
             {
                 o.Dispose();

@@ -25,6 +25,17 @@ namespace Blue.Kit
                 .SetDispatchSize(result.FlattenSize);
         }
         
+        public static Operate IncreaseMatMul(Tensor left, Tensor right, Tensor result)
+        {
+            return new Operate("Common/IncreaseMatMul", "CSMain")
+                .SetInt("wl", left.Size[1])
+                .SetInt("wr", right.Size[1])
+                .SetTensor("left", left)
+                .SetTensor("right", right)
+                .SetTensor("result", result)
+                .SetDispatchSize(result.FlattenSize);
+        }
+        
         public static Operate Increment(Tensor buffer, Tensor other)
         {
             return new Operate("Common/Increment", "CSMain")
