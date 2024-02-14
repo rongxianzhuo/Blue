@@ -9,18 +9,17 @@ namespace Blue.Graph
     public class ComputationalGraph : IDisposable
     {
 
+        public readonly ComputationalNode Output;
+
         private readonly Dictionary<int, ComputationalNode> _parameterNodes = new Dictionary<int, ComputationalNode>();
         private readonly List<ComputationalNode> _nodes = new List<ComputationalNode>();
 
-        public readonly int BatchSize;
-
         public IEnumerable<ComputationalNode> ParameterNodes => _parameterNodes.Values;
 
-        public ComputationalNode Output => _nodes[_nodes.Count - 1];
-
-        public ComputationalGraph(int batchSize)
+        public ComputationalGraph(ComputationalNode output)
         {
-            BatchSize = batchSize;
+            Output = output;
+            AddNode(output);
         }
 
         public void LoadParameterFile(string dirPath)
@@ -51,27 +50,10 @@ namespace Blue.Graph
             }
         }
 
-        public ComputationalNode ParameterNode(params int[] shape)
-        {
-            var node = GeneralNode(true, null, shape);
-            return node;
-        }
-
-        public ComputationalNode InputNode(int size)
-        {
-            return GeneralNode(false, null, BatchSize, size);
-        }
-
-        public ComputationalNode GeneralNode(bool isParameter, ComputationalNode[] inputNodes, params int[] shape)
-        {
-            var node = new ComputationalNode(this, inputNodes, shape);
-            if (isParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
-            AddNode(node);
-            return node;
-        }
-
         private void AddNode(ComputationalNode node)
         {
+            if (_nodes.Contains(node)) return;
+            if (node.IsParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
             if (node.InputNodes.Count == 0)
             {
                 _nodes.Insert(0, node);
@@ -85,6 +67,10 @@ namespace Blue.Graph
                 i--;
             }
             _nodes.Insert(i + 1, node);
+            foreach (var n in node.InputNodes)
+            {
+                AddNode(n);
+            }
         }
 
         public void Forward()
@@ -97,7 +83,10 @@ namespace Blue.Graph
 
         public void Backward()
         {
-            Output.Backward();
+            for (var i = _nodes.Count - 1; i >= 0; i--)
+            {
+                _nodes[i].Backward();
+            }
         }
 
         public void ClearGradient()
@@ -122,6 +111,8 @@ namespace Blue.Graph
             {
                 n.Dispose();
             }
+            _nodes.Clear();
+            _parameterNodes.Clear();
         }
     }
 }

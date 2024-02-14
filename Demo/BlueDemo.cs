@@ -35,9 +35,9 @@ namespace Blue.Demo
             yield return mnistData.DownloadData();
             
             // create model
-            using var trainGraph = new ComputationalGraph(BatchSize);
-            var trainInput = trainGraph.InputNode(784);
+            var trainInput = new ComputationalNode(false, BatchSize, 784);
             var output = trainInput.Linear(128).Activation("relu").Linear(10);
+            using var trainGraph = new ComputationalGraph(output);
             using var target = new Tensor(BatchSize, 10);
             using var crossEntropyLoss = Op.CrossEntropyLoss(output, target, output.Gradient);
             using var optimizer = new AdamOptimizer(trainGraph.ParameterNodes);
@@ -59,7 +59,7 @@ namespace Blue.Demo
                     crossEntropyLoss.Dispatch();
                     trainGraph.Backward();
                     optimizer.Step();
-                    if (i % 64 != 0) continue;
+                    if (i % 16 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
                     yield return null;
                 }
@@ -69,9 +69,9 @@ namespace Blue.Demo
             
             // evaluate
             var sampleCount = mnistData.TestInputData.Count;
-            using var testGraph = new ComputationalGraph(sampleCount);
-            var input = testGraph.InputNode(784);
+            var input = new ComputationalNode(false, sampleCount, 784);
             var testOutput = input.Linear(128).Activation("relu").Linear(10);
+            using var testGraph = new ComputationalGraph(testOutput);
             if (Directory.Exists(ModelSavePath)) testGraph.LoadParameterFile(ModelSavePath);
             else trainGraph.CopyParameterTo(testGraph);
             input.SetData(mnistData.TestInputData);

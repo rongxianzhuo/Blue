@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
-using UnityEngine;
 
 namespace Blue.Graph
 {
     public class ComputationalNode : Tensor
     {
 
+        public readonly bool IsParameter;
         public readonly Tensor Gradient;
-        public readonly ComputationalGraph Graph;
 
         private readonly Operate _clearGradientOp;
         private readonly ComputationalNode[] _inputNodes;
@@ -20,10 +19,17 @@ namespace Blue.Graph
 
         public IReadOnlyList<ComputationalNode> InputNodes => _inputNodes;
 
-        internal ComputationalNode(ComputationalGraph graph, ComputationalNode[] inputNodes, params int[] shape) : base(shape)
+        public ComputationalNode(ComputationalNode[] inputNodes, params int[] shape) : base(shape)
         {
-            _inputNodes = inputNodes ?? Array.Empty<ComputationalNode>();
-            Graph = graph;
+            _inputNodes = inputNodes;
+            Gradient = CreateTempTensor(shape);
+            _clearGradientOp = Op.Clear(Gradient, 0f);
+        }
+
+        public ComputationalNode(bool isParameter, params int[] shape) : base(shape)
+        {
+            IsParameter = isParameter;
+            _inputNodes = Array.Empty<ComputationalNode>();
             Gradient = CreateTempTensor(shape);
             _clearGradientOp = Op.Clear(Gradient, 0f);
         }
@@ -50,11 +56,6 @@ namespace Blue.Graph
             foreach (var o in _backwardOperates)
             {
                 o.Dispatch();
-            }
-
-            foreach (var node in _inputNodes)
-            {
-                node.Backward();
             }
         }
 

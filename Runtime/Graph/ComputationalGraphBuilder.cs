@@ -17,7 +17,7 @@ namespace Blue.Graph
                 "sigmoid" => "Graph/Sigmoid",
                 _ => throw new Exception("Unknown activation name")
             };
-            var activation = node.Graph.GeneralNode(false, new[] { node }, node.Size);
+            var activation = new ComputationalNode(new[] { node }, node.Size);
             
             activation.AddForwardOperate(new Operate(shaderName, "Forward")
                 .SetTensor("rw_output", activation)
@@ -33,14 +33,14 @@ namespace Blue.Graph
             return activation;
         }
 
-        public static ComputationalNode Concat(this ComputationalGraph graph, params ComputationalNode[] nodes)
+        public static ComputationalNode Concat(params ComputationalNode[] nodes)
         {
             var size = 0;
             foreach (var node in nodes)
             {
                 size += node.Size[1];
             }
-            var concat = graph.GeneralNode(false, nodes, nodes[0].Size[0], size);
+            var concat = new ComputationalNode(nodes, nodes[0].Size[0], size);
             
             var start = 0;
             foreach (var t in nodes)
@@ -70,9 +70,9 @@ namespace Blue.Graph
         public static ComputationalNode Linear(this ComputationalNode node, int size)
         {
             var batchSize = node.Size[0];
-            var weight = node.Graph.ParameterNode(node.Size[1], size);
-            var bias = node.Graph.ParameterNode(size);
-            var linearNode = node.Graph.GeneralNode(false, new []{node, weight, bias}, batchSize, size);
+            var weight = new ComputationalNode(true, node.Size[1], size);
+            var bias = new ComputationalNode(true, size);
+            var linearNode = new ComputationalNode(new []{node, weight, bias}, batchSize, size);
             var tInput = linearNode.CreateTempTensor(node.TransposeSize());
             var tWeight = linearNode.CreateTempTensor(weight.TransposeSize());
             var tBias = linearNode.CreateTempTensor(1, batchSize);
@@ -112,7 +112,7 @@ namespace Blue.Graph
 
         public static ComputationalNode Dropout(this ComputationalNode node, float dropout)
         {
-            var dropoutNode = node.Graph.GeneralNode(false, new []{node}, node.Size);
+            var dropoutNode = new ComputationalNode(new []{node}, node.Size);
             var weightArray = new float[node.FlattenSize];
             var weight = dropoutNode.CreateTempTensor(node.Size);
             dropoutNode.AddForwardOperate(new Operate(() =>
