@@ -12,23 +12,17 @@ namespace Blue.Graph
         public readonly Tensor Gradient;
         public readonly ComputationalGraph Graph;
 
-        internal readonly int Layer;
-
         private readonly Operate _clearGradientOp;
         private readonly ComputationalNode[] _inputNodes;
         private readonly List<Operate> _forwardOperates = new List<Operate>();
         private readonly List<Operate> _backwardOperates = new List<Operate>();
         private readonly HashSet<Tensor> _tempTensors = new HashSet<Tensor>();
 
+        public IReadOnlyList<ComputationalNode> InputNodes => _inputNodes;
+
         internal ComputationalNode(ComputationalGraph graph, ComputationalNode[] inputNodes, params int[] shape) : base(shape)
         {
-            Layer = 0;
             _inputNodes = inputNodes ?? Array.Empty<ComputationalNode>();
-            foreach (var node in _inputNodes)
-            {
-                if (node.Graph != graph) continue;
-                Layer = Mathf.Max(Layer, node.Layer + 1);
-            }
             Graph = graph;
             Gradient = CreateTempTensor(shape);
             _clearGradientOp = Op.Clear(Gradient, 0f);

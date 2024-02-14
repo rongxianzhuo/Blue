@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Blue.Graph
@@ -9,13 +10,13 @@ namespace Blue.Graph
     {
 
         private readonly Dictionary<int, ComputationalNode> _parameterNodes = new Dictionary<int, ComputationalNode>();
-        private readonly List<HashSet<ComputationalNode>> _nodeLayer = new List<HashSet<ComputationalNode>>();
+        private readonly List<ComputationalNode> _nodes = new List<ComputationalNode>();
 
         public readonly int BatchSize;
 
         public IEnumerable<ComputationalNode> ParameterNodes => _parameterNodes.Values;
 
-        public ComputationalNode Output { get; private set; }
+        public ComputationalNode Output => _nodes[_nodes.Count - 1];
 
         public ComputationalGraph(int batchSize)
         {
@@ -65,20 +66,32 @@ namespace Blue.Graph
         {
             var node = new ComputationalNode(this, inputNodes, shape);
             if (isParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
-            while (_nodeLayer.Count <= node.Layer) _nodeLayer.Add(new HashSet<ComputationalNode>());
-            _nodeLayer[node.Layer].Add(node);
-            if (node.Layer == _nodeLayer.Count - 1) Output = node;
+            AddNode(node);
             return node;
+        }
+
+        private void AddNode(ComputationalNode node)
+        {
+            if (node.InputNodes.Count == 0)
+            {
+                _nodes.Insert(0, node);
+                return;
+            }
+
+            var i = _nodes.Count - 1;
+            while (i >= 0)
+            {
+                if (node.InputNodes.Contains(_nodes[i])) break;
+                i--;
+            }
+            _nodes.Insert(i + 1, node);
         }
 
         public void Forward()
         {
-            foreach (var hashSet in _nodeLayer)
+            foreach (var node in _nodes)
             {
-                foreach (var node in hashSet)
-                {
-                    node.Forward();
-                }
+                node.Forward();
             }
         }
 
@@ -89,12 +102,9 @@ namespace Blue.Graph
 
         public void ClearGradient()
         {
-            foreach (var hashSet in _nodeLayer)
+            foreach (var node in _nodes)
             {
-                foreach (var node in hashSet)
-                {
-                    node.ClearGradient();
-                }
+                node.ClearGradient();
             }
         }
 
@@ -108,14 +118,10 @@ namespace Blue.Graph
 
         public void Dispose()
         {
-            for (var i = 0; i < _nodeLayer.Count; i++)
+            foreach (var n in _nodes)
             {
-                foreach (var node in _nodeLayer[i])
-                {
-                    node.Dispose();
-                }
+                n.Dispose();
             }
-            _nodeLayer.Clear();
         }
     }
 }
