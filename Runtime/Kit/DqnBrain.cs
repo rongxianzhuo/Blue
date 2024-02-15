@@ -114,8 +114,8 @@ namespace Blue.Kit
 
         public void Dispose()
         {
-            _runtimeDqn.Dispose();
-            _trainDqn.Dispose();
+            _runtimeDqn.DisposeNodes();
+            _trainDqn.DisposeNodes();
             _loss.Dispose();
             _target.Dispose();
             _optimizer.Dispose();

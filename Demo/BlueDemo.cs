@@ -37,7 +37,7 @@ namespace Blue.Demo
             // create model
             var trainInput = new ComputationalNode(false, BatchSize, 784);
             var output = trainInput.Linear(128).Activation("relu").Linear(10);
-            using var trainGraph = new ComputationalGraph(output);
+            var trainGraph = new ComputationalGraph(output);
             using var target = new Tensor(BatchSize, 10);
             using var crossEntropyLoss = Op.CrossEntropyLoss(output, target, output.Gradient);
             using var optimizer = new AdamOptimizer(trainGraph.ParameterNodes);
@@ -71,12 +71,16 @@ namespace Blue.Demo
             var sampleCount = mnistData.TestInputData.Count;
             var input = new ComputationalNode(false, sampleCount, 784);
             var testOutput = input.Linear(128).Activation("relu").Linear(10);
-            using var testGraph = new ComputationalGraph(testOutput);
+            var testGraph = new ComputationalGraph(testOutput);
             if (Directory.Exists(ModelSavePath)) testGraph.LoadParameterFile(ModelSavePath);
             else trainGraph.CopyParameterTo(testGraph);
             input.SetData(mnistData.TestInputData);
             testGraph.Forward();
             infoText.text = $"Accuracy: {GetCorrectCount(testOutput, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
+            
+            // Release asset
+            trainGraph.DisposeNodes();
+            testGraph.DisposeNodes();
         }
         
         private static int GetCorrectCount(ComputationalNode output, IReadOnlyList<int> batchTargetLabel)

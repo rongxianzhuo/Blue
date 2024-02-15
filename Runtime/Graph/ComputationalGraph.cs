@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +5,7 @@ using UnityEngine;
 
 namespace Blue.Graph
 {
-    public class ComputationalGraph : IDisposable
+    public class ComputationalGraph
     {
 
         public readonly ComputationalNode Output;
@@ -105,7 +104,7 @@ namespace Blue.Graph
             }
         }
 
-        public void Dispose()
+        public void DisposeNodes()
         {
             foreach (var n in _nodes)
             {
