@@ -136,6 +136,53 @@ namespace Blue.Graph
 
             return dropoutNode;
         }
+
+        public static ComputationalNode Embedding(this ComputationalNode oneHotInput, int embeddingDim, out ComputationalNode weight)
+        {
+            var embeddingNum = oneHotInput.Size[1];
+            weight = new ComputationalNode(true, embeddingNum, embeddingDim);
+            var embedding = new ComputationalNode(new []{oneHotInput, weight}, oneHotInput.Size[0], embeddingDim);
+            
+            embedding.AddForwardOperate(Op.MatMul(oneHotInput
+                , weight
+                , embedding));
+            
+            // var tWeight = embedding.CreateTempTensor(weight.TransposeSize());
+            // embedding.AddBackwardOperate(Op.Transpose(weight
+            //     , tWeight));
+            // embedding.AddBackwardOperate(Op.MatMul(embedding.Gradient
+            //     , tWeight
+            //     , oneHotInput.Gradient));
+            
+            var tInput = embedding.CreateTempTensor(oneHotInput.TransposeSize());
+            embedding.AddBackwardOperate(Op.Transpose(oneHotInput
+                , tInput));
+            embedding.AddBackwardOperate(Op.Translate(tInput, 1f / oneHotInput.Size[0], 0f));
+            embedding.AddBackwardOperate(Op.IncreaseMatMul(tInput
+                , embedding.Gradient
+                , weight.Gradient));
+            
+            var weightArray = new float[embeddingNum * embeddingDim];
+            for (var i = 0; i < weightArray.Length; i++)
+            {
+                weightArray[i] = GetRandN();
+            }
+            weight.SetData(weightArray);
+            return embedding;
+
+            static float GetRandN()
+            {
+                const float min = -4f;
+                const float max = 4f;
+                while (true)
+                {
+                    var i = UnityEngine.Random.Range(min, max);
+                    var p = 1f / Mathf.Sqrt(2 * Mathf.PI) * Mathf.Exp(-0.5f * i * i);
+                    if (UnityEngine.Random.Range(0f, 1f) > p) continue;
+                    return i;
+                }
+            }
+        }
         
     }
 }
