@@ -1,19 +1,15 @@
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace Blue.Graph
 {
-    public class ComputationalGraph
+    public class ComputationalGraph : IDisposable
     {
 
         public readonly ComputationalNode Output;
 
-        private readonly Dictionary<int, ComputationalNode> _parameterNodes = new Dictionary<int, ComputationalNode>();
         private readonly List<ComputationalNode> _nodes = new List<ComputationalNode>();
-
-        public IEnumerable<ComputationalNode> ParameterNodes => _parameterNodes.Values;
 
         public ComputationalGraph(ComputationalNode output)
         {
@@ -21,38 +17,9 @@ namespace Blue.Graph
             AddNode(output);
         }
 
-        public void LoadParameterFile(string dirPath)
-        {
-            foreach (var pair in _parameterNodes)
-            {
-                if (File.Exists(Path.Combine(dirPath, $"{pair.Key}.bytes")))
-                {
-                    using var stream = File.OpenRead(Path.Combine(dirPath, $"{pair.Key}.bytes"));
-                    pair.Value.LoadFromStream(stream);
-                    stream.Close();
-                }
-                else
-                {
-                    Debug.LogWarning($"No parameter file: {pair.Key}");
-                }
-            }
-        }
-
-        public void SaveParameterFile(string dirPath)
-        {
-            Directory.CreateDirectory(dirPath);
-            foreach (var pair in _parameterNodes)
-            {
-                using var stream = File.OpenWrite(Path.Combine(dirPath, $"{pair.Key}.bytes"));
-                pair.Value.SaveToStream(stream);
-                stream.Close();
-            }
-        }
-
         private void AddNode(ComputationalNode node)
         {
             if (_nodes.Contains(node)) return;
-            if (node.IsParameter) _parameterNodes.Add(_parameterNodes.Count + 1, node);
             if (node.InputNodes.Count == 0)
             {
                 _nodes.Insert(0, node);
@@ -96,22 +63,13 @@ namespace Blue.Graph
             }
         }
 
-        public void CopyParameterTo(ComputationalGraph other)
+        public void Dispose()
         {
-            foreach (var pair in _parameterNodes)
+            foreach (var node in _nodes)
             {
-                other._parameterNodes[pair.Key].SetData(pair.Value.InternalSync());
+                if (node.IsParameter) continue;
+                node.Dispose();
             }
-        }
-
-        public void DisposeNodes()
-        {
-            foreach (var n in _nodes)
-            {
-                n.Dispose();
-            }
-            _nodes.Clear();
-            _parameterNodes.Clear();
         }
     }
 }

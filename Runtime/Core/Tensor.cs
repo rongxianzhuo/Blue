@@ -67,10 +67,25 @@ namespace Blue.Core
             SetData(new MessagePacker(stream).UnpackSingleArray(FlattenSize));
         }
 
+        public void LoadFromFile(string path)
+        {
+            using var stream = File.OpenRead(path);
+            LoadFromStream(stream);
+            stream.Close();
+        }
+
         public void SaveToStream(Stream stream)
         {
             Sync();
             new MessagePacker(stream).Pack(_syncArray);
+        }
+
+        public void SaveToFile(string path)
+        {
+            Directory.CreateDirectory(path);
+            using var stream = File.OpenWrite(path);
+            SaveToStream(stream);
+            stream.Close();
         }
 
         public void SetData(float[] data)

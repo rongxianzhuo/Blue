@@ -1,9 +1,11 @@
 using System;
 using Blue.Core;
+using Blue.Graph;
 using Blue.Kit;
+using Blue.Runtime.NN;
 using UnityEngine;
 
-namespace Blue.Graph
+namespace Blue.NN
 {
     public static class ComputationalGraphBuilder
     {
@@ -12,9 +14,9 @@ namespace Blue.Graph
         {
             var shaderName = activationName switch
             {
-                "relu" => "Graph/ReLU",
-                "elu" => "Graph/ELU",
-                "sigmoid" => "Graph/Sigmoid",
+                "relu" => "Activation/ReLU",
+                "elu" => "Activation/ELU",
+                "sigmoid" => "Activation/Sigmoid",
                 _ => throw new Exception("Unknown activation name")
             };
             var activation = new ComputationalNode(new[] { node }, node.Size);
@@ -67,47 +69,9 @@ namespace Blue.Graph
             return concat;
         }
 
-        public static ComputationalNode Linear(this ComputationalNode node, int size)
+        public static ComputationalNode Linear(this ComputationalNode node, Linear linear)
         {
-            var batchSize = node.Size[0];
-            var weight = new ComputationalNode(true, node.Size[1], size);
-            var bias = new ComputationalNode(true, size);
-            var linearNode = new ComputationalNode(new []{node, weight, bias}, batchSize, size);
-            var tInput = linearNode.CreateTempTensor(node.TransposeSize());
-            var tWeight = linearNode.CreateTempTensor(weight.TransposeSize());
-            var tBias = linearNode.CreateTempTensor(1, batchSize);
-            Op.Clear(tBias, 1f / batchSize).Dispatch().Dispose();
-            
-            var min = -Mathf.Sqrt(1f / (node.Size[1] + size));
-            var max = -min;
-            var array = new float[weight.FlattenSize];
-            for (var i = 0; i < weight.FlattenSize; i++)
-            {
-                array[i] = UnityEngine.Random.Range(min, max);
-            }
-            weight.SetData(array);
-            
-            linearNode.AddForwardOperate(Op.MatMul(node
-                , weight
-                , linearNode));
-            linearNode.AddForwardOperate(Op.Increment(linearNode, bias));
-            
-            linearNode.AddBackwardOperate(Op.Transpose(weight
-                , tWeight));
-            linearNode.AddBackwardOperate(Op.MatMul(linearNode.Gradient
-                , tWeight
-                , node.Gradient));
-            
-            linearNode.AddBackwardOperate(Op.Transpose(node
-                , tInput));
-            linearNode.AddBackwardOperate(Op.Translate(tInput, 1f / node.Size[0], 0f));
-            linearNode.AddBackwardOperate(Op.IncreaseMatMul(tInput
-                , linearNode.Gradient
-                , weight.Gradient));
-            
-            linearNode.AddBackwardOperate(Op.IncreaseMatMul(tBias, linearNode.Gradient, bias.Gradient));
-
-            return linearNode;
+            return linear.CreateGraph(node);
         }
 
         public static ComputationalNode Dropout(this ComputationalNode node, float dropout)
