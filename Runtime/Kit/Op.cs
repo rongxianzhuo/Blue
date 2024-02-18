@@ -105,5 +105,14 @@ namespace Blue.Kit
                 .SetDispatchSize(target.FlattenSize);
         }
         
+        public static Operate Variance(Tensor input, Tensor result)
+        {
+            return new Operate("Common/Variance", "CSMain")
+                .SetInt("n", input.Size[1])
+                .SetTensor("buffer", input)
+                .SetTensor("result", result)
+                .SetDispatchSize(input.Size[0]);
+        }
+        
     }
 }
