@@ -82,7 +82,6 @@ namespace Blue.Core
 
         public void SaveToFile(string path)
         {
-            Directory.CreateDirectory(path);
             using var stream = File.OpenWrite(path);
             SaveToStream(stream);
             stream.Close();

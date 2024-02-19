@@ -86,6 +86,15 @@ namespace Blue.Kit
                 .SetDispatchSize(target.FlattenSize);
         }
         
+        public static Operate Add(Tensor result, Tensor other)
+        {
+            return new Operate("Common/Add", "CSMain")
+                .SetInt("other_len", other.FlattenSize)
+                .SetTensor("other", other)
+                .SetTensor("result", result)
+                .SetDispatchSize(result.FlattenSize);
+        }
+        
         public static Operate L2Loss(Tensor output, Tensor target, Tensor gradient)
         {
             return new Operate("LossFunction/L2Loss", "CSMain")

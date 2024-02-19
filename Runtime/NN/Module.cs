@@ -12,6 +12,8 @@ namespace Blue.Runtime.NN
 
         private readonly List<Module> _subModules = new List<Module>();
 
+        private readonly List<ComputationalNode> _tempNodes = new List<ComputationalNode>();
+
         private readonly List<ComputationalNode> _parameters = new List<ComputationalNode>();
 
 
@@ -25,6 +27,11 @@ namespace Blue.Runtime.NN
         protected void RegisterParameter(ComputationalNode node)
         {
             _parameters.Add(node);
+        }
+
+        protected void RegisterTempNode(ComputationalNode node)
+        {
+            _tempNodes.Add(node);
         }
 
         public List<ComputationalNode> GetAllParameters(List<ComputationalNode> list=null)
@@ -62,9 +69,7 @@ namespace Blue.Runtime.NN
             for (var i = 0; i < allParameter.Count; i++)
             {
                 var path = Path.Combine(dirPath, $"{i}.bytes");
-                using var stream = File.OpenWrite(path);
-                allParameter[i].SaveToStream(stream);
-                stream.Close();
+                allParameter[i].SaveToFile(path);
             }
         }
 
@@ -75,6 +80,11 @@ namespace Blue.Runtime.NN
                 node.Dispose();
             }
             _parameters.Clear();
+            foreach (var node in _tempNodes)
+            {
+                node.Dispose();
+            }
+            _tempNodes.Clear();
             foreach (var module in _subModules)
             {
                 module.Dispose();
