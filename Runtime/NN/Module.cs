@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using Blue.Graph;
 using UnityEngine;
 
@@ -11,20 +10,10 @@ namespace Blue.Runtime.NN
     public abstract class Module : IDisposable
     {
 
-        private List<ComputationalNode> _parameters;
+        private readonly List<Module> _subModules = new List<Module>();
 
-        public IReadOnlyList<ComputationalNode> Parameters
-        {
-            get
-            {
-                if (_parameters == null)
-                {
-                    _parameters = new List<ComputationalNode>();
-                    GetParameters(_parameters);
-                }
-                return _parameters;
-            }
-        }
+        private readonly List<ComputationalNode> _parameters = new List<ComputationalNode>();
+
 
         public abstract ComputationalNode CreateGraph(params ComputationalNode[] input);
 
@@ -33,29 +22,36 @@ namespace Blue.Runtime.NN
             return new ComputationalGraph(CreateGraph(input));
         }
 
-        private void GetParameters(ICollection<ComputationalNode> list)
+        protected void RegisterModule(Module module)
         {
-            var moduleType = typeof(Module);
-            var nodeType = typeof(ComputationalNode);
-            foreach (var field in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            _subModules.Add(module);
+        }
+
+        protected void RegisterParameter(ComputationalNode node)
+        {
+            _parameters.Add(node);
+        }
+
+        public List<ComputationalNode> GetAllParameters(List<ComputationalNode> list=null)
+        {
+            list ??= new List<ComputationalNode>();
+            list.AddRange(_parameters);
+            foreach (var module in _subModules)
             {
-                if (field.FieldType.IsSubclassOf(moduleType)) ((Module)field.GetValue(this)).GetParameters(list);
-                if (field.FieldType == nodeType)
-                {
-                    var node = (ComputationalNode)field.GetValue(this);
-                    if (node.IsParameter) list.Add(node);
-                }
+                module.GetAllParameters(list);
             }
+            return list;
         }
             
         public void LoadFromFile(string dirPath)
         {
-            for (var i = 0; i < Parameters.Count; i++)
+            var allParameter = GetAllParameters();
+            for (var i = 0; i < allParameter.Count; i++)
             {
                 var path = Path.Combine(dirPath, $"{i}.bytes");
                 if (File.Exists(path))
                 {
-                    _parameters[i].LoadFromFile(path);
+                    allParameter[i].LoadFromFile(path);
                 }
                 else
                 {
@@ -66,25 +62,29 @@ namespace Blue.Runtime.NN
 
         public void SaveToFile(string dirPath)
         {
+            var allParameter = GetAllParameters();
             Directory.CreateDirectory(dirPath);
-            for (var i = 0; i < Parameters.Count; i++)
+            for (var i = 0; i < allParameter.Count; i++)
             {
                 var path = Path.Combine(dirPath, $"{i}.bytes");
                 using var stream = File.OpenWrite(path);
-                _parameters[i].SaveToStream(stream);
+                allParameter[i].SaveToStream(stream);
                 stream.Close();
             }
         }
 
         public void Dispose()
         {
-            var moduleType = typeof(Module);
-            var nodeType = typeof(ComputationalNode);
-            foreach (var field in GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var node in _parameters)
             {
-                if (field.FieldType.IsSubclassOf(moduleType)) ((Module)field.GetValue(this)).Dispose();
-                if (field.FieldType == nodeType) ((ComputationalNode)field.GetValue(this)).Dispose();
+                node.Dispose();
             }
+            _parameters.Clear();
+            foreach (var module in _subModules)
+            {
+                module.Dispose();
+            }
+            _subModules.Clear();
         }
     }
 }

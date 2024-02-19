@@ -16,6 +16,8 @@ namespace Blue.Runtime.NN
         {
             Weight = new ComputationalNode(true, input, output);
             Bias = new ComputationalNode(true, output);
+            RegisterParameter(Weight);
+            RegisterParameter(Bias);
             
             var min = -Mathf.Sqrt(1f / (input + output));
             var max = -min;
