@@ -152,5 +152,30 @@ namespace Blue.Core
         {
             _buffer.Release();
         }
+
+        public void Print(char sep=',')
+        {
+            var array = Sync();
+            if (Size.Length > 1)
+            {
+                var builder = new System.Text.StringBuilder();
+                var len = FlattenSize / Size[0];
+                for (var i = 0; i < Size[0]; i++)
+                {
+                    builder.Append(array[len * i]);
+                    for (var j = 1; j < len; j++)
+                    {
+                        builder.Append(',');
+                        builder.Append(array[len * i + j]);
+                    }
+                    if (i < Size[0] - 1) builder.Append('\n');
+                }
+                Debug.Log(builder);
+            }
+            else
+            {
+                Debug.Log(string.Join(sep, array));
+            }
+        }
     }
 }

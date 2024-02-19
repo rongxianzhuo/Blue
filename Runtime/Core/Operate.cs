@@ -51,6 +51,12 @@ namespace Blue.Core
             return this;
         }
 
+        public Operate SetBuffer(string name, ComputeBuffer buffer)
+        {
+            _cs.SetBuffer(_kernel, name, buffer);
+            return this;
+        }
+
         public Operate SetTensor(string name, Tensor tensor)
         {
             tensor.SetToShader(_cs, _kernel, name);
