@@ -16,12 +16,12 @@ namespace Blue.Runtime.NN
             }
         }
         
-        public override ComputationalNode CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Forward(params ComputationalNode[] input)
         {
-            var x = _modules[0].CreateGraph(input);
+            var x = _modules[0].Forward(input);
             for (var i = 1; i < _modules.Length; i++)
             {
-                x = _modules[i].CreateGraph(x);
+                x = _modules[i].Forward(x);
             }
             return x;
         }

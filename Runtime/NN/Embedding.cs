@@ -26,7 +26,7 @@ namespace Blue.Runtime.NN
             Weight.SetData(weightArray);
         }
         
-        public override ComputationalNode CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Forward(params ComputationalNode[] input)
         {
             var embedding = new ComputationalNode(new []{Weight}, Indices.count, EmbeddingDim);
             embedding.AddForwardOperate(new Operate("Common/Embedding", "Forward")

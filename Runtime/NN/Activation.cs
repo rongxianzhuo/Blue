@@ -14,7 +14,7 @@ namespace Blue.Runtime.NN
             _activationName = activationName;
         }
         
-        public override ComputationalNode CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Forward(params ComputationalNode[] input)
         {
             var node = input[0];
             var shaderName = _activationName switch

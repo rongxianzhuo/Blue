@@ -13,7 +13,7 @@ namespace Blue.Runtime.NN
             _dropout = dropout;
         }
         
-        public override ComputationalNode CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Forward(params ComputationalNode[] input)
         {
             var node = input[0];
             var dropoutNode = new ComputationalNode(new []{node}, node.Size);

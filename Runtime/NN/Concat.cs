@@ -5,7 +5,7 @@ namespace Blue.Runtime.NN
 {
     public class Concat : Module
     {
-        public override ComputationalNode CreateGraph(params ComputationalNode[] nodes)
+        public override ComputationalNode Forward(params ComputationalNode[] nodes)
         {
             var size = 0;
             foreach (var node in nodes)

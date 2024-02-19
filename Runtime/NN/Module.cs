@@ -15,12 +15,7 @@ namespace Blue.Runtime.NN
         private readonly List<ComputationalNode> _parameters = new List<ComputationalNode>();
 
 
-        public abstract ComputationalNode CreateGraph(params ComputationalNode[] input);
-
-        public ComputationalGraph Forward(params ComputationalNode[] input)
-        {
-            return new ComputationalGraph(CreateGraph(input));
-        }
+        public abstract ComputationalNode Forward(params ComputationalNode[] input);
 
         protected void RegisterModule(Module module)
         {
