@@ -43,12 +43,15 @@ namespace Blue.Runtime.NN
             linearNode.AddForwardOperate(Op.Increment(linearNode, Bias));
             
             // input backward
-            var tWeight = linearNode.CreateTempTensor(Weight.TransposeSize());
-            linearNode.AddBackwardOperate(Op.Transpose(Weight
-                , tWeight));
-            linearNode.AddBackwardOperate(Op.MatMul(linearNode.Gradient
-                , tWeight
-                , node.Gradient));
+            if (node.Gradient != null)
+            {
+                var tWeight = linearNode.CreateTempTensor(Weight.TransposeSize());
+                linearNode.AddBackwardOperate(Op.Transpose(Weight
+                    , tWeight));
+                linearNode.AddBackwardOperate(Op.MatMul(linearNode.Gradient
+                    , tWeight
+                    , node.Gradient));
+            }
             
             // weight backward
             var tInput = linearNode.CreateTempTensor(node.TransposeSize());

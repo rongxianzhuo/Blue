@@ -32,7 +32,7 @@ namespace Blue.Runtime.NN
                 .SetTensor("b", weight)
                 .SetTensor("result", dropoutNode)
                 .SetDispatchSize(node.FlattenSize));
-            dropoutNode.AddBackwardOperate(new Operate("Common/Mul", "CSMain")
+            if (node.Gradient != null) dropoutNode.AddBackwardOperate(new Operate("Common/Mul", "CSMain")
                 .SetTensor("a", dropoutNode.Gradient)
                 .SetTensor("b", weight)
                 .SetTensor("result", node.Gradient)

@@ -31,7 +31,7 @@ namespace Blue.Runtime.NN
                 .SetTensor("input", node)
                 .SetDispatchSize(node.FlattenSize));
             
-            activation.AddBackwardOperate(new Operate(shaderName, "Backward_input")
+            if (node.Gradient != null) activation.AddBackwardOperate(new Operate(shaderName, "Backward_input")
                 .SetTensor("r_output", activation)
                 .SetTensor("input_gradient", node.Gradient)
                 .SetTensor("output_gradient", activation.Gradient)

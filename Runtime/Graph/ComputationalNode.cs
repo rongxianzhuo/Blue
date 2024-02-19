@@ -22,6 +22,15 @@ namespace Blue.Graph
         public ComputationalNode(ComputationalNode[] inputNodes, params int[] shape) : base(shape)
         {
             _inputNodes = inputNodes;
+            var requireGrad = false;
+            foreach (var node in inputNodes)
+            {
+                if (node.Gradient == null) continue;
+                requireGrad = true;
+                break;
+            }
+
+            if (!requireGrad) return;
             Gradient = CreateTempTensor(shape);
             _clearGradientOp = Op.Clear(Gradient, 0f);
         }
@@ -30,6 +39,7 @@ namespace Blue.Graph
         {
             IsParameter = isParameter;
             _inputNodes = Array.Empty<ComputationalNode>();
+            if (!IsParameter) return;
             Gradient = CreateTempTensor(shape);
             _clearGradientOp = Op.Clear(Gradient, 0f);
         }
@@ -69,12 +79,12 @@ namespace Blue.Graph
 
         public void ClearGradient()
         {
-            _clearGradientOp.Dispatch();
+            _clearGradientOp?.Dispatch();
         }
 
         public override void Dispose()
         {
-            _clearGradientOp.Dispose();
+            _clearGradientOp?.Dispose();
             foreach (var o in _forwardOperates)
             {
                 o.Dispose();

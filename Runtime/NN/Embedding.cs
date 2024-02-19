@@ -36,7 +36,7 @@ namespace Blue.Runtime.NN
                 .SetTensor("output", embedding)
                 .SetDispatchSize(Indices.count));
             
-            embedding.AddBackwardOperate(new Operate("Common/Embedding", "Backward")
+            if (Weight.Gradient != null) embedding.AddBackwardOperate(new Operate("Common/Embedding", "Backward")
                 .SetInt("dim", EmbeddingDim)
                 .SetInt("len", Indices.count)
                 .SetBuffer("indices", Indices)

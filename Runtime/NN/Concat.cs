@@ -29,11 +29,11 @@ namespace Blue.Runtime.NN
             foreach (var t in nodes)
             {
                 var inputNode = t.Gradient;
-                concat.AddBackwardOperate(Op.Copy(concat.Gradient, start, size - inputNode.Size[1]
+                if (inputNode != null) concat.AddBackwardOperate(Op.Copy(concat.Gradient, start, size - inputNode.Size[1]
                     , inputNode, 0, 0
                     , inputNode.Size[1]
                     , inputNode.FlattenSize));
-                start += inputNode.Size[1];
+                start += t.Size[1];
             }
 
             return concat;
