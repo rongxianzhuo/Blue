@@ -6,7 +6,7 @@ namespace Blue.Kit
     public static class Op
     {
         
-        public static void MatMul(this ComputationalNode node, ComputationalNode left, ComputationalNode right)
+        public static ComputationalNode MatMul(this ComputationalNode node, ComputationalNode left, ComputationalNode right)
         {
             node.AddForwardOperate(new Operate("Common/MatMul", "Forward")
                 .SetInt("wl", left.Size[1])
@@ -32,6 +32,7 @@ namespace Blue.Kit
                 .SetTensor("result_gradient", node.Gradient)
                 .SetTensor("right_gradient", right.Gradient)
                 .SetDispatchSize(right.FlattenSize));
+            return node;
         }
         
         public static Operate Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)
@@ -75,20 +76,21 @@ namespace Blue.Kit
                 .SetDispatchSize(target.FlattenSize);
         }
 
-        public static void Add(this ComputationalNode node, ComputationalNode other)
+        public static ComputationalNode Add(this ComputationalNode node, ComputationalNode other)
         {
             node.AddForwardOperate(new Operate("Common/Add", "Forward")
                 .SetInt("other_len", other.FlattenSize)
                 .SetTensor("other", other)
                 .SetTensor("result", node)
                 .SetDispatchSize(node.FlattenSize));
-            node.AddBackwardOperate(new Operate("Common/Add", "Backward")
+            if (other.Gradient != null) node.AddBackwardOperate(new Operate("Common/Add", "Backward")
                 .SetInt("batch_size", node.FlattenSize / other.FlattenSize)
                 .SetInt("other_len", other.FlattenSize)
                 .SetInt("result_len", node.FlattenSize)
                 .SetTensor("other_gradient", other.Gradient)
                 .SetTensor("result_gradient", node.Gradient)
                 .SetDispatchSize(other.FlattenSize));
+            return node;
         }
         
         public static Operate L2Loss(Tensor output, Tensor target, Tensor gradient)

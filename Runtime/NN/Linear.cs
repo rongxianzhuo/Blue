@@ -32,10 +32,9 @@ namespace Blue.Runtime.NN
             var node = input[0];
             var size = Bias.FlattenSize;
             var batchSize = node.Size[0];
-            var linearNode = new ComputationalNode(new []{node, Weight, Bias}, batchSize, size);
-            linearNode.MatMul(node, Weight);
-            linearNode.Add(Bias);
-            return linearNode;
+            return new ComputationalNode(new []{node, Weight, Bias}, batchSize, size)
+                .MatMul(node, Weight)
+                .Add(Bias);
         }
     }
 }
