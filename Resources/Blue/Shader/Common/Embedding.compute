@@ -23,9 +23,11 @@ void Backward(uint3 id : SV_DispatchThreadID)
 {
     const int i = id.x / dim;
     const int j = id.x % dim;
+    float gradient = 0.0;
     for (int k = 0; k < len; k++)
     {
-        if (indices[k] == i) weight_gradient[id.x] += output_gradient[k * dim + j];
+        if (indices[k] == i) gradient += output_gradient[k * dim + j];
     }
-    weight_gradient[id.x] /= len;
+    gradient /= len;
+    weight_gradient[id.x] += gradient;
 }
