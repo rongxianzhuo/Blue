@@ -1,5 +1,6 @@
 #pragma kernel CSMain
 
+uint n;
 StructuredBuffer<float> output;
 StructuredBuffer<float> target;
 RWStructuredBuffer<float> gradient;
@@ -7,5 +8,5 @@ RWStructuredBuffer<float> gradient;
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    gradient[id.x] = output[id.x] - target[id.x];
+    gradient[id.x] = 2 * (output[id.x] - target[id.x]) / n;
 }

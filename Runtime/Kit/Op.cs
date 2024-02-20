@@ -89,6 +89,7 @@ namespace Blue.Kit
         public static Operate L2Loss(Tensor output, Tensor target, Tensor gradient)
         {
             return new Operate("LossFunction/L2Loss", "CSMain")
+                .SetInt("n", output.Size[output.Size.Length - 1])
                 .SetTensor("output", output)
                 .SetTensor("target", target)
                 .SetTensor("gradient", gradient)
