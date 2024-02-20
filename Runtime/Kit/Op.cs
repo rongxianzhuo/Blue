@@ -6,35 +6,32 @@ namespace Blue.Kit
     public static class Op
     {
         
-        public static Operate Translate(Tensor buffer, float weight, float bias)
+        public static void MatMul(this ComputationalNode node, ComputationalNode left, ComputationalNode right)
         {
-            return new Operate("Common/Translate", "CSMain")
-                .SetFloat("weight", weight)
-                .SetFloat("bias", bias)
-                .SetTensor("rw_buffer1", buffer)
-                .SetDispatchSize(buffer.FlattenSize);
-        }
-        
-        public static Operate MatMul(Tensor left, Tensor right, Tensor result)
-        {
-            return new Operate("Common/MatMul", "CSMain")
+            node.AddForwardOperate(new Operate("Common/MatMul", "Forward")
                 .SetInt("wl", left.Size[1])
                 .SetInt("wr", right.Size[1])
                 .SetTensor("left", left)
                 .SetTensor("right", right)
-                .SetTensor("result", result)
-                .SetDispatchSize(result.FlattenSize);
-        }
-        
-        public static Operate IncreaseMatMul(Tensor left, Tensor right, Tensor result)
-        {
-            return new Operate("Common/IncreaseMatMul", "CSMain")
+                .SetTensor("result", node)
+                .SetDispatchSize(node.FlattenSize));
+            
+            if (left.Gradient != null) node.AddBackwardOperate(new Operate("Common/MatMul", "BackwardLeft")
+                    .SetInt("wl", left.Size[1])
+                    .SetInt("wr", right.Size[1])
+                    .SetTensor("right", right)
+                    .SetTensor("result_gradient", node.Gradient)
+                    .SetTensor("left_gradient", left.Gradient)
+                    .SetDispatchSize(left.FlattenSize));
+            
+            if (right.Gradient != null) node.AddBackwardOperate(new Operate("Common/MatMul", "BackwardRight")
+                .SetInt("batch_size", left.Size[0])
                 .SetInt("wl", left.Size[1])
                 .SetInt("wr", right.Size[1])
                 .SetTensor("left", left)
-                .SetTensor("right", right)
-                .SetTensor("result", result)
-                .SetDispatchSize(result.FlattenSize);
+                .SetTensor("result_gradient", node.Gradient)
+                .SetTensor("right_gradient", right.Gradient)
+                .SetDispatchSize(right.FlattenSize));
         }
         
         public static Operate Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)

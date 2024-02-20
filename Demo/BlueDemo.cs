@@ -61,7 +61,7 @@ namespace Blue.Demo
                     crossEntropyLoss.Dispatch();
                     trainGraph.Backward();
                     optimizer.Step();
-                    if (i % 64 != 0) continue;
+                    if (i % 128 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
                     yield return null;
                 }

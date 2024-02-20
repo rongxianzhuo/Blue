@@ -15,8 +15,7 @@ namespace Blue.Runtime.NN
         {
             EmbeddingDim = embeddingDim;
             Indices = indices;
-            Weight = new ComputationalNode(true, embeddingNum, embeddingDim);
-            RegisterParameter(Weight);
+            Weight = CreateParameter(embeddingNum, embeddingDim);
             
             var weightArray = new float[embeddingNum * embeddingDim];
             for (var i = 0; i < weightArray.Length; i++)

@@ -1,21 +1,53 @@
-#pragma kernel CSMain
+#pragma kernel Forward
+#pragma kernel BackwardLeft
+#pragma kernel BackwardRight
 
-int wl;
-int wr;
+uint batch_size;
+uint wl;
+uint wr;
 
 StructuredBuffer<float> left;
 StructuredBuffer<float> right;
 RWStructuredBuffer<float> result;
+StructuredBuffer<float> result_gradient;
+RWStructuredBuffer<float> left_gradient;
+RWStructuredBuffer<float> right_gradient;
 
 [numthreads(64, 1, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void Forward(uint3 id : SV_DispatchThreadID)
 {
-    const int i = id.x / wr;
-    const int j = id.x % wr;
+    const uint i = id.x / wr;
+    const uint j = id.x % wr;
     float sum = 0.0;
-    for (int k = 0; k < wl; k++)
+    for (uint k = 0; k < wl; k++)
     {
         sum += left[i * wl + k] * right[j + wr * k];
     }
     result[i * wr + j] = sum;
+}
+
+[numthreads(64, 1, 1)]
+void BackwardLeft(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = id.x / wl;
+    const uint j = id.x % wl;
+    float sum = 0.0;
+    for (uint k = 0; k < wr; k++)
+    {
+        sum += right[j * wr + k] * result_gradient[i * wr + k];
+    }
+    left_gradient[id.x] += sum;
+}
+
+[numthreads(64, 1, 1)]
+void BackwardRight(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = id.x / wr;
+    const uint j = id.x % wr;
+    float sum = 0.0;
+    for (uint k = 0; k < batch_size; k++)
+    {
+        sum += left[k * wl + i] * result_gradient[k * wr + j];
+    }
+    right_gradient[id.x] += sum / batch_size;
 }

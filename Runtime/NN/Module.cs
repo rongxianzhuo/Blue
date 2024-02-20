@@ -12,8 +12,6 @@ namespace Blue.Runtime.NN
 
         private readonly List<Module> _subModules = new List<Module>();
 
-        private readonly List<ComputationalNode> _tempNodes = new List<ComputationalNode>();
-
         private readonly List<ComputationalNode> _parameters = new List<ComputationalNode>();
 
 
@@ -24,14 +22,11 @@ namespace Blue.Runtime.NN
             _subModules.Add(module);
         }
 
-        protected void RegisterParameter(ComputationalNode node)
+        protected ComputationalNode CreateParameter(params int[] size)
         {
+            var node = new ComputationalNode(true, size);
             _parameters.Add(node);
-        }
-
-        protected void RegisterTempNode(ComputationalNode node)
-        {
-            _tempNodes.Add(node);
+            return node;
         }
 
         public List<ComputationalNode> GetAllParameters(List<ComputationalNode> list=null)
@@ -80,11 +75,6 @@ namespace Blue.Runtime.NN
                 node.Dispose();
             }
             _parameters.Clear();
-            foreach (var node in _tempNodes)
-            {
-                node.Dispose();
-            }
-            _tempNodes.Clear();
             foreach (var module in _subModules)
             {
                 module.Dispose();
