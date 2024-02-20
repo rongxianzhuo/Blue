@@ -1,4 +1,5 @@
 using Blue.Core;
+using Blue.Graph;
 
 namespace Blue.Kit
 {
@@ -76,14 +77,21 @@ namespace Blue.Kit
                 .SetTensor("gradient", gradient)
                 .SetDispatchSize(target.FlattenSize);
         }
-        
-        public static Operate Add(Tensor result, Tensor other)
+
+        public static void Add(this ComputationalNode node, ComputationalNode other)
         {
-            return new Operate("Common/Add", "Forward")
+            node.AddForwardOperate(new Operate("Common/Add", "Forward")
                 .SetInt("other_len", other.FlattenSize)
                 .SetTensor("other", other)
-                .SetTensor("result", result)
-                .SetDispatchSize(result.FlattenSize);
+                .SetTensor("result", node)
+                .SetDispatchSize(node.FlattenSize));
+            node.AddBackwardOperate(new Operate("Common/Add", "Backward")
+                .SetInt("batch_size", node.Size[0])
+                .SetInt("other_len", other.FlattenSize)
+                .SetInt("result_len", node.FlattenSize)
+                .SetTensor("other_gradient", other.Gradient)
+                .SetTensor("result_gradient", node.Gradient)
+                .SetDispatchSize(other.FlattenSize));
         }
         
         public static Operate L2Loss(Tensor output, Tensor target, Tensor gradient)

@@ -1,4 +1,3 @@
-using Blue.Core;
 using Blue.Graph;
 using Blue.Kit;
 using UnityEngine;
@@ -41,7 +40,7 @@ namespace Blue.Runtime.NN
             linearNode.AddForwardOperate(Op.MatMul(node
                 , Weight
                 , linearNode));
-            linearNode.AddForwardOperate(Op.Add(linearNode, Bias));
+            linearNode.Add(Bias);
             
             // input backward
             if (node.Gradient != null)
@@ -62,15 +61,6 @@ namespace Blue.Runtime.NN
             linearNode.AddBackwardOperate(Op.IncreaseMatMul(tInput
                 , linearNode.Gradient
                 , Weight.Gradient));
-            
-            // bias
-            linearNode.AddBackwardOperate(new Operate("Common/Add", "Backward")
-                .SetInt("batch_size", batchSize)
-                .SetInt("other_len", Bias.FlattenSize)
-                .SetInt("result_len", linearNode.FlattenSize)
-                .SetTensor("other_gradient", Bias.Gradient)
-                .SetTensor("result_gradient", linearNode.Gradient)
-                .SetDispatchSize(Bias.FlattenSize));
 
             return linearNode;
         }
