@@ -79,7 +79,7 @@ namespace Blue.Kit
         
         public static Operate Add(Tensor result, Tensor other)
         {
-            return new Operate("Common/Add", "CSMain")
+            return new Operate("Common/Add", "Forward")
                 .SetInt("other_len", other.FlattenSize)
                 .SetTensor("other", other)
                 .SetTensor("result", result)

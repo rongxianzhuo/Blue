@@ -1,11 +1,29 @@
-#pragma kernel CSMain
+#pragma kernel Forward
+#pragma kernel Backward
 
-int other_len;
+uint other_len;
+uint result_len;
+uint batch_size;
 StructuredBuffer<float> other;
+StructuredBuffer<float> result_gradient;
 RWStructuredBuffer<float> result;
+RWStructuredBuffer<float> other_gradient;
 
 [numthreads(64, 1, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void Forward(uint3 id : SV_DispatchThreadID)
 {
     result[id.x] += other[id.x % other_len];
+}
+
+[numthreads(64, 1, 1)]
+void Backward(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = result_len / other_len;
+    float gradient = 0.0;
+    for (uint j = 0; j < i; j++)
+    {
+        gradient += result_gradient[j * other_len + id.x];
+    }
+    gradient /= batch_size;
+    other_gradient[id.x] += gradient;
 }

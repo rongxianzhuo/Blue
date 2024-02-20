@@ -1,3 +1,4 @@
+using Blue.Core;
 using Blue.Graph;
 using Blue.Kit;
 using UnityEngine;
@@ -63,9 +64,13 @@ namespace Blue.Runtime.NN
                 , Weight.Gradient));
             
             // bias
-            var tBias = linearNode.CreateTempTensor(1, batchSize);
-            Op.Clear(tBias, 1f / batchSize).Dispatch().Dispose();
-            linearNode.AddBackwardOperate(Op.IncreaseMatMul(tBias, linearNode.Gradient, Bias.Gradient));
+            linearNode.AddBackwardOperate(new Operate("Common/Add", "Backward")
+                .SetInt("batch_size", batchSize)
+                .SetInt("other_len", Bias.FlattenSize)
+                .SetInt("result_len", linearNode.FlattenSize)
+                .SetTensor("other_gradient", Bias.Gradient)
+                .SetTensor("result_gradient", linearNode.Gradient)
+                .SetDispatchSize(Bias.FlattenSize));
 
             return linearNode;
         }
