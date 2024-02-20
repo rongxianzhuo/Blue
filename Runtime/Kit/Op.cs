@@ -86,7 +86,7 @@ namespace Blue.Kit
                 .SetTensor("result", node)
                 .SetDispatchSize(node.FlattenSize));
             node.AddBackwardOperate(new Operate("Common/Add", "Backward")
-                .SetInt("batch_size", node.Size[0])
+                .SetInt("batch_size", node.FlattenSize / other.FlattenSize)
                 .SetInt("other_len", other.FlattenSize)
                 .SetInt("result_len", node.FlattenSize)
                 .SetTensor("other_gradient", other.Gradient)
