@@ -36,15 +36,6 @@ namespace Blue.Kit
                 .SetDispatchSize(result.FlattenSize);
         }
         
-        public static Operate Increment(Tensor buffer, Tensor other)
-        {
-            return new Operate("Common/Increment", "CSMain")
-                .SetInt("other_count", other.FlattenSize)
-                .SetTensor("r_buffer1", other)
-                .SetTensor("rw_buffer1", buffer)
-                .SetDispatchSize(buffer.FlattenSize);
-        }
-        
         public static Operate Copy(Tensor src, int srcStart, int srcInterval, Tensor dst, int dstStart, int dstInterval, int stride, int length)
         {
             return new Operate("Common/Copy", "CSMain")

@@ -40,7 +40,7 @@ namespace Blue.Runtime.NN
             linearNode.AddForwardOperate(Op.MatMul(node
                 , Weight
                 , linearNode));
-            linearNode.AddForwardOperate(Op.Increment(linearNode, Bias));
+            linearNode.AddForwardOperate(Op.Add(linearNode, Bias));
             
             // input backward
             if (node.Gradient != null)

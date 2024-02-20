@@ -127,26 +127,6 @@ namespace Blue.Core
             return _syncArray;
         }
 
-        internal float[] InternalSync()
-        {
-            Sync();
-            return _syncArray;
-        }
-
-        public Tensor Transpose()
-        {
-            var size = new int[Size.Length];
-            for (var i = 0; i < size.Length; i++)
-            {
-                size[i] = Size[size.Length - i - 1];
-            }
-            var result = new Tensor(size);
-            var op = Op.Transpose(this, result);
-            op.Dispatch();
-            op.Dispose();
-            return result;
-        }
-
         public virtual void Dispose()
         {
             _buffer.Release();
