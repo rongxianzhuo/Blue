@@ -102,16 +102,6 @@ namespace Blue.Kit
             return node;
         }
         
-        public static Operate L2Loss(Tensor output, Tensor target, Tensor gradient)
-        {
-            return new Operate("LossFunction/L2Loss", "CSMain")
-                .SetInt("n", output.FlattenSize)
-                .SetTensor("output", output)
-                .SetTensor("target", target)
-                .SetTensor("gradient", gradient)
-                .SetDispatchSize(target.FlattenSize);
-        }
-        
         public static Operate WeightedL1Loss(Tensor output, Tensor target, Tensor gradient, Tensor weight)
         {
             return new Operate("LossFunction/WeightedL1Loss", "CSMain")
