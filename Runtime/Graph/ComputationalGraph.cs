@@ -11,15 +11,16 @@ namespace Blue.Graph
 
         private readonly List<ComputationalNode> _nodes = new List<ComputationalNode>();
 
-        public ComputationalGraph(ComputationalNode output)
+        public ComputationalGraph(ComputationalNode output, params ComputationalNode[] excludeInputs)
         {
             Output = output;
-            AddNode(output);
+            AddNode(output, excludeInputs);
         }
 
-        private void AddNode(ComputationalNode node)
+        private void AddNode(ComputationalNode node, ComputationalNode[] excludeInputs)
         {
             if (_nodes.Contains(node)) return;
+            if (excludeInputs != null && excludeInputs.Contains(node)) return;
             if (node.InputNodes.Count == 0)
             {
                 _nodes.Insert(0, node);
@@ -35,7 +36,7 @@ namespace Blue.Graph
             _nodes.Insert(i + 1, node);
             foreach (var n in node.InputNodes)
             {
-                AddNode(n);
+                AddNode(n, excludeInputs);
             }
         }
 
