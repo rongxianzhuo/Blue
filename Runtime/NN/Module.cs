@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Blue.Core;
 using Blue.Graph;
+using Blue.Kit;
 using UnityEngine;
 
 namespace Blue.Runtime.NN
@@ -82,15 +84,15 @@ namespace Blue.Runtime.NN
             _subModules.Clear();
         }
 
-        public void CopyParameterTo(Module other)
+        public void Lerp(List<Operate> lerpOps, Module other, float t=1f)
         {
             for (var i = 0; i < _parameters.Count; i++)
             {
-                other._parameters[i].SetData(_parameters[i].InternalSync());
+                lerpOps.Add(Op.Lerp(_parameters[i], other._parameters[i], t));
             }
             for (var i = 0; i < _subModules.Count; i++)
             {
-                _subModules[i].CopyParameterTo(other._subModules[i]);
+                _subModules[i].Lerp(lerpOps, other._subModules[i], t);
             }
         }
     }

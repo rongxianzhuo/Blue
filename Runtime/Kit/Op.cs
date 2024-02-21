@@ -5,6 +5,15 @@ namespace Blue.Kit
 {
     public static class Op
     {
+
+        public static Operate Lerp(Tensor a, Tensor b, float t)
+        {
+            return new Operate("Common/Lerp", "CSMain")
+                .SetFloat("t", t)
+                .SetTensor("a", a)
+                .SetTensor("b", b)
+                .SetDispatchSize(a.FlattenSize);
+        }
         
         public static ComputationalNode MatMul(this ComputationalNode node, ComputationalNode left, ComputationalNode right)
         {
