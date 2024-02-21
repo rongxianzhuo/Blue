@@ -81,5 +81,17 @@ namespace Blue.Runtime.NN
             }
             _subModules.Clear();
         }
+
+        public void CopyParameterTo(Module other)
+        {
+            for (var i = 0; i < _parameters.Count; i++)
+            {
+                other._parameters[i].SetData(_parameters[i].InternalSync());
+            }
+            for (var i = 0; i < _subModules.Count; i++)
+            {
+                _subModules[i].CopyParameterTo(other._subModules[i]);
+            }
+        }
     }
 }

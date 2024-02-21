@@ -119,6 +119,11 @@ namespace Blue.Core
 
         public IReadOnlyList<float> Sync()
         {
+            return InternalSync();
+        }
+
+        internal float[] InternalSync()
+        {
             if (_syncArray == null || _syncArray.Length != FlattenSize)
             {
                 _syncArray = new float[FlattenSize];
