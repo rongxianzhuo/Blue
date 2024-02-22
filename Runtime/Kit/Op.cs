@@ -1,10 +1,29 @@
 using Blue.Core;
 using Blue.Graph;
+using UnityEngine;
 
 namespace Blue.Kit
 {
     public static class Op
     {
+
+        public static Operate Texture2Tensor(Texture texture, Tensor tensor)
+        {
+            return new Operate("Common/T3", "Texture2Tensor")
+                .SetInt("w", texture.width)
+                .SetTexture("r_texture", texture)
+                .SetTensor("w_tensor", tensor)
+                .SetDispatchSize(tensor.FlattenSize / 4);
+        }
+
+        public static Operate Tensor2Texture(Tensor tensor, Texture texture)
+        {
+            return new Operate("Common/T3", "Tensor2Texture")
+                .SetInt("w", texture.width)
+                .SetTexture("w_texture", texture)
+                .SetTensor("r_tensor", tensor)
+                .SetDispatchSize(texture.width, texture.height);
+        }
 
         public static Operate Lerp(Tensor a, Tensor b, float t)
         {

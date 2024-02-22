@@ -1,0 +1,32 @@
+#pragma kernel Texture2Tensor
+#pragma kernel Tensor2Texture
+
+uint w;
+Texture2D r_texture;
+RWStructuredBuffer<float> w_tensor;
+
+StructuredBuffer<float> r_tensor;
+RWTexture2D<float4> w_texture;
+
+[numthreads(64, 1, 1)]
+void Texture2Tensor(uint3 id : SV_DispatchThreadID)
+{
+    const uint x = id.x % w;
+    const uint y = id.x / w;
+    float4 color = r_texture[uint2(x, y)];
+    w_tensor[id.x * 4] = color.r;
+    w_tensor[id.x * 4 + 1] = color.g;
+    w_tensor[id.x * 4 + 2] = color.b;
+    w_tensor[id.x * 4 + 3] = color.a;
+}
+
+[numthreads(8, 8, 1)]
+void Tensor2Texture(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = id.x + id.y * w;
+    const float r = r_tensor[i * 4];
+    const float g = r_tensor[i * 4 + 1];
+    const float b = r_tensor[i * 4 + 2];
+    const float a = r_tensor[i * 4 + 3];
+    w_texture[id.xy] = float4(r, g, b, a);
+}

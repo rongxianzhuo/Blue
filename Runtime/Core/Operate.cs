@@ -63,6 +63,12 @@ namespace Blue.Core
             return this;
         }
 
+        public Operate SetTexture(string name, Texture texture)
+        {
+            _cs.SetTexture(_kernel, name, texture);
+            return this;
+        }
+
         public Operate SetDispatchSize(int x, int y=1, int z=1)
         {
             _cs.GetKernelThreadGroupSizes(_kernel, out var gx, out var gy, out var gz);
