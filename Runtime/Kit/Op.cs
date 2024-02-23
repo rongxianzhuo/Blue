@@ -53,7 +53,7 @@ namespace Blue.Kit
                     .SetDispatchSize(left.FlattenSize));
             
             if (right.Gradient != null) node.AddBackwardOperate(new Operate("Common/MatMul", "BackwardRight")
-                .SetInt("batch_size", left.Size[0])
+                .SetInt("hl", left.Size[0])
                 .SetInt("wl", left.Size[1])
                 .SetInt("wr", right.Size[1])
                 .SetTensor("left", left)
@@ -112,7 +112,6 @@ namespace Blue.Kit
                 .SetTensor("result", node)
                 .SetDispatchSize(node.FlattenSize));
             if (other.Gradient != null) node.AddBackwardOperate(new Operate("Common/Add", "Backward")
-                .SetInt("batch_size", node.FlattenSize / other.FlattenSize)
                 .SetInt("other_len", other.FlattenSize)
                 .SetInt("result_len", node.FlattenSize)
                 .SetTensor("other_gradient", other.Gradient)

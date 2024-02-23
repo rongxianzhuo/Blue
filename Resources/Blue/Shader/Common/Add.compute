@@ -3,7 +3,6 @@
 
 uint other_len;
 uint result_len;
-uint batch_size;
 StructuredBuffer<float> other;
 StructuredBuffer<float> result_gradient;
 RWStructuredBuffer<float> result;
@@ -24,6 +23,5 @@ void Backward(uint3 id : SV_DispatchThreadID)
     {
         gradient += result_gradient[j * other_len + id.x];
     }
-    gradient /= batch_size;
     other_gradient[id.x] += gradient;
 }
