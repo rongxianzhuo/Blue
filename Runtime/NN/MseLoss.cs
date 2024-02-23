@@ -43,6 +43,7 @@ namespace Blue.Runtime.NN
         public void Backward()
         {
             _backward.Dispatch();
+            Output.Backward();
         }
 
         public void Dispose()

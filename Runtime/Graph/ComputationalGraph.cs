@@ -48,14 +48,6 @@ namespace Blue.Graph
             }
         }
 
-        public void Backward()
-        {
-            for (var i = _nodes.Count - 1; i >= 0; i--)
-            {
-                _nodes[i].Backward();
-            }
-        }
-
         public void ClearGradient()
         {
             foreach (var node in _nodes)

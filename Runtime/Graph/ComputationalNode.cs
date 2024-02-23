@@ -67,6 +67,12 @@ namespace Blue.Graph
             {
                 o.Dispatch();
             }
+
+            if (_inputNodes.Length <= 0) return;
+            foreach (var node in _inputNodes)
+            {
+                if (node.Gradient != null) node.Backward();
+            }
         }
 
         public void Forward()

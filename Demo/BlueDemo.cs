@@ -59,7 +59,7 @@ namespace Blue.Demo
                     trainGraph.Forward();
                     trainGraph.ClearGradient();
                     crossEntropyLoss.Dispatch();
-                    trainGraph.Backward();
+                    trainGraph.Output.Backward();
                     optimizer.Step();
                     if (i % 128 != 0) continue;
                     infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
