@@ -1,0 +1,13 @@
+#pragma kernel CSMain
+
+StructuredBuffer<float> b;
+RWStructuredBuffer<float> a;
+
+[numthreads(512, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    const float t = b[id.x * 4 + 3];
+    a[id.x * 4] = a[id.x * 4] * (1.0 - t) + b[id.x * 4] * t;
+    a[id.x * 4 + 1] = a[id.x * 4 + 1] * (1.0 - t) + b[id.x * 4 + 1] * t;
+    a[id.x * 4 + 2] = a[id.x * 4 + 2] * (1.0 - t) + b[id.x * 4 + 2] * t;
+}
