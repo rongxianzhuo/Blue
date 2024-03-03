@@ -84,7 +84,7 @@ namespace Blue.Runtime.NN
             _subModules.Clear();
         }
 
-        public void Lerp(List<Operate> lerpOps, Module other, float t=1f)
+        public void Lerp(List<Operate> lerpOps, Module other, Tensor t)
         {
             for (var i = 0; i < _parameters.Count; i++)
             {
@@ -93,6 +93,18 @@ namespace Blue.Runtime.NN
             for (var i = 0; i < _subModules.Count; i++)
             {
                 _subModules[i].Lerp(lerpOps, other._subModules[i], t);
+            }
+        }
+
+        public void CopyParameter(Module other)
+        {
+            for (var i = 0; i < _parameters.Count; i++)
+            {
+                _parameters[i].SetData(other._parameters[i].InternalSync());
+            }
+            for (var i = 0; i < _subModules.Count; i++)
+            {
+                _subModules[i].CopyParameter(other._subModules[i]);
             }
         }
     }

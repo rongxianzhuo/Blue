@@ -25,10 +25,11 @@ namespace Blue.Kit
                 .SetDispatchSize(texture.width, texture.height);
         }
 
-        public static Operate Lerp(Tensor a, Tensor b, float t)
+        public static Operate Lerp(Tensor a, Tensor b, Tensor t)
         {
             return new Operate("Common/Lerp", "CSMain")
-                .SetFloat("t", t)
+                .SetInt("t_len", t.FlattenSize)
+                .SetTensor("t", t)
                 .SetTensor("a", a)
                 .SetTensor("b", b)
                 .SetDispatchSize(a.FlattenSize);
