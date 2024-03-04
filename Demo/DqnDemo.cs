@@ -10,7 +10,7 @@ namespace Blue.Demo
     public class DqnDemo : MonoBehaviour
     {
 
-        public class Env : DqnBrain.IEnv
+        public class Env : DqnAgent.IEnv
         {
             
             private const float PlayerStep = 0.02f;
@@ -91,7 +91,7 @@ namespace Blue.Demo
 
         private Env _previewEnv;
         private Env _trainEnv;
-        private DqnBrain _dqn;
+        private DqnAgent _dqn;
         private Module _qNetwork;
         private Module _targetQNetwork;
         private float[] _tempState;
@@ -104,8 +104,12 @@ namespace Blue.Demo
             _trainEnv = new Env();
             _qNetwork = new Sequential(new Linear(4, 64)
                 , new Activation("relu")
+                , new Linear(64, 64)
+                , new Activation("relu")
                 , new Linear(64, 5));
             _targetQNetwork = new Sequential(new Linear(4, 64)
+                , new Activation("relu")
+                , new Linear(64, 64)
                 , new Activation("relu")
                 , new Linear(64, 5));
             var list = new List<Operate>();
@@ -116,7 +120,7 @@ namespace Blue.Demo
                 o.Dispose();
             }
             list.Clear();
-            _dqn = new DqnBrain(4
+            _dqn = new DqnAgent(4
                 , 5
                 , 32
                 , 10000

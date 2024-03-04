@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Blue.RL
 {
-    public class DqnBrain : System.IDisposable
+    public class DqnAgent : System.IDisposable
     {
         
         public interface IEnv
@@ -136,7 +136,7 @@ namespace Blue.RL
 
         private uint _trainStep;
 
-        public DqnBrain(int stateSize
+        public DqnAgent(int stateSize
             , int actionSize
             , int batchSize
             , int replayBufferSize
