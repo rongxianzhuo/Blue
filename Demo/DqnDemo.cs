@@ -102,14 +102,10 @@ namespace Blue.Demo
             _tempState = new float[4];
             _previewEnv = new Env();
             _trainEnv = new Env();
-            _qNetwork = new Sequential(new Linear(4, 128)
-                , new Activation("relu")
-                , new Linear(64, 64)
+            _qNetwork = new Sequential(new Linear(4, 64)
                 , new Activation("relu")
                 , new Linear(64, 5));
-            _targetQNetwork = new Sequential(new Linear(4, 128)
-                , new Activation("relu")
-                , new Linear(64, 64)
+            _targetQNetwork = new Sequential(new Linear(4, 64)
                 , new Activation("relu")
                 , new Linear(64, 5));
             var list = new List<Operate>();
