@@ -1,12 +1,11 @@
 #pragma kernel CSMain
 
-float weight;
-float bias;
-
-RWStructuredBuffer<float> rw_buffer1;
+StructuredBuffer<float> weight;
+StructuredBuffer<float> bias;
+RWStructuredBuffer<float> buffer;
 
 [numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    rw_buffer1[id.x] = rw_buffer1[id.x] * weight + bias;
+    buffer[id.x] = buffer[id.x] * weight[id.x] + bias[id.x];
 }

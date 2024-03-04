@@ -96,15 +96,19 @@ namespace Blue.Runtime.NN
             }
         }
 
-        public void CopyParameter(Module other)
+        public void CopyParameter(List<Operate> operateList, Module other)
         {
             for (var i = 0; i < _parameters.Count; i++)
             {
+                operateList.Add(Op.Copy(other._parameters[i], 0, 0
+                    , _parameters[i], 0, 0
+                    , _parameters[i].FlattenSize
+                    , _parameters[i].FlattenSize));
                 _parameters[i].SetData(other._parameters[i].InternalSync());
             }
             for (var i = 0; i < _subModules.Count; i++)
             {
-                _subModules[i].CopyParameter(other._subModules[i]);
+                _subModules[i].CopyParameter(operateList, other._subModules[i]);
             }
         }
     }
