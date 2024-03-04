@@ -130,7 +130,7 @@ namespace Blue.RL
         private readonly Tensor _doneTensor;
         private readonly Tensor _actionTensor;
         private readonly List<Operate> _targetQOp = new List<Operate>();
-        private readonly List<Operate> _updateTargetOp = new List<Operate>();
+        private readonly OperateList _updateTargetOp = new OperateList();
         private readonly ReplayMemory _memory;
         private readonly int _batchSize;
 
@@ -161,7 +161,7 @@ namespace Blue.RL
                 .SetTensor("buffer", _targetDqn.TrainGraph.Output)
                 .SetDispatchSize(_targetDqn.TrainGraph.Output.FlattenSize));
             _targetQOp.Add(Op.Lerp(_targetDqn.TrainGraph.Output, _dqn.TrainGraph.Output, _actionTensor));
-            _targetDqn.Model.CopyParameter(_updateTargetOp, _dqn.Model);
+            _targetDqn.Model.CopyParameter(_dqn.Model, _updateTargetOp);
         }
 
         public void Train(IEnv trainEnv
@@ -205,10 +205,7 @@ namespace Blue.RL
 
             if (_dqn.Model == _targetDqn.Model) return;
             if (_trainStep % targetUpdateInterval == 0) return;
-            foreach (var o in _updateTargetOp)
-            {
-                o.Dispatch();
-            }
+            _updateTargetOp.Dispatch();
         }
 
         public int TakeAction(float[] state)
@@ -226,11 +223,7 @@ namespace Blue.RL
                 o.Dispose();
             }
             _targetQOp.Clear();
-            foreach (var o in _updateTargetOp)
-            {
-                o.Dispose();
-            }
-            _updateTargetOp.Clear();
+            _updateTargetOp.Dispose();
             _rewardTensor.Dispose();
             _doneTensor.Dispose();
             _dqn.Dispose();

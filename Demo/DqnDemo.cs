@@ -112,14 +112,7 @@ namespace Blue.Demo
                 , new Linear(64, 64)
                 , new Activation("relu")
                 , new Linear(64, 5));
-            var list = new List<Operate>();
-            _targetQNetwork.CopyParameter(list, _qNetwork);
-            foreach (var o in list)
-            {
-                o.Dispatch();
-                o.Dispose();
-            }
-            list.Clear();
+            _targetQNetwork.CopyParameter(_qNetwork).Dispatch().Dispose();
             _dqn = new DqnAgent(4
                 , 5
                 , 32

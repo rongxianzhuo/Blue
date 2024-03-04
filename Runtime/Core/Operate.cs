@@ -9,14 +9,14 @@ namespace Blue.Core
         
         private readonly ComputeShader _cs;
         private readonly int _kernel;
-        private readonly System.Action _dispatchAction;
+        private readonly Action _dispatchAction;
         private int _groupSizeX;
         private int _groupSizeY;
         private int _groupSizeZ;
 
         public static int PropertyId(string propertyName) => Shader.PropertyToID(propertyName);
 
-        public Operate(System.Action dispatchAction)
+        public Operate(Action dispatchAction)
         {
             _dispatchAction = dispatchAction;
         }
