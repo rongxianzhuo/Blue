@@ -29,12 +29,7 @@ namespace Blue.Runtime.NN
 
         public override ComputationalNode Forward(params ComputationalNode[] input)
         {
-            var node = input[0];
-            var size = Bias.FlattenSize;
-            var batchSize = node.Size[0];
-            return new ComputationalNode(new []{node, Weight, Bias}, batchSize, size)
-                .MatMul(node, Weight)
-                .Add(Bias);
+            return input[0].MatMul(Weight).AdditionAssignment(Bias);
         }
     }
 }

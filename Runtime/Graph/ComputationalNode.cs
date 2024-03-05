@@ -9,39 +9,38 @@ namespace Blue.Graph
     {
 
         public readonly bool IsParameter;
-        public readonly Tensor Gradient;
 
-        private readonly Operate _clearGradientOp;
-        private readonly ComputationalNode[] _inputNodes;
         private readonly List<Operate> _forwardOperates = new List<Operate>();
         private readonly List<Operate> _backwardOperates = new List<Operate>();
         private readonly HashSet<Tensor> _tempTensors = new HashSet<Tensor>();
+        private readonly List<ComputationalNode> _inputNodes = new List<ComputationalNode>();
+        
+        private Operate _clearGradientOp;
 
         public IReadOnlyList<ComputationalNode> InputNodes => _inputNodes;
 
+        public Tensor Gradient { get; private set; }
+
         public ComputationalNode(ComputationalNode[] inputNodes, params int[] shape) : base(shape)
         {
-            _inputNodes = inputNodes;
-            var requireGrad = false;
             foreach (var node in inputNodes)
             {
-                if (node.Gradient == null) continue;
-                requireGrad = true;
-                break;
+                AddInputNode(node);
             }
-
-            if (!requireGrad) return;
-            Gradient = CreateTempTensor(shape);
-            _clearGradientOp = Op.Clear(Gradient, 0f);
         }
 
         public ComputationalNode(bool isParameter, params int[] shape) : base(shape)
         {
             IsParameter = isParameter;
-            _inputNodes = Array.Empty<ComputationalNode>();
-            if (!IsParameter) return;
-            Gradient = CreateTempTensor(shape);
+            if (IsParameter) GetOrCreateGradient();
+        }
+
+        public Tensor GetOrCreateGradient()
+        {
+            if (Gradient != null) return Gradient;
+            Gradient = CreateTempTensor(Size);
             _clearGradientOp = Op.Clear(Gradient, 0f);
+            return Gradient;
         }
 
         internal Tensor CreateTempTensor(params int[] shape)
@@ -49,6 +48,12 @@ namespace Blue.Graph
             var tensor = new Tensor(shape);
             _tempTensors.Add(tensor);
             return tensor;
+        }
+
+        public void AddInputNode(ComputationalNode node)
+        {
+            if (node.Gradient != null) GetOrCreateGradient();
+            _inputNodes.Add(node);
         }
 
         public void AddForwardOperate(Operate operate)
@@ -68,7 +73,7 @@ namespace Blue.Graph
                 o.Dispatch();
             }
 
-            if (_inputNodes.Length <= 0) return;
+            if (_inputNodes.Count <= 0) return;
             foreach (var node in _inputNodes)
             {
                 if (node.Gradient != null) node.Backward();
@@ -91,6 +96,7 @@ namespace Blue.Graph
         public override void Dispose()
         {
             _clearGradientOp?.Dispose();
+            _clearGradientOp = null;
             foreach (var o in _forwardOperates)
             {
                 o.Dispose();
