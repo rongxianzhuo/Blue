@@ -1,0 +1,13 @@
+#pragma kernel CSMain
+
+uint a_len;
+uint b_len;
+StructuredBuffer<float> a;
+StructuredBuffer<float> b;
+RWStructuredBuffer<float> c;
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    c[id.x] = a[id.x % a_len] * b[id.x % b_len];
+}

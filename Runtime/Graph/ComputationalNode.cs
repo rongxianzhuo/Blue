@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Blue.Core;
 using Blue.Kit;
@@ -114,6 +113,36 @@ namespace Blue.Graph
             }
             _tempTensors.Clear();
             base.Dispose();
+        }
+
+        public static ComputationalNode operator *(ComputationalNode a, ComputationalNode b)
+        {
+            var size = a.FlattenSize > b.FlattenSize ? a.Size : b.Size;
+            var c = new ComputationalNode(new[] { a, b }, size);
+            c.AddForwardOperate(new Operate("NN/Mul/Forward", "CSMain")
+                .SetInt("a_len", a.FlattenSize)
+                .SetInt("b_len", b.FlattenSize)
+                .SetTensor("a", a)
+                .SetTensor("b", b)
+                .SetTensor("c", c)
+                .SetDispatchSize(c.FlattenSize));
+            if (a.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul/BackwardA", "CSMain")
+                .SetInt("a_len", a.FlattenSize)
+                .SetInt("b_len", b.FlattenSize)
+                .SetInt("c_len", c.FlattenSize)
+                .SetTensor("a_gradient", a.Gradient)
+                .SetTensor("b", b)
+                .SetTensor("c_gradient", c.Gradient)
+                .SetDispatchSize(a.FlattenSize));
+            if (b.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul/BackwardB", "CSMain")
+                .SetInt("a_len", a.FlattenSize)
+                .SetInt("b_len", b.FlattenSize)
+                .SetInt("c_len", c.FlattenSize)
+                .SetTensor("a", a)
+                .SetTensor("b_gradient", b.Gradient)
+                .SetTensor("c_gradient", c.Gradient)
+                .SetDispatchSize(b.FlattenSize));
+            return c;
         }
     }
 }
