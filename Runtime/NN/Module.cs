@@ -42,31 +42,41 @@ namespace Blue.Runtime.NN
             return list;
         }
             
-        public void LoadFromFile(string dirPath)
+        public void LoadFromFile(string path)
         {
-            var allParameter = GetAllParameters();
-            for (var i = 0; i < allParameter.Count; i++)
+            using var stream = File.OpenRead(path);
+            LoadFromStream(stream);
+            stream.Close();
+        }
+            
+        public void LoadFromStream(Stream stream)
+        {
+            foreach (var t in GetAllParameters())
             {
-                var path = Path.Combine(dirPath, $"{i}.bytes");
-                if (File.Exists(path))
-                {
-                    allParameter[i].LoadFromFile(path);
-                }
-                else
-                {
-                    Debug.LogWarning($"No parameter file: {path}");
-                }
+                t.LoadFromStream(stream);
+            }
+            foreach (var t in _subModules)
+            {
+                t.LoadFromStream(stream);
             }
         }
 
-        public void SaveToFile(string dirPath)
+        public void SaveToFile(string path)
         {
-            var allParameter = GetAllParameters();
-            Directory.CreateDirectory(dirPath);
-            for (var i = 0; i < allParameter.Count; i++)
+            using var stream = File.OpenWrite(path);
+            SaveToStream(stream);
+            stream.Close();
+        }
+            
+        public void SaveToStream(Stream stream)
+        {
+            foreach (var t in GetAllParameters())
             {
-                var path = Path.Combine(dirPath, $"{i}.bytes");
-                allParameter[i].SaveToFile(path);
+                t.SaveToStream(stream);
+            }
+            foreach (var t in _subModules)
+            {
+                t.SaveToStream(stream);
             }
         }
 

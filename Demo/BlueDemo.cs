@@ -22,7 +22,7 @@ namespace Blue.Demo
         public Text infoText;
         public int trainEpochs = 2;
         
-        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "MnistSavedModel");
+        private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "BlueDemoModel.bytes");
 
         private void Awake()
         {
@@ -37,7 +37,7 @@ namespace Blue.Demo
             
             // create model
             using var model = new Sequential(new Linear(784, 128), new Activation("relu"), new Linear(128, 10));
-            if (Directory.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
+            if (File.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
             var trainInput = new ComputationalNode(false, BatchSize, 784);
             using var trainGraph = new ComputationalGraph(model.Forward(trainInput));
             using var target = new Tensor(BatchSize, 10);
