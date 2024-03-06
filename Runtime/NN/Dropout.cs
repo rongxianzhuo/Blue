@@ -16,29 +16,17 @@ namespace Blue.Runtime.NN
         public override ComputationalNode Forward(params ComputationalNode[] input)
         {
             var node = input[0];
-            var dropoutNode = new ComputationalNode(new []{node}, node.Size);
             var weightArray = new float[node.FlattenSize];
-            var weight = dropoutNode.CreateTempTensor(node.Size);
-            dropoutNode.AddForwardOperate(new Operate(() =>
+            var dropout = new ComputationalNode(false, node.Size);
+            dropout.AddForwardOperate(new Operate(() =>
             {
                 for (var i = 0; i < weightArray.Length; i++)
                 {
                     weightArray[i] = UnityEngine.Random.Range(0f, 1f) >= _dropout ? 1f : 0f;
                 }
-                weight.SetData(weightArray);
+                dropout.SetData(weightArray);
             }));
-            dropoutNode.AddForwardOperate(new Operate("Common/Mul", "CSMain")
-                .SetTensor("a", node)
-                .SetTensor("b", weight)
-                .SetTensor("result", dropoutNode)
-                .SetDispatchSize(node.FlattenSize));
-            if (node.Gradient != null) dropoutNode.AddBackwardOperate(new Operate("Common/Mul", "CSMain")
-                .SetTensor("a", dropoutNode.Gradient)
-                .SetTensor("b", weight)
-                .SetTensor("result", node.Gradient)
-                .SetDispatchSize(node.Gradient.FlattenSize));
-
-            return dropoutNode;
+            return node * dropout;
         }
     }
 }
