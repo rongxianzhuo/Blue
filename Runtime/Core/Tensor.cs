@@ -107,6 +107,13 @@ namespace Blue.Core
             _buffer.SetData(_syncArray);
         }
 
+        public void SetData(Action<float[]> setter)
+        {
+            Sync();
+            setter(_syncArray);
+            _buffer.SetData(_syncArray);
+        }
+
         public void GetData(float[] array)
         {
             _buffer.GetData(array);

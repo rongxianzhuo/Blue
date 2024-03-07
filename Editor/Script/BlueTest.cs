@@ -63,6 +63,25 @@ namespace Blue.Editor
             CheckFloatValueSimilar(b.Gradient.Sync(), -0.148f, 0.0052f);
             Debug.Log("Mul Pass");
         }
+
+        [MenuItem("Blue/Test/MatMul")]
+        public static void MatMul()
+        {
+            using var a = new ComputationalNode(true, 3, 2);
+            a.SetData(0.1f, 0.5f, 0.8f, 0.25f, 0.36f, 0.89f);
+            using var b = new ComputationalNode(true, 2, 3);
+            b.SetData(0.1f, 0.5f, 0.8f, 0.25f, 0.36f, 0.89f);
+            using var c = a.MatMul(b);
+            c.Forward();
+            using var loss = new MseLoss(c);
+            loss.Target.SetData(1.35f, -2.25f, 1.8f, 2.51f, -1.36f, 2.29f, -1.1f, -3.3f, 0.6f);
+            loss.Backward();
+            CheckFloatValueSimilar(c.Sync(), 0.135f, 0.23f, 0.525f, 0.1425f, 0.49f, 0.8625f, 0.2585f, 0.5004f, 1.0801f);
+            CheckFloatValueSimilar(loss.Value, 4.093f);
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0.0219f, -0.1213f, -0.1008f, -0.2659f, 0.5378f, 0.4745f);
+            CheckFloatValueSimilar(b.Gradient.Sync(), -0.3392f, 0.688f, -0.2437f, 0.0022f, 1.13f, -0.126f);
+            Debug.Log("MatMul Pass");
+        }
         
     }
 
