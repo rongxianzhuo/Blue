@@ -26,14 +26,14 @@ namespace Blue.Graph
         {
             var size = a.FlattenSize > b.FlattenSize ? a.Size : b.Size;
             var c = new ComputationalNode(new[] { a, b }, size);
-            c.AddForwardOperate(new Operate("NN/Mul/Forward", "CSMain")
+            c.AddForwardOperate(new Operate("NN/Mul", "Forward")
                 .SetInt("a_len", a.FlattenSize)
                 .SetInt("b_len", b.FlattenSize)
                 .SetTensor("a", a)
                 .SetTensor("b", b)
                 .SetTensor("c", c)
                 .SetDispatchSize(c.FlattenSize));
-            if (a.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul/BackwardA", "CSMain")
+            if (a.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul", "BackwardA")
                 .SetInt("a_len", a.FlattenSize)
                 .SetInt("b_len", b.FlattenSize)
                 .SetInt("c_len", c.FlattenSize)
@@ -41,7 +41,7 @@ namespace Blue.Graph
                 .SetTensor("b", b)
                 .SetTensor("c_gradient", c.Gradient)
                 .SetDispatchSize(a.FlattenSize));
-            if (b.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul/BackwardB", "CSMain")
+            if (b.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul", "BackwardB")
                 .SetInt("a_len", a.FlattenSize)
                 .SetInt("b_len", b.FlattenSize)
                 .SetInt("c_len", c.FlattenSize)
