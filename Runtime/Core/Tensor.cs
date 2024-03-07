@@ -87,7 +87,7 @@ namespace Blue.Core
             stream.Close();
         }
 
-        public void SetData(float[] data)
+        public void SetData(params float[] data)
         {
             Sync();
             _buffer.SetData(data);
