@@ -25,7 +25,7 @@ namespace Blue.Runtime.NN
             Weight.SetData(weightArray);
         }
         
-        public override ComputationalNode Forward(params ComputationalNode[] input)
+        public override ComputationalGraph CreateGraph(params ComputationalNode[] input)
         {
             var embedding = new ComputationalNode(new []{Weight}, Indices.count, EmbeddingDim);
             embedding.AddForwardOperate(new Operate("Common/Embedding", "Forward")
@@ -42,7 +42,7 @@ namespace Blue.Runtime.NN
                 .SetTensor("output_gradient", embedding.Gradient)
                 .SetTensor("weight_gradient", Weight.Gradient)
                 .SetDispatchSize(Weight.Gradient.FlattenSize));
-            return embedding;
+            return embedding.Graph();
         }
 
         private static float RandN()

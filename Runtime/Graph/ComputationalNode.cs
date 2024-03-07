@@ -34,6 +34,8 @@ namespace Blue.Graph
             if (IsParameter) GetOrCreateGradient();
         }
 
+        public ComputationalGraph Graph() => new ComputationalGraph(this);
+
         public Tensor GetOrCreateGradient()
         {
             if (Gradient != null) return Gradient;

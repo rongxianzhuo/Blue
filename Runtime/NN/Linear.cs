@@ -27,9 +27,9 @@ namespace Blue.Runtime.NN
             Weight.SetData(array);
         }
 
-        public override ComputationalNode Forward(params ComputationalNode[] input)
+        public override ComputationalGraph CreateGraph(params ComputationalNode[] input)
         {
-            return input[0].MatMul(Weight).AdditionAssignment(Bias);
+            return input[0].MatMul(Weight).AdditionAssignment(Bias).Graph();
         }
     }
 }

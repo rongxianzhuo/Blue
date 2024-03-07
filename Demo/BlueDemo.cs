@@ -39,7 +39,7 @@ namespace Blue.Demo
             using var model = new Sequential(new Linear(784, 128), new Activation("relu"), new Linear(128, 10));
             if (File.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
             var trainInput = new ComputationalNode(false, BatchSize, 784);
-            using var trainGraph = new ComputationalGraph(model.Forward(trainInput));
+            using var trainGraph = model.CreateGraph(trainInput);
             using var target = new Tensor(BatchSize, 10);
             using var crossEntropyLoss = Op.CrossEntropyLoss(trainGraph.Output, target, trainGraph.Output.Gradient);
             using var optimizer = new AdamOptimizer(model.GetAllParameters());
@@ -72,7 +72,7 @@ namespace Blue.Demo
             // evaluate
             var sampleCount = mnistData.TestInputData.Count;
             var input = new ComputationalNode(false, sampleCount, 784);
-            using var testGraph = new ComputationalGraph(model.Forward(input));
+            using var testGraph = model.CreateGraph(input);
             input.SetData(mnistData.TestInputData);
             testGraph.Forward();
             infoText.text = $"Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
