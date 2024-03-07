@@ -44,6 +44,25 @@ namespace Blue.Editor
             CheckFloatValueSimilar(b.Gradient.Sync(), 0.2867f, 0.6133f);
             Debug.Log("AdditionAssignment Pass");
         }
+
+        [MenuItem("Blue/Test/Mul")]
+        public static void Mul()
+        {
+            using var a = new ComputationalNode(true, 3, 2);
+            a.SetData(0.1f, 0.5f, 0.8f, 0.25f, 0.36f, 0.89f);
+            using var b = new ComputationalNode(true, 1, 2);
+            b.SetData(0.13f, 0.25f);
+            using var c = a * b;
+            c.Forward();
+            using var loss = new MseLoss(c);
+            loss.Target.SetData(0.35f, -0.25f, 0.8f, 0.51f, -0.36f, 0.29f);
+            loss.Backward();
+            CheckFloatValueSimilar(c.Sync(), 0.013f, 0.125f, 0.104f, 0.0625f, 0.0468f, 0.2225f);
+            CheckFloatValueSimilar(loss.Value, 0.1848f);
+            CheckFloatValueSimilar(a.Gradient.Sync(), -0.0146f, 0.0312f, -0.0302f, -0.0373f, 0.0176f, -0.0056f);
+            CheckFloatValueSimilar(b.Gradient.Sync(), -0.148f, 0.0052f);
+            Debug.Log("Mul Pass");
+        }
         
     }
 
