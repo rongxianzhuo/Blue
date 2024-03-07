@@ -19,24 +19,40 @@ namespace Blue.Optimizers
         {
             foreach (var node in nodes)
             {
-                var gradient = node.Gradient;
-                var m = new Tensor(node.Size);
-                var v = new Tensor(node.Size);
-                _tensors.Add(m);
-                _tensors.Add(v);
-                var op = new Operate("Optimizer/Adam", "CSMain")
-                    .SetFloat("t", 0f)
-                    .SetFloat("beta1", _beta1)
-                    .SetFloat("beta2", _beta2)
-                    .SetFloat("weight_decay", weightDecay)
-                    .SetFloat("learning_rate", learningRate)
-                    .SetTensor("g", gradient)
-                    .SetTensor("m", m)
-                    .SetTensor("v", v)
-                    .SetTensor("theta", node)
-                    .SetDispatchSize(node.FlattenSize);
-                _op.Add(op);
+                AddParameter(node, learningRate, weightDecay);
             }
+        }
+
+        public AdamOptimizer(IEnumerable<Runtime.NN.Module> modules, float learningRate=0.001f, float weightDecay=0f)
+        {
+            foreach (var module in modules)
+            {
+                foreach (var node in module.GetAllParameters())
+                {
+                    AddParameter(node, learningRate, weightDecay);
+                }
+            }
+        }
+
+        private void AddParameter(ComputationalNode node, float learningRate, float weightDecay)
+        {
+            var gradient = node.Gradient;
+            var m = new Tensor(node.Size);
+            var v = new Tensor(node.Size);
+            _tensors.Add(m);
+            _tensors.Add(v);
+            var op = new Operate("Optimizer/Adam", "CSMain")
+                .SetFloat("t", 0f)
+                .SetFloat("beta1", _beta1)
+                .SetFloat("beta2", _beta2)
+                .SetFloat("weight_decay", weightDecay)
+                .SetFloat("learning_rate", learningRate)
+                .SetTensor("g", gradient)
+                .SetTensor("m", m)
+                .SetTensor("v", v)
+                .SetTensor("theta", node)
+                .SetDispatchSize(node.FlattenSize);
+            _op.Add(op);
         }
 
         public void Step()

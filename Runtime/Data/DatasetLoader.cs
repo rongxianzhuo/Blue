@@ -21,6 +21,7 @@ namespace Blue.Data
         {
             _batchSize = batchSize;
             BatchCount = sampleCount / batchSize;
+            sampleCount = _batchSize * BatchCount;
             for (var i = 0; i < sampleCount; i++)
             {
                 _shuffleIndex.Add(i);
@@ -38,9 +39,10 @@ namespace Blue.Data
 
         public void LoadDataset(IReadOnlyList<float[]> samples, Tensor target)
         {
-            if (samples.Count != _batchSize * BatchCount) throw new Exception("Unknown error");
+            var sampleCount = _batchSize * BatchCount;
+            if (samples.Count < sampleCount) throw new Exception("Unknown error");
 
-            for (var i = 0; i < samples.Count; i++)
+            for (var i = 0; i < sampleCount; i++)
             {
                 _shuffleSample[i] = samples[_shuffleIndex[i]];
             }
