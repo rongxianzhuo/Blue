@@ -7,6 +7,8 @@ namespace Blue.Runtime.NN
     public class Activation : Module
     {
 
+        public static readonly Activation ReLU = new Activation("relu");
+
         private readonly string _activationName;
 
         public Activation(string activationName)
