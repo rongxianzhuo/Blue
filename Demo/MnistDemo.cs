@@ -13,13 +13,12 @@ using UnityEngine.UI;
 namespace Blue.Demo
 {
 
-    public class BlueDemo : MonoBehaviour
+    public class MnistDemo : MonoBehaviour
     {
 
         private const int BatchSize = 32;
 
         public bool saveModel;
-        public Text infoText;
         public int trainEpochs = 2;
         
         private static string ModelSavePath => Path.Combine(Application.dataPath, "Blue", "Demo", "BlueDemoModel.bytes");
@@ -49,6 +48,12 @@ namespace Blue.Demo
             datasetLoader.LoadDataset(mnistData.TrainInputData, trainInput);
             datasetLoader.LoadDataset(mnistData.TrainOutputData, target);
             
+            // evaluate
+            var sampleCount = mnistData.TestInputData.Count;
+            var testInput = new ComputationalNode(false, sampleCount, 784);
+            testInput.SetData(mnistData.TestInputData);
+            using var testGraph = model.CreateGraph(testInput);
+            
             // train model
             var epoch = 0;
             while (epoch++ < trainEpochs)
@@ -62,20 +67,13 @@ namespace Blue.Demo
                     trainGraph.Output.Backward();
                     optimizer.Step();
                     if (i % 128 != 0) continue;
-                    infoText.text = $"Epoch: {epoch}\nStep: {i + 1}/{datasetLoader.BatchCount}";
                     yield return null;
                 }
+                testGraph.Forward();
+                Debug.Log($"Epoch: {epoch}, Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%");
             }
             
             if (saveModel) model.SaveToFile(ModelSavePath);
-            
-            // evaluate
-            var sampleCount = mnistData.TestInputData.Count;
-            var input = new ComputationalNode(false, sampleCount, 784);
-            using var testGraph = model.CreateGraph(input);
-            input.SetData(mnistData.TestInputData);
-            testGraph.Forward();
-            infoText.text = $"Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%";
         }
         
         private static int GetCorrectCount(ComputationalNode output, IReadOnlyList<int> batchTargetLabel)
