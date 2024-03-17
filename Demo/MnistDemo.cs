@@ -8,7 +8,6 @@ using Blue.Kit;
 using Blue.Optimizers;
 using Blue.Runtime.NN;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Blue.Demo
 {
@@ -38,7 +37,7 @@ namespace Blue.Demo
             using var model = new Sequential(new Linear(784, 128), new Activation("relu"), new Linear(128, 10));
             if (File.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
             var trainInput = new ComputationalNode(false, BatchSize, 784);
-            using var trainGraph = model.CreateGraph(trainInput);
+            using var trainGraph = model.Build(trainInput).Graph();
             using var target = new Tensor(BatchSize, 10);
             using var crossEntropyLoss = Op.CrossEntropyLoss(trainGraph.Output, target, trainGraph.Output.Gradient);
             using var optimizer = new AdamOptimizer(model.GetAllParameters());
@@ -52,7 +51,7 @@ namespace Blue.Demo
             var sampleCount = mnistData.TestInputData.Count;
             var testInput = new ComputationalNode(false, sampleCount, 784);
             testInput.SetData(mnistData.TestInputData);
-            using var testGraph = model.CreateGraph(testInput);
+            using var testGraph = model.Build(testInput).Graph();
             
             // train model
             var epoch = 0;

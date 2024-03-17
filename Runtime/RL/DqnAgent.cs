@@ -30,9 +30,9 @@ namespace Blue.RL
             {
                 Model = qNetwork;
                 RuntimeInput = new ComputationalNode(false, 1, stateSize);
-                RuntimeGraph = qNetwork.CreateGraph(RuntimeInput);
+                RuntimeGraph = qNetwork.Build(RuntimeInput).Graph();
                 TrainInput = new ComputationalNode(false, batchSize, stateSize);
-                TrainGraph = qNetwork.CreateGraph(TrainInput);
+                TrainGraph = qNetwork.Build(TrainInput).Graph();
             }
 
             public void Dispose()

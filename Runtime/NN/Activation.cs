@@ -16,7 +16,7 @@ namespace Blue.Runtime.NN
             _activationName = activationName;
         }
         
-        public override ComputationalGraph CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Build(params ComputationalNode[] input)
         {
             var node = input[0];
             var shaderName = _activationName switch
@@ -39,7 +39,7 @@ namespace Blue.Runtime.NN
                 .SetTensor("output_gradient", activation.Gradient)
                 .SetDispatchSize(node.Gradient.FlattenSize));
 
-            return activation.Graph();
+            return activation;
         }
     }
 }

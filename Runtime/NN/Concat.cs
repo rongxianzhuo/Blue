@@ -5,7 +5,7 @@ namespace Blue.Runtime.NN
 {
     public class Concat : Module
     {
-        public override ComputationalGraph CreateGraph(params ComputationalNode[] nodes)
+        public override ComputationalNode Build(params ComputationalNode[] nodes)
         {
             var size = 0;
             foreach (var node in nodes)
@@ -36,7 +36,7 @@ namespace Blue.Runtime.NN
                 start += t.Size[1];
             }
 
-            return concat.Graph();
+            return concat;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Blue.Runtime.NN
             _dropout = dropout;
         }
         
-        public override ComputationalGraph CreateGraph(params ComputationalNode[] input)
+        public override ComputationalNode Build(params ComputationalNode[] input)
         {
             var node = input[0];
             var weightArray = new float[node.FlattenSize];
@@ -26,7 +26,7 @@ namespace Blue.Runtime.NN
                 }
                 dropout.SetData(weightArray);
             }));
-            return new ComputationalGraph(node * dropout);
+            return node * dropout;
         }
     }
 }
