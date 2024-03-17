@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using Blue.Core;
 using Blue.RL;
-using Blue.Runtime.NN;
+using Blue.NN;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

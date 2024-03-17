@@ -2,7 +2,7 @@ using Blue.Core;
 using Blue.Graph;
 using UnityEngine;
 
-namespace Blue.Runtime.NN
+namespace Blue.NN
 {
     public class Embedding : Module
     {

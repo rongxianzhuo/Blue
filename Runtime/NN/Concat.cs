@@ -1,7 +1,7 @@
 using Blue.Graph;
 using Blue.Kit;
 
-namespace Blue.Runtime.NN
+namespace Blue.NN
 {
     public class Concat : Module
     {

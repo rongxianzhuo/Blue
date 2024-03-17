@@ -1,7 +1,7 @@
 using Blue.Core;
 using Blue.Graph;
 
-namespace Blue.Runtime.NN
+namespace Blue.NN
 {
     public class Dropout : Module
     {

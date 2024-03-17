@@ -89,6 +89,11 @@ namespace Blue.Graph
             }
         }
 
+        public ComputationalNode Forward(NN.Module module)
+        {
+            return module.Build(this);
+        }
+
         public void ClearGradient()
         {
             _clearGradientOp?.Dispatch();

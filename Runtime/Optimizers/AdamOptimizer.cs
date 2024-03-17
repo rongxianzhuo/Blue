@@ -23,7 +23,7 @@ namespace Blue.Optimizers
             }
         }
 
-        public AdamOptimizer(IEnumerable<Runtime.NN.Module> modules, float learningRate=0.001f, float weightDecay=0f)
+        public AdamOptimizer(IEnumerable<NN.Module> modules, float learningRate=0.001f, float weightDecay=0f)
         {
             foreach (var module in modules)
             {

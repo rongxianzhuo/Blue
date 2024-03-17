@@ -3,7 +3,7 @@ using Blue.Kit;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Blue.Runtime.NN
+namespace Blue.NN
 {
     
     public class Linear : Module

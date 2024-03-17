@@ -6,7 +6,7 @@ using Blue.Data;
 using Blue.Graph;
 using Blue.Kit;
 using Blue.Optimizers;
-using Blue.Runtime.NN;
+using Blue.NN;
 using UnityEngine;
 
 namespace Blue.Demo

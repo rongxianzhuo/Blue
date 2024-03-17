@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Blue.Graph;
-using Blue.Runtime.NN;
+using Blue.NN;
 using UnityEditor;
 using UnityEngine;
 

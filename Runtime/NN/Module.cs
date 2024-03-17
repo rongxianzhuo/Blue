@@ -6,7 +6,7 @@ using Blue.Graph;
 using Blue.Kit;
 using UnityEngine;
 
-namespace Blue.Runtime.NN
+namespace Blue.NN
 {
     
     public abstract class Module : IDisposable
@@ -19,9 +19,10 @@ namespace Blue.Runtime.NN
 
         public abstract ComputationalNode Build(params ComputationalNode[] input);
 
-        protected void RegisterModule(Module module)
+        protected T RegisterModule<T>(T module) where T : Module
         {
             _subModules.Add(module);
+            return module;
         }
 
         protected ComputationalNode CreateParameter(params int[] size)
