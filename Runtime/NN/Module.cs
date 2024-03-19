@@ -95,16 +95,18 @@ namespace Blue.NN
             _subModules.Clear();
         }
 
-        public void Lerp(List<Operate> lerpOps, Module other, Tensor t)
+        public OperateList Lerp(Module other, Tensor t, OperateList operateList=null)
         {
+            operateList ??= new OperateList();
             for (var i = 0; i < _parameters.Count; i++)
             {
-                lerpOps.Add(Op.Lerp(_parameters[i], other._parameters[i], t));
+                operateList.Add(Op.Lerp(_parameters[i], other._parameters[i], t));
             }
             for (var i = 0; i < _subModules.Count; i++)
             {
-                _subModules[i].Lerp(lerpOps, other._subModules[i], t);
+                _subModules[i].Lerp(other._subModules[i], t, operateList);
             }
+            return operateList;
         }
 
         public OperateList CopyParameter(Module other, OperateList list=null)
