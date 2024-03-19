@@ -89,13 +89,13 @@ namespace Blue.Core
 
         public void SetData(params float[] data)
         {
-            Sync();
+            InternalSync(false);
             _buffer.SetData(data);
         }
 
         public void SetData(IEnumerable<float[]> data)
         {
-            Sync();
+            InternalSync(false);
             var i = 0;
             foreach (var array in data)
             {
@@ -109,7 +109,7 @@ namespace Blue.Core
 
         public void SetData(Action<float[]> setter)
         {
-            Sync();
+            InternalSync(false);
             setter(_syncArray);
             _buffer.SetData(_syncArray);
         }
@@ -129,13 +129,13 @@ namespace Blue.Core
             return InternalSync();
         }
 
-        internal float[] InternalSync()
+        internal float[] InternalSync(bool getData=true)
         {
             if (_syncArray == null || _syncArray.Length != FlattenSize)
             {
                 _syncArray = new float[FlattenSize];
             }
-            _buffer.GetData(_syncArray);
+            if (getData) _buffer.GetData(_syncArray);
             return _syncArray;
         }
 
