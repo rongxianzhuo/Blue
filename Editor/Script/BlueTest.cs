@@ -26,7 +26,21 @@ namespace Blue.Editor
             }
         }
 
-        [MenuItem("Blue/Test/AdditionAssignment")]
+        [MenuItem("Blue/Test/Activation/Tanh")]
+        public static void Tanh()
+        {
+            using var a = new ComputationalNode(true, 1, 6);
+            a.SetData(1.0f, -0.5f, 0.1f, -0.2f, 0.0f, -6.5f);
+            using var b = Activation.Tanh.Build(a);
+            b.Forward();
+            CheckFloatValueSimilar(b.Sync(), 0.7616f, -0.4621f,  0.0997f, -0.1974f,  0.0000f, -1.0000f);
+            b.Gradient.SetData(2f, 2f, 2f, 2f, 2f, 2f);
+            b.Backward();
+            CheckFloatValueSimilar(a.Gradient.Sync(), 8.3995e-01f, 1.5729e+00f, 1.9801e+00f, 1.9221e+00f, 2.0000e+00f, 1.8120e-05f);
+            Debug.Log("Tanh Pass");
+        }
+
+        [MenuItem("Blue/Test/Common/AdditionAssignment")]
         public static void AdditionAssignment()
         {
             using var a = new ComputationalNode(true, 3, 2);
@@ -45,7 +59,7 @@ namespace Blue.Editor
             Debug.Log("AdditionAssignment Pass");
         }
 
-        [MenuItem("Blue/Test/Mul")]
+        [MenuItem("Blue/Test/Common/Mul")]
         public static void Mul()
         {
             using var a = new ComputationalNode(true, 3, 2);
@@ -64,7 +78,7 @@ namespace Blue.Editor
             Debug.Log("Mul Pass");
         }
 
-        [MenuItem("Blue/Test/MatMul")]
+        [MenuItem("Blue/Test/Common/MatMul")]
         public static void MatMul()
         {
             using var a = new ComputationalNode(true, 3, 2);

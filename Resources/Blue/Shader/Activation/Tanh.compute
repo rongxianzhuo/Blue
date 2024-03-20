@@ -1,0 +1,23 @@
+#pragma kernel Forward
+#pragma kernel Backward_input
+
+RWStructuredBuffer<float> rw_output;
+StructuredBuffer<float> r_output;
+StructuredBuffer<float> output_gradient;
+RWStructuredBuffer<float> input_gradient;
+
+StructuredBuffer<float> input;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    const float ex = exp(input[id.x]);
+    const float ex2 = exp(-input[id.x]);
+    rw_output[id.x] = (ex - ex2) / (ex + ex2);
+}
+
+[numthreads(512, 1, 1)]
+void Backward_input(uint3 id : SV_DispatchThreadID)
+{
+    input_gradient[id.x] = (1.0 - r_output[id.x] * r_output[id.x]) * output_gradient[id.x];
+}

@@ -9,6 +9,8 @@ namespace Blue.NN
 
         public static readonly Activation ReLU = new Activation("relu");
 
+        public static readonly Activation Tanh = new Activation("tanh");
+
         private readonly string _activationName;
 
         public Activation(string activationName)
@@ -24,6 +26,7 @@ namespace Blue.NN
                 "relu" => "Activation/ReLU",
                 "elu" => "Activation/ELU",
                 "sigmoid" => "Activation/Sigmoid",
+                "tanh" => "Activation/Tanh",
                 _ => throw new Exception("Unknown activation name")
             };
             var activation = new ComputationalNode(new[] { node }, node.Size);
