@@ -12,7 +12,7 @@ StructuredBuffer<float> input;
 void Forward(uint3 id : SV_DispatchThreadID)
 {
     const float ex2 = exp(2.0 * input[id.x]);
-    rw_output[id.x] = (ex2 - 1.0) / (ex2 + 1.0);
+    rw_output[id.x] = 1.0 - 2.0 / (ex2 + 1.0);
 }
 
 [numthreads(512, 1, 1)]
