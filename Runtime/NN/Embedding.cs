@@ -20,7 +20,7 @@ namespace Blue.NN
             var weightArray = new float[embeddingNum * embeddingDim];
             for (var i = 0; i < weightArray.Length; i++)
             {
-                weightArray[i] = RandN();
+                weightArray[i] = Math.RandN(0, 1);
             }
             Weight.SetData(weightArray);
         }
@@ -43,19 +43,6 @@ namespace Blue.NN
                 .SetTensor("weight_gradient", Weight.Gradient)
                 .SetDispatchSize(Weight.Gradient.FlattenSize));
             return embedding;
-        }
-
-        private static float RandN()
-        {
-            const float min = -4f;
-            const float max = 4f;
-            while (true)
-            {
-                var i = Random.Range(min, max);
-                var p = 1f / Mathf.Sqrt(2 * Mathf.PI) * Mathf.Exp(-0.5f * i * i);
-                if (Random.Range(0f, 1f) > p) continue;
-                return i;
-            }
         }
     }
 }
