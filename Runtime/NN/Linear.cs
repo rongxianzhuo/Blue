@@ -17,14 +17,22 @@ namespace Blue.NN
             Weight = CreateParameter(input, output);
             Bias = CreateParameter(output);
             
-            var min = -Mathf.Sqrt(1f / (input + output));
+            var min = -1f / Mathf.Sqrt(input);
             var max = -min;
-            var array = new float[Weight.FlattenSize];
-            for (var i = 0; i < Weight.FlattenSize; i++)
+            Weight.SetData(array =>
             {
-                array[i] = Random.Range(min, max);
-            }
-            Weight.SetData(array);
+                for (var i = 0; i < array.Length; i++)
+                {
+                    array[i] = Random.Range(min, max);
+                }
+            });
+            Bias.SetData(array =>
+            {
+                for (var i = 0; i < array.Length; i++)
+                {
+                    array[i] = Random.Range(min, max);
+                }
+            });
         }
 
         public override ComputationalNode Build(params ComputationalNode[] input)
