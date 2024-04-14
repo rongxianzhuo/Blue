@@ -96,6 +96,20 @@ namespace Blue.Editor
             CheckFloatValueSimilar(b.Gradient.Sync(), -0.3392f, 0.688f, -0.2437f, 0.0022f, 1.13f, -0.126f);
             Debug.Log("MatMul Pass");
         }
+
+        [MenuItem("Blue/Test/Common/Transpose")]
+        public static void Transpose()
+        {
+            using var a = new ComputationalNode(true, 2, 3);
+            a.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            using var b = a.Transpose();
+            b.Forward();
+            CheckFloatValueSimilar(b.Sync(), 1f, 4f, 2f, 5f, 3f, 6f);
+            b.Gradient.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            b.Backward();
+            CheckFloatValueSimilar(a.Gradient.Sync(), 1f, 3f, 5f, 2f, 4f, 6f);
+            Debug.Log("Transpose Pass");
+        }
         
     }
 

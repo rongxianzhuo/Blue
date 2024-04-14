@@ -82,5 +82,24 @@ namespace Blue.Graph
             return node;
         }
         
+        public ComputationalNode Transpose()
+        {
+            var node = new ComputationalNode(new[] { this }, Size[1], Size[0]);
+            node.AddForwardOperate(new Operate("Common/Transpose", "CSMain")
+                .SetInt("h", Size[0])
+                .SetInt("w", Size[1])
+                .SetTensor("from", this)
+                .SetTensor("to", node)
+                .SetDispatchSize(node.FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Transpose", "CSMain")
+                .SetInt("h", Size[1])
+                .SetInt("w", Size[0])
+                .SetTensor("from", node.Gradient)
+                .SetTensor("to", Gradient)
+                .SetDispatchSize(FlattenSize));
+            return node;
+        }
+        
     }
 }

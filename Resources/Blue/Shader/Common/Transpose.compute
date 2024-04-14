@@ -1,14 +1,14 @@
 #pragma kernel CSMain
 
-uint src_height;
-uint src_width;
+uint h;
+uint w;
 StructuredBuffer<float> from;
 RWStructuredBuffer<float> to;
 
 [numthreads(512, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    const uint i = id.x % src_height;
-    const uint j = id.x / src_height;
-    to[id.x] = from[i * src_width + j];
+    const uint i = id.x % h;
+    const uint j = id.x / h;
+    to[id.x] = from[i * w + j];
 }
