@@ -101,5 +101,24 @@ namespace Blue.Graph
             return node;
         }
         
+        public ComputationalNode Power(float p)
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            node.AddForwardOperate(new Operate("Common/Power", "Forward")
+                .SetFloat("p", p)
+                .SetTensor("a", this)
+                .SetTensor("b", node)
+                .SetDispatchSize(node.FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Power", "Backward")
+                .SetFloat("p", p)
+                .SetTensor("a", this)
+                .SetTensor("b", node)
+                .SetTensor("b_gradient", node.Gradient)
+                .SetTensor("a_gradient", Gradient)
+                .SetDispatchSize(FlattenSize));
+            return node;
+        }
+        
     }
 }
