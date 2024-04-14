@@ -120,5 +120,24 @@ namespace Blue.Graph
             return node;
         }
         
+        public ComputationalNode MaskedFill(Tensor mask, float f)
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            node.AddForwardOperate(new Operate("Common/MaskedFill", "Forward")
+                .SetFloat("f", f)
+                .SetTensor("mask", mask)
+                .SetTensor("a", this)
+                .SetTensor("b", node)
+                .SetDispatchSize(node.FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/MaskedFill", "Backward")
+                .SetFloat("f", f)
+                .SetTensor("mask", mask)
+                .SetTensor("b_gradient", node.Gradient)
+                .SetTensor("a_gradient", Gradient)
+                .SetDispatchSize(FlattenSize));
+            return node;
+        }
+        
     }
 }

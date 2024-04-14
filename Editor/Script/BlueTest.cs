@@ -124,6 +124,24 @@ namespace Blue.Editor
             CheckFloatValueSimilar(a.Gradient.Sync(), 0f, -0.069f, -0.122f, -0.1667f, -0.206f, -0.2416f);
             Debug.Log("Power Pass");
         }
+
+        [MenuItem("Blue/Test/Common/MaskedFill")]
+        public static void MaskedFill()
+        {
+            using var a = new ComputationalNode(true, 2, 3);
+            a.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            using var b = a.Power(0.5f);
+            b.Forward();
+            using var mask = new ComputationalNode(false, 2, 3);
+            mask.SetData(0f, 0f, 0f, 0f, 1f, 1f);
+            using var c = b.MaskedFill(mask, float.NegativeInfinity);
+            c.Forward();
+            using var loss = new MseLoss(c);
+            loss.Target.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            loss.Backward();
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0f, -0.069f, -0.122f, -0.1667f, 0f, 0f);
+            Debug.Log("MaskedFill Pass");
+        }
         
     }
 
