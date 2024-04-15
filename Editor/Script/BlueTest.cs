@@ -26,6 +26,26 @@ namespace Blue.Editor
             }
         }
 
+        [MenuItem("Blue/TestAll")]
+        public static void TestAll()
+        {
+            var testMethod = new HashSet<string>
+            {
+                "Tanh",
+                "AdditionAssignment",
+                "Mul",
+                "MatMul",
+                "Transpose",
+                "Power",
+                "MaskedFill",
+                "Softmax",
+            };
+            foreach (var m in typeof(BlueTest).GetMethods())
+            {
+                if (testMethod.Contains(m.Name)) m.Invoke(null, new object[]{});
+            }
+        }
+
         [MenuItem("Blue/Test/Activation/Tanh")]
         public static void Tanh()
         {
