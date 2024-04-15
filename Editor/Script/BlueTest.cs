@@ -100,14 +100,14 @@ namespace Blue.Editor
         [MenuItem("Blue/Test/Common/Transpose")]
         public static void Transpose()
         {
-            using var a = new ComputationalNode(true, 2, 3);
-            a.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            using var a = new ComputationalNode(true, 2, 2, 3);
+            a.SetData(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f);
             using var b = a.Transpose();
             b.Forward();
-            CheckFloatValueSimilar(b.Sync(), 1f, 4f, 2f, 5f, 3f, 6f);
-            b.Gradient.SetData(1f, 2f, 3f, 4f, 5f, 6f);
-            b.Backward();
-            CheckFloatValueSimilar(a.Gradient.Sync(), 1f, 3f, 5f, 2f, 4f, 6f);
+            CheckFloatValueSimilar(b.Sync(), 1f, 4f, 2f, 5f, 3f, 6f, 7f, 10f, 8f, 11f, 9f, 12f);
+            using var loss = new MseLoss(b);
+            loss.Backward();
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0.1667f, 0.3333f, 0.5f, 0.6667f, 0.8333f, 1f, 1.1667f, 1.3333f, 1.5f, 1.6667f, 1.8333f, 2f);
             Debug.Log("Transpose Pass");
         }
 
