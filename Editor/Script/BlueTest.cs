@@ -142,6 +142,30 @@ namespace Blue.Editor
             CheckFloatValueSimilar(a.Gradient.Sync(), 0f, -0.069f, -0.122f, -0.1667f, 0f, 0f);
             Debug.Log("MaskedFill Pass");
         }
+
+        [MenuItem("Blue/Test/Common/Softmax")]
+        public static void Softmax()
+        {
+            using var a = new ComputationalNode(true, 2, 3);
+            a.SetData(1f, 2f, 3f, 4f, 5f, 7f);
+            using var b = a.Softmax(1);
+            b.Forward();
+            CheckFloatValueSimilar(b.Sync(), 0.09f, 0.2447f, 0.6652f, 0.042f, 0.1142f, 0.8438f);
+            using var loss = new MseLoss(b);
+            loss.Target.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            loss.Backward();
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0.0347f, 0.0252f, -0.0599f, 0.0156f, 0.0072f, -0.0228f);
+            
+            using var a1 = new ComputationalNode(true, 2, 3);
+            a1.SetData(1f, 2f, 3f, 4f, 5f, 7f);
+            using var b1 = a1.Softmax(0);
+            b1.Forward();
+            using var loss1 = new MseLoss(b1);
+            loss1.Target.SetData(1f, 2f, 3f, 4f, 5f, 6f);
+            loss1.Backward();
+            CheckFloatValueSimilar(a1.Gradient.Sync(), 0.0315f, 0.0315f, 0.012f, -0.0315f, -0.0315f, -0.012f);
+            Debug.Log("Softmax Pass");
+        }
         
     }
 

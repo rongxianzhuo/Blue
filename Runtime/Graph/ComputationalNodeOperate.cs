@@ -139,5 +139,32 @@ namespace Blue.Graph
             return node;
         }
         
+        public ComputationalNode Softmax(int dim)
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            var j2 = 1;
+            for (var i = Size.Length - 1; i > dim; i--)
+            {
+                j2 *= Size[i];
+            }
+            var j1 = j2 * Size[dim];
+            node.AddForwardOperate(new Operate("Common/Softmax", "Forward")
+                .SetInt("count", Size[dim])
+                .SetInt("j1", j1)
+                .SetInt("j2", j2)
+                .SetTensor("a", this)
+                .SetTensor("b", node)
+                .SetDispatchSize(FlattenSize));
+            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Softmax", "Backward")
+                .SetInt("count", Size[dim])
+                .SetInt("j1", j1)
+                .SetInt("j2", j2)
+                .SetTensor("b_gradient", node.Gradient)
+                .SetTensor("rw_b", node)
+                .SetTensor("a_gradient", Gradient)
+                .SetDispatchSize(FlattenSize));
+            return node;
+        }
+        
     }
 }
