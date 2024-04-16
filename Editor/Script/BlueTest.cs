@@ -12,6 +12,11 @@ namespace Blue.Editor
     public static class BlueTest
     {
 
+        private class Test : Attribute
+        {
+            
+        }
+
         private static void CheckFloatValueSimilar(float f1, float f2)
         {
             if (Mathf.Abs(f1 - f2) > 0.0001f) throw new Exception($"Not similar: {Mathf.Abs(f1 - f2)}");
@@ -29,24 +34,23 @@ namespace Blue.Editor
         [MenuItem("Blue/TestAll")]
         public static void TestAll()
         {
-            var testMethod = new HashSet<string>
-            {
-                "Tanh",
-                "AdditionAssignment",
-                "Mul",
-                "MatMul",
-                "Transpose",
-                "Power",
-                "MaskedFill",
-                "Softmax",
-            };
+            var p = new object[] { };
             foreach (var m in typeof(BlueTest).GetMethods())
             {
-                if (testMethod.Contains(m.Name)) m.Invoke(null, new object[]{});
+                var isTest = false;
+                foreach (var o in m.GetCustomAttributes(false))
+                {
+                    if (o is Test)
+                    {
+                        isTest = true;
+                        break;
+                    }
+                }
+                if (isTest) m.Invoke(null, p);
             }
         }
 
-        [MenuItem("Blue/Test/Activation/Tanh")]
+        [Test]
         public static void Tanh()
         {
             using var a = new ComputationalNode(true, 1, 6);
@@ -60,7 +64,7 @@ namespace Blue.Editor
             Debug.Log("Tanh Pass");
         }
 
-        [MenuItem("Blue/Test/Common/AdditionAssignment")]
+        [Test]
         public static void AdditionAssignment()
         {
             using var a = new ComputationalNode(true, 3, 2);
@@ -79,7 +83,7 @@ namespace Blue.Editor
             Debug.Log("AdditionAssignment Pass");
         }
 
-        [MenuItem("Blue/Test/Common/Mul")]
+        [Test]
         public static void Mul()
         {
             using var a = new ComputationalNode(true, 3, 2);
@@ -98,7 +102,7 @@ namespace Blue.Editor
             Debug.Log("Mul Pass");
         }
 
-        [MenuItem("Blue/Test/Common/MatMul")]
+        [Test]
         public static void MatMul()
         {
             using var a = new ComputationalNode(true, 3, 2);
@@ -117,7 +121,7 @@ namespace Blue.Editor
             Debug.Log("MatMul Pass");
         }
 
-        [MenuItem("Blue/Test/Common/Transpose")]
+        [Test]
         public static void Transpose()
         {
             using var a = new ComputationalNode(true, 2, 2, 3);
@@ -131,7 +135,7 @@ namespace Blue.Editor
             Debug.Log("Transpose Pass");
         }
 
-        [MenuItem("Blue/Test/Common/Power")]
+        [Test]
         public static void Power()
         {
             using var a = new ComputationalNode(true, 2, 3);
@@ -145,7 +149,7 @@ namespace Blue.Editor
             Debug.Log("Power Pass");
         }
 
-        [MenuItem("Blue/Test/Common/MaskedFill")]
+        [Test]
         public static void MaskedFill()
         {
             using var a = new ComputationalNode(true, 2, 3);
@@ -163,7 +167,7 @@ namespace Blue.Editor
             Debug.Log("MaskedFill Pass");
         }
 
-        [MenuItem("Blue/Test/Common/Softmax")]
+        [Test]
         public static void Softmax()
         {
             using var a = new ComputationalNode(true, 2, 3);
