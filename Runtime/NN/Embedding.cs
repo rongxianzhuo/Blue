@@ -20,7 +20,7 @@ namespace Blue.NN
             var weightArray = new float[embeddingNum * embeddingDim];
             for (var i = 0; i < weightArray.Length; i++)
             {
-                weightArray[i] = Math.RandN(0, 1);
+                weightArray[i] = Common.RandN(0, 1);
             }
             Weight.SetData(weightArray);
         }
