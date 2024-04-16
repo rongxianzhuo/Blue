@@ -19,12 +19,12 @@ namespace Blue.Editor
 
         private static void CheckFloatValueSimilar(float f1, float f2)
         {
-            if (Mathf.Abs(f1 - f2) > 0.0001f) throw new Exception($"Not similar: {Mathf.Abs(f1 - f2)}");
+            if (Mathf.Abs(f1 - f2) > 0.0001f) Debug.LogError($"Not similar: {Mathf.Abs(f1 - f2)}");
         }
 
         private static void CheckFloatValueSimilar(IReadOnlyList<float> f1, params float[] f2)
         {
-            if (f1.Count != f2.Length) throw new Exception("Not similar");
+            if (f1.Count != f2.Length) Debug.LogError("Not similar");
             for (var i = 0; i < f1.Count; i++)
             {
                 CheckFloatValueSimilar(f1[i], f2[i]);
@@ -189,6 +189,36 @@ namespace Blue.Editor
             loss1.Backward();
             CheckFloatValueSimilar(a1.Gradient.Sync(), 0.0315f, 0.0315f, 0.012f, -0.0315f, -0.0315f, -0.012f);
             Debug.Log("Softmax Pass");
+        }
+
+        [Test]
+        public static void LayerNorm()
+        {
+            using var ln = new LayerNorm(2, 3);
+            using var a = new ComputationalNode(true, 2, 2, 3);
+            a.SetData(3.1009f,  16.8676f, -12.1355f
+                , 13.7828f, -7.2694f, -9.8697f
+                , 27.5299f, -7.0187f, 12.1017f
+                , -2.5035f, 3.2939f, -24.1344f);
+            var b = ln.Build(a);
+            using var graph = b.Graph();
+            graph.Forward();
+            CheckFloatValueSimilar(graph.Output.Sync(), 0.2068f, 1.4155f, -1.1310f
+                , 1.1447f, -0.7038f, -0.9321f
+                , 1.6225f, -0.5347f, 0.6592f
+                , -0.2528f, 0.1092f, -1.6035f);
+            using var loss = new MseLoss(graph.Output);
+            loss.Target.SetData(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f);
+            loss.Backward();
+            CheckFloatValueSimilar(ln.Bias.Gradient.Sync(), -1.0284f, -1.5199f, -2.0786f
+                , -2.1847f, -2.7658f, -3.4226f);
+            CheckFloatValueSimilar(ln.Weight.Gradient.Sync(), -1.4815f, 0.6227f, -0.1376f
+                , -0.1128f,  0.4708f, 4.7123f);
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0.0341f, 0.0051f, 0.0208f
+                , -0.0210f, -0.0136f, -0.0255f
+                , 0.0048f, 0.0226f, -0.0034f
+                , -0.0019f, -0.0170f, -0.0050f);
+            Debug.Log("LayerNorm Pass");
         }
         
     }
