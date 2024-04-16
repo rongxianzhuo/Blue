@@ -241,7 +241,6 @@ namespace Blue.Graph
             return node;
         }
 
-        // TODO: 未实现梯度传播
         public ComputationalNode Dropout(float dropout)
         {
             var weightArray = new float[FlattenSize];
