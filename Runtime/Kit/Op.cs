@@ -55,16 +55,6 @@ namespace Blue.Kit
                 .SetDispatchSize(buffer.FlattenSize);
         }
         
-        public static Operate Transpose(Tensor src, Tensor dst)
-        {
-            return new Operate("Common/Transpose", "CSMain")
-                .SetInt("src_height", src.Size[0])
-                .SetInt("src_width", src.Size[1])
-                .SetTensor("from", src)
-                .SetTensor("to", dst)
-                .SetDispatchSize(dst.FlattenSize);
-        }
-        
         public static Operate CrossEntropyLoss(Tensor output, Tensor target, Tensor gradient)
         {
             return new Operate("LossFunction/CrossEntropyLoss", "CSMain")
@@ -73,25 +63,6 @@ namespace Blue.Kit
                 .SetTensor("target", target)
                 .SetTensor("gradient", gradient)
                 .SetDispatchSize(target.FlattenSize);
-        }
-        
-        public static Operate WeightedL1Loss(Tensor output, Tensor target, Tensor gradient, Tensor weight)
-        {
-            return new Operate("LossFunction/WeightedL1Loss", "CSMain")
-                .SetTensor("output", output)
-                .SetTensor("target", target)
-                .SetTensor("gradient", gradient)
-                .SetTensor("weight", weight)
-                .SetDispatchSize(target.FlattenSize);
-        }
-        
-        public static Operate Variance(Tensor input, Tensor result)
-        {
-            return new Operate("Common/Variance", "CSMain")
-                .SetInt("n", input.Size[1])
-                .SetTensor("buffer", input)
-                .SetTensor("result", result)
-                .SetDispatchSize(input.Size[0]);
         }
         
     }
