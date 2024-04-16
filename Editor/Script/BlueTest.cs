@@ -55,7 +55,7 @@ namespace Blue.Editor
         {
             using var a = new ComputationalNode(true, 1, 6);
             a.SetData(1.0f, -0.5f, 0.1f, -0.2f, 0.0f, -6.5f);
-            using var b = Activation.Tanh.Build(a);
+            using var b = a.Tanh();
             b.Forward();
             CheckFloatValueSimilar(b.Sync(), 0.7616f, -0.4621f,  0.0997f, -0.1974f,  0.0000f, -1.0000f);
             b.Gradient.SetData(2f, 2f, 2f, 2f, 2f, 2f);

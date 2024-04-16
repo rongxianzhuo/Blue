@@ -1,3 +1,4 @@
+using Blue.Graph;
 using Blue.RL;
 using Blue.NN;
 using UnityEngine;
@@ -87,6 +88,29 @@ namespace Blue.Demo
             
         }
 
+        private class QNetwork : Module
+        {
+
+            private readonly Linear _fc1;
+            private readonly Linear _fc2;
+            private readonly Linear _fc3;
+
+            public QNetwork()
+            {
+                _fc1 = RegisterModule(new Linear(4, 64));
+                _fc2 = RegisterModule(new Linear(64, 64));
+                _fc3 = RegisterModule(new Linear(64, 5));
+            }
+            
+            public override ComputationalNode Build(params ComputationalNode[] input)
+            {
+                var x = input[0];
+                x = _fc1.Build(x).ReLU();
+                x = _fc2.Build(x).ReLU();
+                return _fc3.Build(x);
+            }
+        }
+
         private Env _previewEnv;
         private Env _trainEnv;
         private DqnAgent _dqn;
@@ -100,16 +124,8 @@ namespace Blue.Demo
             _tempState = new float[4];
             _previewEnv = new Env();
             _trainEnv = new Env();
-            _qNetwork = new Sequential(new Linear(4, 64)
-                , new Activation("relu")
-                , new Linear(64, 64)
-                , new Activation("relu")
-                , new Linear(64, 5));
-            _targetQNetwork = new Sequential(new Linear(4, 64)
-                , new Activation("relu")
-                , new Linear(64, 64)
-                , new Activation("relu")
-                , new Linear(64, 5));
+            _qNetwork = new QNetwork();
+            _targetQNetwork = new QNetwork();
             _targetQNetwork.CopyParameter(_qNetwork).Dispatch().Dispose();
             _dqn = new DqnAgent(4
                 , 5

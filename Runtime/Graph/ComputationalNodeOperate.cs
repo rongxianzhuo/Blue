@@ -168,6 +168,78 @@ namespace Blue.Graph
                 .SetDispatchSize(FlattenSize));
             return node;
         }
+
+        public ComputationalNode ReLU()
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            const string shaderName = "Activation/ReLU";
+            node.AddForwardOperate(new Operate(shaderName, "Forward")
+                .SetTensor("rw_output", node)
+                .SetTensor("input", this)
+                .SetDispatchSize(FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
+                .SetTensor("r_output", node)
+                .SetTensor("input_gradient", Gradient)
+                .SetTensor("output_gradient", node.Gradient)
+                .SetDispatchSize(Gradient.FlattenSize));
+
+            return node;
+        }
+
+        public ComputationalNode ELU()
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            const string shaderName = "Activation/ELU";
+            node.AddForwardOperate(new Operate(shaderName, "Forward")
+                .SetTensor("rw_output", node)
+                .SetTensor("input", this)
+                .SetDispatchSize(FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
+                .SetTensor("r_output", node)
+                .SetTensor("input_gradient", Gradient)
+                .SetTensor("output_gradient", node.Gradient)
+                .SetDispatchSize(Gradient.FlattenSize));
+
+            return node;
+        }
+
+        public ComputationalNode Sigmoid()
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            const string shaderName = "Activation/Sigmoid";
+            node.AddForwardOperate(new Operate(shaderName, "Forward")
+                .SetTensor("rw_output", node)
+                .SetTensor("input", this)
+                .SetDispatchSize(FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
+                .SetTensor("r_output", node)
+                .SetTensor("input_gradient", Gradient)
+                .SetTensor("output_gradient", node.Gradient)
+                .SetDispatchSize(Gradient.FlattenSize));
+
+            return node;
+        }
+
+        public ComputationalNode Tanh()
+        {
+            var node = new ComputationalNode(new[] { this }, Size);
+            const string shaderName = "Activation/Tanh";
+            node.AddForwardOperate(new Operate(shaderName, "Forward")
+                .SetTensor("rw_output", node)
+                .SetTensor("input", this)
+                .SetDispatchSize(FlattenSize));
+            
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
+                .SetTensor("r_output", node)
+                .SetTensor("input_gradient", Gradient)
+                .SetTensor("output_gradient", node.Gradient)
+                .SetDispatchSize(Gradient.FlattenSize));
+
+            return node;
+        }
         
     }
 }

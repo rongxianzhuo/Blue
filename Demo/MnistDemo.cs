@@ -15,6 +15,26 @@ namespace Blue.Demo
     public class MnistDemo : MonoBehaviour
     {
 
+        private class Model : Module
+        {
+
+            private readonly Linear _fc1;
+            private readonly Linear _fc2;
+
+            public Model()
+            {
+                _fc1 = RegisterModule(new Linear(784, 128));
+                _fc2 = RegisterModule(new Linear(128, 10));
+            }
+            
+            public override ComputationalNode Build(params ComputationalNode[] input)
+            {
+                var x = input[0];
+                x = _fc1.Build(x).ReLU();
+                return _fc2.Build(x);
+            }
+        }
+
         private const int BatchSize = 32;
 
         public bool saveModel;
@@ -34,7 +54,7 @@ namespace Blue.Demo
             yield return mnistData.DownloadData();
             
             // create model
-            using var model = new Sequential(new Linear(784, 128), new Activation("relu"), new Linear(128, 10));
+            using var model = new Model();
             if (File.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
             var trainInput = new ComputationalNode(false, BatchSize, 784);
             using var trainGraph = model.Build(trainInput).Graph();
@@ -55,8 +75,10 @@ namespace Blue.Demo
             
             // train model
             var epoch = 0;
-            while (epoch++ < trainEpochs)
+            while (epoch < trainEpochs)
             {
+                testGraph.Forward();
+                Debug.Log($"Epoch: {epoch}, Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%");
                 for (var i = 0; i < datasetLoader.BatchCount; i++)
                 {
                     datasetLoader.LoadBatch(i);
@@ -68,9 +90,12 @@ namespace Blue.Demo
                     if (i % 128 != 0) continue;
                     yield return null;
                 }
-                testGraph.Forward();
-                Debug.Log($"Epoch: {epoch}, Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%");
+                epoch++;
             }
+            
+            // test model
+            testGraph.Forward();
+            Debug.Log($"Epoch: {epoch}, Accuracy: {GetCorrectCount(testGraph.Output, mnistData.TestOutputLabel) * 100f / sampleCount:0.00}%");
             
             if (saveModel) model.SaveToFile(ModelSavePath);
         }
