@@ -30,6 +30,14 @@ namespace Blue.Core
             Op.Clear(this, 0).Dispatch().Dispose();
         }
 
+        public Tensor(List<float> list)
+        {
+            Size = new []{list.Count};
+            FlattenSize = list.Count;
+            _buffer = new ComputeBuffer(list.Count, sizeof(float));
+            _buffer.SetData(list);
+        }
+
         public float Max(out int index)
         {
             Sync();
@@ -42,14 +50,6 @@ namespace Blue.Core
                 maxValue = _syncArray[i];
             }
             return maxValue;
-        }
-
-        public Tensor(List<float> list)
-        {
-            Size = new []{list.Count};
-            FlattenSize = list.Count;
-            _buffer = new ComputeBuffer(list.Count, sizeof(float));
-            _buffer.SetData(list);
         }
 
         public void LoadFromStream(Stream stream)
@@ -79,7 +79,6 @@ namespace Blue.Core
 
         public void SetData(params float[] data)
         {
-            InternalSync(false);
             _buffer.SetData(data);
         }
 
@@ -99,8 +98,7 @@ namespace Blue.Core
 
         public void SetData(Action<float[]> setter)
         {
-            InternalSync(false);
-            setter(_syncArray);
+            setter(InternalSync(false));
             _buffer.SetData(_syncArray);
         }
 
@@ -114,12 +112,9 @@ namespace Blue.Core
             cs.SetBuffer(kernel, propertyName, _buffer);
         }
 
-        public IReadOnlyList<float> Sync()
-        {
-            return InternalSync();
-        }
+        public IReadOnlyList<float> Sync() => InternalSync(true);
 
-        internal float[] InternalSync(bool getData=true)
+        internal float[] InternalSync(bool getData)
         {
             if (_syncArray == null || _syncArray.Length != FlattenSize)
             {

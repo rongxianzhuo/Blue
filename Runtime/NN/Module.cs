@@ -118,7 +118,7 @@ namespace Blue.NN
                     , _parameters[i], 0, 0
                     , _parameters[i].FlattenSize
                     , _parameters[i].FlattenSize));
-                _parameters[i].SetData(other._parameters[i].InternalSync());
+                _parameters[i].SetData(other._parameters[i].InternalSync(true));
             }
             for (var i = 0; i < _subModules.Count; i++)
             {
