@@ -11,11 +11,25 @@ namespace Blue.Core
     public class Tensor : IDisposable
     {
 
+        public readonly bool IsView;
         public readonly int[] Size;
         public readonly int FlattenSize;
         private readonly ComputeBuffer _buffer;
 
         private float[] _syncArray;
+
+        public Tensor(Tensor origin, params int[] size)
+        {
+            IsView = true;
+            Size = size;
+            var totalSize = 1;
+            foreach (var i in size)
+            {
+                totalSize *= i;
+            }
+            FlattenSize = totalSize;
+            _buffer = origin._buffer;
+        }
 
         public Tensor(params int[] size)
         {
@@ -126,7 +140,7 @@ namespace Blue.Core
 
         public virtual void Dispose()
         {
-            _buffer.Release();
+            if (!IsView) _buffer.Release();
         }
 
         public void Print(char sep=',')

@@ -9,16 +9,18 @@ namespace Blue.Graph
 
         public readonly bool IsParameter;
 
+        private readonly ComputationalNode _viewOrigin;
         private readonly List<Operate> _forwardOperates = new List<Operate>();
         private readonly List<Operate> _backwardOperates = new List<Operate>();
         private readonly HashSet<Tensor> _tempTensors = new HashSet<Tensor>();
         private readonly List<ComputationalNode> _inputNodes = new List<ComputationalNode>();
-        
+
+        private Tensor _gradient;
         private Operate _clearGradientOp;
 
         public IReadOnlyList<ComputationalNode> InputNodes => _inputNodes;
 
-        public Tensor Gradient { get; private set; }
+        public Tensor Gradient => IsView ? _viewOrigin.Gradient : _gradient;
 
         public ComputationalNode(IEnumerable<ComputationalNode> inputNodes, params int[] shape) : base(shape)
         {
@@ -34,14 +36,24 @@ namespace Blue.Graph
             if (IsParameter) GetOrCreateGradient();
         }
 
+        public ComputationalNode(ComputationalNode origin, params int[] shape) : base(origin, shape)
+        {
+            _viewOrigin = origin;
+            IsParameter = false;
+            _inputNodes.Add(origin);
+        }
+
+        public ComputationalNode View(params int[] shape) => new ComputationalNode(this, shape);
+
         public ComputationalGraph Graph(params ComputationalNode[] inputs) => new ComputationalGraph(this, inputs);
 
         public Tensor GetOrCreateGradient()
         {
-            if (Gradient != null) return Gradient;
-            Gradient = CreateTempTensor(Size);
-            _clearGradientOp = Op.Clear(Gradient, 0f);
-            return Gradient;
+            if (IsView) return _viewOrigin.GetOrCreateGradient();
+            if (_gradient != null) return Gradient;
+            _gradient = CreateTempTensor(Size);
+            _clearGradientOp = Op.Clear(_gradient, 0f);
+            return _gradient;
         }
 
         internal Tensor CreateTempTensor(params int[] shape)
