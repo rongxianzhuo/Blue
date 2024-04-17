@@ -65,13 +65,13 @@ namespace Blue.Editor
         }
 
         [Test]
-        public static void AdditionAssignment()
+        public static void AddInPlace()
         {
             using var a = new ComputationalNode(true, 3, 2);
             a.SetData(0.1f, 0.5f, 0.8f, 0.25f, 0.36f, 0.89f);
             using var b = new ComputationalNode(true, 1, 2);
             b.SetData(0.13f, 0.25f);
-            a.AdditionAssignment(b);
+            a.AddInPlace(b);
             a.Forward();
             using var loss = new MseLoss(a);
             loss.Target.SetData(0.35f, -0.25f, 0.8f, 0.51f, -0.36f, 0.29f);
@@ -80,7 +80,7 @@ namespace Blue.Editor
             CheckFloatValueSimilar(loss.Value, 0.4127f);
             CheckFloatValueSimilar(a.Gradient.Sync(), -0.04f, 0.3333f, 0.0433f, -0.0033f, 0.2833f, 0.2833f);
             CheckFloatValueSimilar(b.Gradient.Sync(), 0.2867f, 0.6133f);
-            Debug.Log("AdditionAssignment Pass");
+            Debug.Log("AddInPlace Pass");
         }
 
         [Test]

@@ -5,15 +5,15 @@ namespace Blue.Graph
     public partial class ComputationalNode
     {
 
-        public ComputationalNode AdditionAssignment(ComputationalNode other)
+        public ComputationalNode AddInPlace(ComputationalNode other)
         {
             AddInputNode(other);
-            AddForwardOperate(new Operate("NN/AdditionAssignment", "Forward")
+            AddForwardOperate(new Operate("NN/AddInPlace", "Forward")
                 .SetInt("other_len", other.FlattenSize)
                 .SetTensor("other", other)
                 .SetTensor("result", this)
                 .SetDispatchSize(FlattenSize));
-            if (other.Gradient != null) AddBackwardOperate(new Operate("NN/AdditionAssignment", "Backward")
+            if (other.Gradient != null) AddBackwardOperate(new Operate("NN/AddInPlace", "Backward")
                 .SetInt("other_len", other.FlattenSize)
                 .SetInt("result_len", FlattenSize)
                 .SetTensor("other_gradient", other.Gradient)
@@ -50,6 +50,13 @@ namespace Blue.Graph
                 .SetTensor("c_gradient", c.Gradient)
                 .SetDispatchSize(b.FlattenSize));
             return c;
+        }
+
+        public static ComputationalNode operator *(ComputationalNode a, float b)
+        {
+            var bNode = new ComputationalNode(false, 1);
+            bNode.SetData(b);
+            return a * bNode;
         }
         
         public ComputationalNode MatMul(ComputationalNode other)

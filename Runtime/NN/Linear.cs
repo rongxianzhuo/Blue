@@ -37,7 +37,7 @@ namespace Blue.NN
 
         public override ComputationalNode Build(params ComputationalNode[] input)
         {
-            return input[0].MatMul(Weight).AdditionAssignment(Bias);
+            return input[0].MatMul(Weight).AddInPlace(Bias);
         }
     }
 }
