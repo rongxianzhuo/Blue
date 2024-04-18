@@ -93,12 +93,13 @@ namespace Blue.Graph
             }
         }
 
-        public void Forward()
+        public ComputationalNode Forward()
         {
             foreach (var o in _forwardOperates)
             {
                 o.Dispatch();
             }
+            return this;
         }
 
         public ComputationalNode Forward(NN.Module module)
