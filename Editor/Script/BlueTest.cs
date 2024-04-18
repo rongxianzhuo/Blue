@@ -220,6 +220,24 @@ namespace Blue.Editor
                 , -0.0019f, -0.0170f, -0.0050f);
             Debug.Log("LayerNorm Pass");
         }
+
+        [Test]
+        public static void Add()
+        {
+            using var a = new ComputationalNode(true, 2, 2, 3);
+            a.SetData(1f, 2f, 3f, 4f, 5f, 7f, -1f, -2f, -3f, -4f, -5f, -6f);
+            using var b = new ComputationalNode(true, 2, 3);
+            b.SetData(1f, 2f, 3f, 4f, 5f, 7f);
+            using var c = a + b;
+            c.Forward();
+            CheckFloatValueSimilar(c.Sync(), 2f, 4f, 6f, 8f, 10f, 14f, 0f, 0f, 0f, 0f, 0f, 1f);
+            using var loss = new MseLoss(c);
+            loss.Backward();
+            CheckFloatValueSimilar(b.Gradient.Sync(), 0.3333f, 0.6666f, 1f, 1.3333f, 1.6666f, 2.5f);
+            CheckFloatValueSimilar(a.Gradient.Sync(), 0.3333f, 0.6666f, 1f, 1.3333f, 1.6666f, 2.3333f
+                , 0f, 0f, 0f, 0f, 0f, 0.1666f);
+            Debug.Log("Add Pass");
+        }
         
     }
 

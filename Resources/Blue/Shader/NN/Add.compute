@@ -1,0 +1,43 @@
+#pragma kernel Forward
+#pragma kernel BackwardA
+#pragma kernel BackwardB
+
+uint a_len;
+uint b_len;
+uint c_len;
+StructuredBuffer<float> a;
+StructuredBuffer<float> b;
+StructuredBuffer<float> c_gradient;
+RWStructuredBuffer<float> c;
+RWStructuredBuffer<float> a_gradient;
+RWStructuredBuffer<float> b_gradient;
+
+[numthreads(512, 1, 1)]
+void Forward(uint3 id : SV_DispatchThreadID)
+{
+    c[id.x] = a[id.x % a_len] + b[id.x % b_len];
+}
+
+[numthreads(512, 1, 1)]
+void BackwardA(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = c_len / a_len;
+    float gradient = 0.0;
+    for (uint j = 0; j < i; j++)
+    {
+        gradient += c_gradient[j * a_len + id.x];
+    }
+    a_gradient[id.x] += gradient;
+}
+
+[numthreads(512, 1, 1)]
+void BackwardB(uint3 id : SV_DispatchThreadID)
+{
+    const uint i = c_len / b_len;
+    float gradient = 0.0;
+    for (uint j = 0; j < i; j++)
+    {
+        gradient += c_gradient[j * b_len + id.x];
+    }
+    b_gradient[id.x] += gradient;
+}
