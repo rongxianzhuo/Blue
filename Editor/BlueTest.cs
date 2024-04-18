@@ -174,13 +174,13 @@ def save_tensor_list(save_path, *tensor_list):
             Debug.Log("Transpose Pass");
         }
 
-        // [Test]
+        [Test]
         public static void Power()
         {
             var path = Application.dataPath + "/Blue/Editor/TestData/Power.bytes";
             using var stream = File.OpenRead(path);
             
-            using var a = new ComputationalNode(true, 3, 32, 8);
+            using var a = new ComputationalNode(true, 2, 3);
             var b = a.Power(0.5f);
             using var graph = b.Graph();
             using var loss = new MseLoss(graph.Output);
