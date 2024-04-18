@@ -18,6 +18,6 @@ void Forward(uint3 id : SV_DispatchThreadID)
 [numthreads(64, 1, 1)]
 void Backward_input(uint3 id : SV_DispatchThreadID)
 {
-    if (r_output[id.x] >= 0) input_gradient[id.x] = output_gradient[id.x];
-    else input_gradient[id.x] = (r_output[id.x] + 1) * output_gradient[id.x];
+    if (r_output[id.x] >= 0) input_gradient[id.x] += output_gradient[id.x];
+    else input_gradient[id.x] += (r_output[id.x] + 1) * output_gradient[id.x];
 }

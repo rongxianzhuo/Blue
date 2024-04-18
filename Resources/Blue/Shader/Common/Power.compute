@@ -16,5 +16,5 @@ void Forward(uint3 id : SV_DispatchThreadID)
 [numthreads(512, 1, 1)]
 void Backward(uint3 id : SV_DispatchThreadID)
 {
-    a_gradient[id.x] = b[id.x] * b_gradient[id.x] * p / a[id.x];
+    a_gradient[id.x] += b[id.x] * b_gradient[id.x] * p / a[id.x];
 }

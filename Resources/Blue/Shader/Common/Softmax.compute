@@ -37,5 +37,5 @@ void Backward(uint3 id : SV_DispatchThreadID)
     {
         sum += rw_b[start + j * j2] * b_gradient[start + j * j2];
     }
-    a_gradient[id.x] = rw_b[id.x] * (b_gradient[id.x] - sum);
+    a_gradient[id.x] += rw_b[id.x] * (b_gradient[id.x] - sum);
 }

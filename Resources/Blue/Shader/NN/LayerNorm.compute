@@ -44,7 +44,7 @@ void BackwardWeight(uint3 id : SV_DispatchThreadID)
     {
         sum += b[id.x + i * layer_size] * b_gradient[id.x + i * layer_size];
     }
-    weight_gradient[id.x] = sum;
+    weight_gradient[id.x] += sum;
 }
 
 [numthreads(512, 1, 1)]
@@ -55,7 +55,7 @@ void BackwardBias(uint3 id : SV_DispatchThreadID)
     {
         sum += b_gradient[id.x + i * layer_size];
     }
-    bias_gradient[id.x] = sum;
+    bias_gradient[id.x] += sum;
 }
 
 [numthreads(512, 1, 1)]
@@ -81,6 +81,6 @@ void BackwardInput(uint3 id : SV_DispatchThreadID)
     }
     const float var = sum / layer_size;
     const float g = b_gradient[id.x];
-    a_gradient[id.x] = weight[index_in_layer] * g * pow(var + eps, -0.5) + (-1.0 / layer_size) * pow(var + eps, -0.5) * sum1
+    a_gradient[id.x] += weight[index_in_layer] * g * pow(var + eps, -0.5) + (-1.0 / layer_size) * pow(var + eps, -0.5) * sum1
     - pow(var + eps, -1.5) * (a[id.x] - mean) / layer_size * sum2;
 }
