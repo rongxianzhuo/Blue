@@ -27,10 +27,15 @@ namespace Blue.Graph
                 return;
             }
 
-            var i = _nodes.Count - 1;
+            var i = 0;
+            while (i < _nodes.Count)
+            {
+                if (_nodes[i].InputNodes.Contains(node)) break;
+                i++;
+            }
             while (i >= 0)
             {
-                if (node.InputNodes.Contains(_nodes[i])) break;
+                if (i < _nodes.Count && node.InputNodes.Contains(_nodes[i])) break;
                 i--;
             }
             _nodes.Insert(i + 1, node);
