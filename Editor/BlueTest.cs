@@ -300,6 +300,27 @@ def save_tensor_list(save_path, *tensor_list):
             CheckFloatValueSimilar(b.Gradient, stream);
             Debug.Log("Res Pass");
         }
+
+        [Test]
+        public static void Embedding()
+        {
+            var path = Application.dataPath + "/Blue/Editor/TestData/Embedding.bytes";
+            using var stream = File.OpenRead(path);
+            using var embedding = new Embedding(10, 3);
+            using var a = new ComputationalNode(true, 2, 4);
+            var b = embedding.Build(a);
+            using var graph = b.Graph();
+            using var loss = new MseLoss(graph.Output);
+            a.SetData(1, 2, 4, 5, 4, 3, 2, 9);
+            loss.Target.LoadFromStream(stream);
+            embedding.Weight.LoadFromStream(stream);
+            graph.Forward();
+            loss.Backward();
+            
+            CheckFloatValueSimilar(graph.Output, stream);
+            CheckFloatValueSimilar(embedding.Weight.Gradient, stream);
+            Debug.Log("Embedding Pass");
+        }
         
     }
 

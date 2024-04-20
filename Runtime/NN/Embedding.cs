@@ -8,13 +8,11 @@ namespace Blue.NN
     {
 
         public readonly int EmbeddingDim;
-        public readonly ComputeBuffer Indices;
         public readonly ComputationalNode Weight;
 
-        public Embedding(ComputeBuffer indices, int embeddingNum, int embeddingDim)
+        public Embedding(int embeddingNum, int embeddingDim)
         {
             EmbeddingDim = embeddingDim;
-            Indices = indices;
             Weight = CreateParameter(embeddingNum, embeddingDim);
             
             var weightArray = new float[embeddingNum * embeddingDim];
@@ -27,18 +25,19 @@ namespace Blue.NN
         
         public override ComputationalNode Build(params ComputationalNode[] input)
         {
-            var embedding = new ComputationalNode(new []{Weight}, Indices.count, EmbeddingDim);
+            var indices = input[0];
+            var embedding = new ComputationalNode(new []{Weight}, indices.FlattenSize, EmbeddingDim);
             embedding.AddForwardOperate(new Operate("Common/Embedding", "Forward")
                 .SetInt("dim", EmbeddingDim)
-                .SetBuffer("indices", Indices)
+                .SetTensor("indices", indices)
                 .SetTensor("weight", Weight)
                 .SetTensor("output", embedding)
-                .SetDispatchSize(Indices.count));
+                .SetDispatchSize(indices.FlattenSize));
             
             if (Weight.Gradient != null) embedding.AddBackwardOperate(new Operate("Common/Embedding", "Backward")
                 .SetInt("dim", EmbeddingDim)
-                .SetInt("len", Indices.count)
-                .SetBuffer("indices", Indices)
+                .SetInt("len", indices.FlattenSize)
+                .SetTensor("indices", indices)
                 .SetTensor("output_gradient", embedding.Gradient)
                 .SetTensor("weight_gradient", Weight.Gradient)
                 .SetDispatchSize(Weight.Gradient.FlattenSize));

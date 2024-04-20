@@ -96,6 +96,11 @@ namespace Blue.Core
             _buffer.SetData(data);
         }
 
+        public void SetData(params int[] data)
+        {
+            _buffer.SetData(data);
+        }
+
         public void SetData(IEnumerable<float[]> data)
         {
             InternalSync(false);
