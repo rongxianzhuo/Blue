@@ -18,9 +18,12 @@ namespace Blue.Core
 
         private float[] _syncArray;
 
+        public Tensor(params int[] size) : this(null, size)
+        {
+        }
+
         public Tensor(Tensor origin, params int[] size)
         {
-            IsView = true;
             Size = size;
             var totalSize = 1;
             foreach (var i in size)
@@ -28,28 +31,16 @@ namespace Blue.Core
                 totalSize *= i;
             }
             FlattenSize = totalSize;
-            _buffer = origin._buffer;
-        }
-
-        public Tensor(params int[] size)
-        {
-            Size = size;
-            var totalSize = 1;
-            foreach (var i in size)
+            IsView = origin != null;
+            if (origin == null)
             {
-                totalSize *= i;
+                _buffer = new ComputeBuffer(totalSize, sizeof(float));
+                Op.Clear(this, 0).Dispatch().Dispose();
             }
-            FlattenSize = totalSize;
-            _buffer = new ComputeBuffer(totalSize, sizeof(float));
-            Op.Clear(this, 0).Dispatch().Dispose();
-        }
-
-        public Tensor(List<float> list)
-        {
-            Size = new []{list.Count};
-            FlattenSize = list.Count;
-            _buffer = new ComputeBuffer(list.Count, sizeof(float));
-            _buffer.SetData(list);
+            else
+            {
+                _buffer = origin._buffer;
+            }
         }
 
         public float Max(out int index)

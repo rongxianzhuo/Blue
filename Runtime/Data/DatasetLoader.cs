@@ -61,7 +61,8 @@ namespace Blue.Data
                         flatten.AddRange(_shuffleSample[i * _batchSize + j]);
                     }
                 }
-                tensor = new Tensor(flatten);
+                tensor = new Tensor(flatten.Count);
+                tensor.SetData(flatten.ToArray());
                 _tensors[target] = tensor;
                 var op = Op.Copy(tensor
                     , 0
