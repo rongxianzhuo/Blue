@@ -36,14 +36,14 @@ namespace Blue.Graph
             if (IsParameter) GetOrCreateGradient();
         }
 
-        public ComputationalNode(ComputationalNode origin, params int[] shape) : base(origin, shape)
+        public ComputationalNode(IReadOnlyList<int> shape, ComputationalNode origin) : base(shape, origin)
         {
             _viewOrigin = origin;
             IsParameter = false;
             _inputNodes.Add(origin);
         }
 
-        public ComputationalNode View(params int[] shape) => new ComputationalNode(this, shape);
+        public ComputationalNode View(params int[] shape) => new ComputationalNode(shape, this);
 
         public ComputationalGraph Graph(params ComputationalNode[] inputs) => new ComputationalGraph(this, inputs);
 

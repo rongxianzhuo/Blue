@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Blue.Data;
 using Blue.Kit;
 using UnityEngine;
@@ -18,13 +19,10 @@ namespace Blue.Core
 
         private Array _syncArray;
 
-        public Tensor(params int[] size) : this(null, size)
+        public Tensor(IReadOnlyList<int> size
+            , Tensor origin=null)
         {
-        }
-
-        public Tensor(Tensor origin, params int[] size)
-        {
-            Size = size;
+            Size = size.ToArray();
             var totalSize = 1;
             foreach (var i in size)
             {
@@ -103,13 +101,13 @@ namespace Blue.Core
                     syncArray[i++] = f;
                 }
             }
-            _buffer.SetData(syncArray);
+            SetData(syncArray);
         }
 
         public void SetData<T>(Action<T[]> setter)
         {
             setter(InternalSync<T>(false));
-            _buffer.SetData(_syncArray);
+            SetData((T[])_syncArray);
         }
 
         public void GetData(float[] array)

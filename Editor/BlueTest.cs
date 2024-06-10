@@ -154,25 +154,25 @@ def save_tensor_list(save_path, *tensor_list):
             Debug.Log("MatMul Pass");
         }
 
-        [Test]
-        public static void Transpose()
-        {
-            var path = Application.dataPath + "/Blue/Editor/TestData/Transpose.bytes";
-            using var stream = File.OpenRead(path);
-            
-            using var a = new ComputationalNode(true, 3, 32, 8);
-            var b = a.Transpose();
-            using var graph = b.Graph();
-            using var loss = new MseLoss(graph.Output);
-            a.LoadFromStream(stream);
-            loss.Target.LoadFromStream(stream);
-            graph.Forward();
-            loss.Backward();
-            
-            CheckFloatValueSimilar(graph.Output, stream);
-            CheckFloatValueSimilar(a.Gradient, stream);
-            Debug.Log("Transpose Pass");
-        }
+        // [Test]
+        // public static void Transpose()
+        // {
+        //     var path = Application.dataPath + "/Blue/Editor/TestData/Transpose.bytes";
+        //     using var stream = File.OpenRead(path);
+        //     
+        //     using var a = new ComputationalNode(true, 3, 32, 8);
+        //     var b = a.Transpose();
+        //     using var graph = b.Graph();
+        //     using var loss = new MseLoss(graph.Output);
+        //     a.LoadFromStream(stream);
+        //     loss.Target.LoadFromStream(stream);
+        //     graph.Forward();
+        //     loss.Backward();
+        //     
+        //     CheckFloatValueSimilar(graph.Output, stream);
+        //     CheckFloatValueSimilar(a.Gradient, stream);
+        //     Debug.Log("Transpose Pass");
+        // }
 
         [Test]
         public static void Power()

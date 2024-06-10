@@ -146,9 +146,9 @@ namespace Blue.RL
             _batchSize = batchSize;
             _memory = new ReplayMemory(replayBufferSize, stateSize, actionSize);
 
-            _rewardTensor = new Tensor(batchSize, actionSize);
-            _doneTensor = new Tensor(batchSize, actionSize);
-            _actionTensor = new Tensor(batchSize, actionSize);
+            _rewardTensor = new Tensor(new []{batchSize, actionSize});
+            _doneTensor = new Tensor(new []{batchSize, actionSize});
+            _actionTensor = new Tensor(new []{batchSize, actionSize});
 
             _dqn = new Dqn(stateSize, batchSize, qNetwork);
             _targetDqn = new Dqn(stateSize, batchSize, targetQNetwork);

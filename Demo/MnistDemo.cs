@@ -58,7 +58,7 @@ namespace Blue.Demo
             if (File.Exists(ModelSavePath)) model.LoadFromFile(ModelSavePath);
             var trainInput = new ComputationalNode(false, BatchSize, 784);
             using var trainGraph = model.Build(trainInput).Graph();
-            using var target = new Tensor(BatchSize, 10);
+            using var target = new Tensor(new []{BatchSize, 10});
             using var crossEntropyLoss = Op.CrossEntropyLoss(trainGraph.Output, target, trainGraph.Output.Gradient);
             using var optimizer = new AdamOptimizer(model.GetAllParameters());
             
