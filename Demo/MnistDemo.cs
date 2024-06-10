@@ -63,7 +63,7 @@ namespace Blue.Demo
             using var optimizer = new AdamOptimizer(model.GetAllParameters());
             
             // init dataset loader
-            using var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
+            var datasetLoader = new DatasetLoader(BatchSize, mnistData.TrainInputData.Count);
             datasetLoader.LoadDataset(mnistData.TrainInputData, trainInput);
             datasetLoader.LoadDataset(mnistData.TrainOutputData, target);
             
