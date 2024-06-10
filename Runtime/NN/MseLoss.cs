@@ -19,7 +19,7 @@ namespace Blue.NN
             get
             {
                 var sum = 0f;
-                foreach (var f in Output.Gradient.Sync())
+                foreach (var f in Output.Gradient.Sync<float>())
                 {
                     sum += f * f * Output.FlattenSize / 4;
                 }

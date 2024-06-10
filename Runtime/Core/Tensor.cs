@@ -16,7 +16,7 @@ namespace Blue.Core
         public readonly int FlattenSize;
         private readonly ComputeBuffer _buffer;
 
-        private float[] _syncArray;
+        private Array _syncArray;
 
         public Tensor(params int[] size) : this(null, size)
         {
@@ -45,14 +45,14 @@ namespace Blue.Core
 
         public float Max(out int index)
         {
-            Sync();
+            var syncArray = Sync<float>();
             index = 0;
-            var maxValue = _syncArray[0];
-            for (var i = 1; i < _syncArray.Length; i++)
+            var maxValue = syncArray[0];
+            for (var i = 1; i < syncArray.Count; i++)
             {
-                if (_syncArray[i] < maxValue) continue;
+                if (syncArray[i] < maxValue) continue;
                 index = i;
-                maxValue = _syncArray[i];
+                maxValue = syncArray[i];
             }
             return maxValue;
         }
@@ -71,8 +71,7 @@ namespace Blue.Core
 
         public void SaveToStream(Stream stream)
         {
-            Sync();
-            new MessagePacker(stream).Pack(_syncArray);
+            new MessagePacker(stream).Pack(InternalSync<float>(true));
         }
 
         public void SaveToFile(string path)
@@ -82,33 +81,34 @@ namespace Blue.Core
             stream.Close();
         }
 
-        public void SetData(params float[] data)
+        public void SetData(Tensor other)
+        {
+            other._buffer.GetData(_syncArray);
+            _buffer.SetData(_syncArray);
+        }
+
+        public void SetData<T>(T[] data)
         {
             _buffer.SetData(data);
         }
 
-        public void SetData(params int[] data)
+        public void SetData<T>(IEnumerable<T[]> data)
         {
-            _buffer.SetData(data);
-        }
-
-        public void SetData(IEnumerable<float[]> data)
-        {
-            InternalSync(false);
+            var syncArray = InternalSync<T>(false);
             var i = 0;
             foreach (var array in data)
             {
                 foreach (var f in array)
                 {
-                    _syncArray[i++] = f;
+                    syncArray[i++] = f;
                 }
             }
-            _buffer.SetData(_syncArray);
+            _buffer.SetData(syncArray);
         }
 
-        public void SetData(Action<float[]> setter)
+        public void SetData<T>(Action<T[]> setter)
         {
-            setter(InternalSync(false));
+            setter(InternalSync<T>(false));
             _buffer.SetData(_syncArray);
         }
 
@@ -122,16 +122,13 @@ namespace Blue.Core
             cs.SetBuffer(kernel, propertyName, _buffer);
         }
 
-        public IReadOnlyList<float> Sync() => InternalSync(true);
+        public IReadOnlyList<T> Sync<T>() => InternalSync<T>(true);
 
-        internal float[] InternalSync(bool getData)
+        internal T[] InternalSync<T>(bool getData)
         {
-            if (_syncArray == null || _syncArray.Length != FlattenSize)
-            {
-                _syncArray = new float[FlattenSize];
-            }
+            _syncArray ??= new T[FlattenSize];
             if (getData) _buffer.GetData(_syncArray);
-            return _syncArray;
+            return (T[])_syncArray;
         }
 
         public virtual void Dispose()
@@ -141,7 +138,7 @@ namespace Blue.Core
 
         public void Print(char sep=',')
         {
-            var array = Sync();
+            var array = InternalSync<float>(true);
             if (Size.Length > 1)
             {
                 var builder = new System.Text.StringBuilder();

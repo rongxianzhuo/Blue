@@ -103,7 +103,7 @@ namespace Blue.Demo
         private static int GetCorrectCount(ComputationalNode output, IReadOnlyList<int> batchTargetLabel)
         {
             var correctCount = 0;
-            var outputData = output.Sync();
+            var outputData = output.Sync<float>();
             for (var i = 0; i < batchTargetLabel.Count; i++)
             {
                 var max = outputData[i * 10];

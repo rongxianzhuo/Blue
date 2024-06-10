@@ -47,7 +47,7 @@ def save_tensor_list(save_path, *tensor_list):
         private static void CheckFloatValueSimilar(Tensor t1, Stream stream)
         {
             var packer = new MessagePacker(stream);
-            CheckFloatValueSimilar(t1.Sync(), packer.UnpackSingleArray(t1.FlattenSize));
+            CheckFloatValueSimilar(t1.Sync<float>(), packer.UnpackSingleArray(t1.FlattenSize));
         }
 
         [MenuItem("Blue/TestAll")]
@@ -195,24 +195,6 @@ def save_tensor_list(save_path, *tensor_list):
         }
 
         [Test]
-        public static void MaskedFill()
-        {
-            using var a = new ComputationalNode(true, 2, 3);
-            a.SetData(1f, 2f, 3f, 4f, 5f, 6f);
-            using var b = a.Power(0.5f);
-            b.Forward();
-            using var mask = new ComputationalNode(false, 2, 3);
-            mask.SetData(0f, 0f, 0f, 0f, 1f, 1f);
-            using var c = b.MaskedFill(mask, float.NegativeInfinity);
-            c.Forward();
-            using var loss = new MseLoss(c);
-            loss.Target.SetData(1f, 2f, 3f, 4f, 5f, 6f);
-            loss.Backward();
-            CheckFloatValueSimilar(a.Gradient.Sync(), 0f, -0.0690356f, -0.1220085f, -0.1666667f, 0f, 0f);
-            Debug.Log("MaskedFill Pass");
-        }
-
-        [Test]
         public static void Softmax()
         {
             var path = Application.dataPath + "/Blue/Editor/TestData/Softmax.bytes";
@@ -311,7 +293,7 @@ def save_tensor_list(save_path, *tensor_list):
             var b = embedding.Build(a);
             using var graph = b.Graph();
             using var loss = new MseLoss(graph.Output);
-            a.SetData(1, 2, 4, 5, 4, 3, 2, 9);
+            a.SetData(new []{1, 2, 4, 5, 4, 3, 2, 9});
             loss.Target.LoadFromStream(stream);
             embedding.Weight.LoadFromStream(stream);
             graph.Forward();

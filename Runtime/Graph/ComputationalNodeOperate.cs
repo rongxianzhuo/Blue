@@ -81,7 +81,7 @@ namespace Blue.Graph
         public static ComputationalNode operator *(ComputationalNode a, float b)
         {
             var bNode = new ComputationalNode(false, 1);
-            bNode.SetData(b);
+            bNode.SetData(new float[]{b});
             return a * bNode;
         }
         

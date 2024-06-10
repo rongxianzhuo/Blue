@@ -19,14 +19,14 @@ namespace Blue.NN
             
             var min = -1f / Mathf.Sqrt(input);
             var max = -min;
-            Weight.SetData(array =>
+            Weight.SetData<float>(array =>
             {
                 for (var i = 0; i < array.Length; i++)
                 {
                     array[i] = Random.Range(min, max);
                 }
             });
-            Bias.SetData(array =>
+            Bias.SetData<float>(array =>
             {
                 for (var i = 0; i < array.Length; i++)
                 {
