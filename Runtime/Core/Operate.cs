@@ -57,9 +57,9 @@ namespace Blue.Core
             return this;
         }
 
-        public Operate SetTensor(string name, Tensor tensor)
+        public Operate SetTensor(string name, Tensor tensor, int[] strideOrder=null)
         {
-            tensor.SetToShader(_cs, _kernel, name);
+            tensor.SetToShader(_cs, _kernel, name, strideOrder);
             return this;
         }
 

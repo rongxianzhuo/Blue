@@ -32,11 +32,13 @@ namespace Blue.NN
             Output = output;
             _isInnerTarget = target == null;
             Target = target ?? new Tensor(output.Size);
+            var strideOrder = output.Gradient.CalculateStrideOrder();
             _backward = new Operate("LossFunction/MseLoss", "CSMain")
                 .SetInt("n", output.FlattenSize)
-                .SetTensor("output", output)
-                .SetTensor("target", Target)
-                .SetTensor("gradient", output.Gradient)
+                .SetInt("dim", output.Size.Length)
+                .SetTensor("output", output, strideOrder)
+                .SetTensor("target", Target, strideOrder)
+                .SetTensor("gradient", output.Gradient, strideOrder)
                 .SetDispatchSize(output.FlattenSize);
         }
 

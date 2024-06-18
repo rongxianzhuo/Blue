@@ -1,12 +1,21 @@
 #pragma kernel CSMain
+#include "../Common.cginc"
 
 uint n;
-StructuredBuffer<float> output;
-StructuredBuffer<float> target;
-RWStructuredBuffer<float> gradient;
+uint dim;
 
-[numthreads(64, 1, 1)]
+StructuredBuffer<float> output;
+StructuredBuffer<uint> output_stride;
+
+StructuredBuffer<float> target;
+StructuredBuffer<uint> target_stride;
+
+RWStructuredBuffer<float> gradient;
+StructuredBuffer<uint> gradient_stride;
+
+[numthreads(512, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    gradient[id.x] = 2 * (output[id.x] - target[id.x]) / n;
+    const uint2 new_id = calculate_new_index(dim, id.x, gradient_stride, output_stride, target_stride);
+    gradient[id.x] = 2 * (output[new_id.x] - target[new_id.y]) / n;
 }

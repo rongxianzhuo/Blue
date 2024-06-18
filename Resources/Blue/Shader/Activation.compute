@@ -1,0 +1,86 @@
+#pragma kernel ForwardTanh
+#pragma kernel BackwardTanh
+#pragma kernel ForwardSigmoid
+#pragma kernel BackwardSigmoid
+#pragma kernel ForwardReLU
+#pragma kernel BackwardReLU
+#pragma kernel ForwardELU
+#pragma kernel BackwardELU
+#include "Common.cginc"
+
+uint dim;
+
+RWStructuredBuffer<float> rw_output;
+StructuredBuffer<uint> rw_output_stride;
+
+StructuredBuffer<float> r_output;
+StructuredBuffer<uint> r_output_stride;
+
+StructuredBuffer<float> output_gradient;
+StructuredBuffer<uint> output_gradient_stride;
+
+RWStructuredBuffer<float> input_gradient;
+StructuredBuffer<uint> input_gradient_stride;
+
+StructuredBuffer<float> input;
+StructuredBuffer<uint> input_stride;
+
+[numthreads(512, 1, 1)]
+void ForwardTanh(uint3 id : SV_DispatchThreadID)
+{
+    const uint input_id = calculate_new_index(dim, id.x, rw_output_stride, input_stride);
+    const float ex2 = exp(2.0 * input[input_id]);
+    rw_output[id.x] = 1.0 - 2.0 / (ex2 + 1.0);
+}
+
+[numthreads(512, 1, 1)]
+void BackwardTanh(uint3 id : SV_DispatchThreadID)
+{
+    const uint r_output_id = calculate_new_index(dim, id.x, input_gradient_stride, r_output_stride);
+    input_gradient[id.x] += (1.0 - r_output[r_output_id] * r_output[r_output_id]) * output_gradient[r_output_id];
+}
+
+[numthreads(512, 1, 1)]
+void ForwardSigmoid(uint3 id : SV_DispatchThreadID)
+{
+    const uint input_id = calculate_new_index(dim, id.x, rw_output_stride, input_stride);
+    rw_output[id.x] = 1.0 / (1.0 + pow(2.71828, -input[input_id]));
+}
+
+[numthreads(512, 1, 1)]
+void BackwardSigmoid(uint3 id : SV_DispatchThreadID)
+{
+    const uint r_output_id = calculate_new_index(dim, id.x, input_gradient_stride, r_output_stride);
+    input_gradient[id.x] += r_output[r_output_id] * (1.0 - r_output[r_output_id]) * output_gradient[r_output_id];
+}
+
+[numthreads(512, 1, 1)]
+void ForwardReLU(uint3 id : SV_DispatchThreadID)
+{
+    const uint input_id = calculate_new_index(dim, id.x, rw_output_stride, input_stride);
+    rw_output[id.x] = max(input[input_id], 0.0);
+}
+
+[numthreads(512, 1, 1)]
+void BackwardReLU(uint3 id : SV_DispatchThreadID)
+{
+    const uint r_output_id = calculate_new_index(dim, id.x, input_gradient_stride, r_output_stride);
+    if (r_output[r_output_id] <= 0) return;
+    input_gradient[id.x] += output_gradient[r_output_id];
+}
+
+[numthreads(64, 1, 1)]
+void ForwardELU(uint3 id : SV_DispatchThreadID)
+{
+    const uint input_id = calculate_new_index(dim, id.x, rw_output_stride, input_stride);
+    if (input[input_id] >= 0.0) rw_output[id.x] = input[input_id];
+    else rw_output[id.x] = exp(input[input_id]) - 1.0;
+}
+
+[numthreads(64, 1, 1)]
+void BackwardELU(uint3 id : SV_DispatchThreadID)
+{
+    const uint r_output_id = calculate_new_index(dim, id.x, input_gradient_stride, r_output_stride);
+    if (r_output[r_output_id] >= 0) input_gradient[id.x] += output_gradient[r_output_id];
+    else input_gradient[id.x] += (r_output[r_output_id] + 1) * output_gradient[r_output_id];
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Blue.Core;
 
 namespace Blue.Graph
@@ -26,24 +27,23 @@ namespace Blue.Graph
         {
             var size = a.FlattenSize > b.FlattenSize ? a.Size : b.Size;
             var c = new ComputationalNode(new[] { a, b }, size);
-            c.AddForwardOperate(new Operate("NN/Add", "Forward")
-                .SetInt("a_len", a.FlattenSize)
-                .SetInt("b_len", b.FlattenSize)
-                .SetTensor("a", a)
-                .SetTensor("b", b)
-                .SetTensor("c", c)
+            c.AddForwardOperate(new Operate("O2", "ForwardAdd")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input1", a)
+                .SetTensor("input2", b)
+                .SetTensor("output", c)
                 .SetDispatchSize(c.FlattenSize));
-            if (a.Gradient != null) c.AddBackwardOperate(new Operate("NN/Add", "BackwardA")
-                .SetInt("a_len", a.FlattenSize)
-                .SetInt("c_len", c.FlattenSize)
-                .SetTensor("a_gradient", a.Gradient)
-                .SetTensor("c_gradient", c.Gradient)
+            var aStrideOrder = a.CalculateStrideOrder();
+            if (a.Gradient != null) c.AddBackwardOperate(new Operate("O2", "BackwardAdd1")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input1_gradient", a.Gradient, aStrideOrder)
+                .SetTensor("output_gradient", c.Gradient, aStrideOrder)
                 .SetDispatchSize(a.FlattenSize));
-            if (b.Gradient != null) c.AddBackwardOperate(new Operate("NN/Add", "BackwardB")
-                .SetInt("b_len", b.FlattenSize)
-                .SetInt("c_len", c.FlattenSize)
-                .SetTensor("b_gradient", b.Gradient)
-                .SetTensor("c_gradient", c.Gradient)
+            var bStrideOrder = b.CalculateStrideOrder();
+            if (b.Gradient != null) c.AddBackwardOperate(new Operate("O2", "BackwardAdd2")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input2_gradient", b.Gradient, bStrideOrder)
+                .SetTensor("output_gradient", c.Gradient, bStrideOrder)
                 .SetDispatchSize(b.FlattenSize));
             return c;
         }
@@ -52,107 +52,64 @@ namespace Blue.Graph
         {
             var size = a.FlattenSize > b.FlattenSize ? a.Size : b.Size;
             var c = new ComputationalNode(new[] { a, b }, size);
-            c.AddForwardOperate(new Operate("NN/Mul", "Forward")
-                .SetInt("a_len", a.FlattenSize)
-                .SetInt("b_len", b.FlattenSize)
-                .SetTensor("a", a)
-                .SetTensor("b", b)
-                .SetTensor("c", c)
+            c.AddForwardOperate(new Operate("O2", "ForwardMul")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input1", a)
+                .SetTensor("input2", b)
+                .SetTensor("output", c)
                 .SetDispatchSize(c.FlattenSize));
-            if (a.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul", "BackwardA")
-                .SetInt("a_len", a.FlattenSize)
-                .SetInt("b_len", b.FlattenSize)
-                .SetInt("c_len", c.FlattenSize)
-                .SetTensor("a_gradient", a.Gradient)
-                .SetTensor("b", b)
-                .SetTensor("c_gradient", c.Gradient)
+            var aStrideOrder = a.CalculateStrideOrder();
+            if (a.Gradient != null) c.AddBackwardOperate(new Operate("O2", "BackwardMul1")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input1_gradient", a.Gradient, aStrideOrder)
+                .SetTensor("input2", b, aStrideOrder)
+                .SetTensor("output_gradient", c.Gradient, aStrideOrder)
                 .SetDispatchSize(a.FlattenSize));
-            if (b.Gradient != null) c.AddBackwardOperate(new Operate("NN/Mul", "BackwardB")
-                .SetInt("a_len", a.FlattenSize)
-                .SetInt("b_len", b.FlattenSize)
-                .SetInt("c_len", c.FlattenSize)
-                .SetTensor("a", a)
-                .SetTensor("b_gradient", b.Gradient)
-                .SetTensor("c_gradient", c.Gradient)
+            var bStrideOrder = b.CalculateStrideOrder();
+            if (b.Gradient != null) c.AddBackwardOperate(new Operate("O2", "BackwardMul2")
+                .SetInt("dim", a.Size.Length)
+                .SetTensor("input2_gradient", b.Gradient, bStrideOrder)
+                .SetTensor("input1", a, bStrideOrder)
+                .SetTensor("output_gradient", c.Gradient, bStrideOrder)
                 .SetDispatchSize(b.FlattenSize));
             return c;
-        }
-
-        public static ComputationalNode operator *(ComputationalNode a, float b)
-        {
-            var bNode = new ComputationalNode(false, 1);
-            bNode.SetData(new float[]{b});
-            return a * bNode;
         }
         
         public ComputationalNode MatMul(ComputationalNode other)
         {
             var node = new ComputationalNode(new[] { this, other }, Size[0], other.Size[1]);
             node.AddForwardOperate(new Operate("NN/MatMul", "Forward")
-                .SetInt("wl", Size[1])
-                .SetInt("wr", other.Size[1])
+                .SetInt("lw", other.Size[0])
                 .SetTensor("left", this)
                 .SetTensor("right", other)
                 .SetTensor("result", node)
                 .SetDispatchSize(node.FlattenSize));
-            
-            if (Gradient != null) node.AddBackwardOperate(new Operate("NN/MatMul", "BackwardLeft")
-                .SetInt("wl", Size[1])
-                .SetInt("wr", other.Size[1])
+            node.AddBackwardOperate(new Operate("NN/MatMul", "BackwardLeft")
+                .SetInt("lw", Size[1])
+                .SetInt("lh", Size[0])
+                .SetTensor("left_gradient", Gradient)
                 .SetTensor("right", other)
                 .SetTensor("result_gradient", node.Gradient)
-                .SetTensor("left_gradient", Gradient)
                 .SetDispatchSize(FlattenSize));
-            
-            if (other.Gradient != null) node.AddBackwardOperate(new Operate("NN/MatMul", "BackwardRight")
-                .SetInt("hl", Size[0])
-                .SetInt("wl", Size[1])
-                .SetInt("wr", other.Size[1])
+            node.AddBackwardOperate(new Operate("NN/MatMul", "BackwardRight")
+                .SetInt("t", FlattenSize / other.FlattenSize)
+                .SetInt("lh", Size[0])
+                .SetInt("lw", Size[1])
+                .SetInt("rw", other.Size[1])
                 .SetTensor("left", this)
-                .SetTensor("result_gradient", node.Gradient)
                 .SetTensor("right_gradient", other.Gradient)
+                .SetTensor("result_gradient", node.Gradient)
                 .SetDispatchSize(other.FlattenSize));
             return node;
         }
         
-        // 目前仅支持最后两维的转置
-        public ComputationalNode Transpose()
+        public ComputationalNode Transpose(int dim1, int dim2)
         {
-            
-            var node = new ComputationalNode(new[] { this }, Size);
-            (node.Size[^1], node.Size[^2]) = (node.Size[^2], node.Size[^1]);
-            node.AddForwardOperate(new Operate("Common/Transpose", "CSMain")
-                .SetInt("d1", Size[^1])
-                .SetInt("d2", Size[^2])
-                .SetTensor("from", this)
-                .SetTensor("to", node)
-                .SetDispatchSize(node.FlattenSize));
-            
-            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Transpose", "CSMain")
-                .SetInt("d1", Size[^2])
-                .SetInt("d2", Size[^1])
-                .SetTensor("from", node.Gradient)
-                .SetTensor("to", Gradient)
-                .SetDispatchSize(FlattenSize));
-            return node;
-        }
-        
-        public ComputationalNode Power(float p)
-        {
-            var node = new ComputationalNode(new[] { this }, Size);
-            node.AddForwardOperate(new Operate("Common/Power", "Forward")
-                .SetFloat("p", p)
-                .SetTensor("a", this)
-                .SetTensor("b", node)
-                .SetDispatchSize(node.FlattenSize));
-            
-            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Power", "Backward")
-                .SetFloat("p", p)
-                .SetTensor("a", this)
-                .SetTensor("b", node)
-                .SetTensor("b_gradient", node.Gradient)
-                .SetTensor("a_gradient", Gradient)
-                .SetDispatchSize(FlattenSize));
+            var shape = new List<int>(Size);
+            var stride = new List<int>(StrideInMemory);
+            (shape[dim1], shape[dim2]) = (shape[dim2], shape[dim1]);
+            (stride[dim1], stride[dim2]) = (stride[dim2], stride[dim1]);
+            var node = new ComputationalNode(shape, this, stride);
             return node;
         }
         
@@ -177,44 +134,25 @@ namespace Blue.Graph
         
         public ComputationalNode Softmax(int dim)
         {
-            var node = new ComputationalNode(new[] { this }, Size);
-            var j2 = 1;
-            for (var i = Size.Length - 1; i > dim; i--)
-            {
-                j2 *= Size[i];
-            }
-            var j1 = j2 * Size[dim];
-            node.AddForwardOperate(new Operate("Common/Softmax", "Forward")
-                .SetInt("count", Size[dim])
-                .SetInt("j1", j1)
-                .SetInt("j2", j2)
-                .SetTensor("a", this)
-                .SetTensor("b", node)
-                .SetDispatchSize(FlattenSize));
-            if (Gradient != null) node.AddBackwardOperate(new Operate("Common/Softmax", "Backward")
-                .SetInt("count", Size[dim])
-                .SetInt("j1", j1)
-                .SetInt("j2", j2)
-                .SetTensor("b_gradient", node.Gradient)
-                .SetTensor("rw_b", node)
-                .SetTensor("a_gradient", Gradient)
-                .SetDispatchSize(FlattenSize));
-            return node;
+            return null;
         }
 
         public ComputationalNode ReLU()
         {
             var node = new ComputationalNode(new[] { this }, Size);
-            const string shaderName = "Activation/ReLU";
-            node.AddForwardOperate(new Operate(shaderName, "Forward")
+            const string shaderName = "Activation";
+            node.AddForwardOperate(new Operate(shaderName, "ForwardReLU")
+                .SetInt("dim", Size.Length)
                 .SetTensor("rw_output", node)
                 .SetTensor("input", this)
                 .SetDispatchSize(FlattenSize));
             
-            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
-                .SetTensor("r_output", node)
-                .SetTensor("input_gradient", Gradient)
-                .SetTensor("output_gradient", node.Gradient)
+            var inputStrideOrder = Gradient.CalculateStrideOrder();
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "BackwardReLU")
+                .SetInt("dim", Size.Length)
+                .SetTensor("r_output", node, inputStrideOrder)
+                .SetTensor("input_gradient", Gradient, inputStrideOrder)
+                .SetTensor("output_gradient", node.Gradient, inputStrideOrder)
                 .SetDispatchSize(Gradient.FlattenSize));
 
             return node;
@@ -223,16 +161,19 @@ namespace Blue.Graph
         public ComputationalNode ELU()
         {
             var node = new ComputationalNode(new[] { this }, Size);
-            const string shaderName = "Activation/ELU";
-            node.AddForwardOperate(new Operate(shaderName, "Forward")
+            const string shaderName = "Activation";
+            node.AddForwardOperate(new Operate(shaderName, "ForwardELU")
+                .SetInt("dim", Size.Length)
                 .SetTensor("rw_output", node)
                 .SetTensor("input", this)
                 .SetDispatchSize(FlattenSize));
             
-            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
-                .SetTensor("r_output", node)
-                .SetTensor("input_gradient", Gradient)
-                .SetTensor("output_gradient", node.Gradient)
+            var inputStrideOrder = Gradient.CalculateStrideOrder();
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "BackwardELU")
+                .SetInt("dim", Size.Length)
+                .SetTensor("r_output", node, inputStrideOrder)
+                .SetTensor("input_gradient", Gradient, inputStrideOrder)
+                .SetTensor("output_gradient", node.Gradient, inputStrideOrder)
                 .SetDispatchSize(Gradient.FlattenSize));
 
             return node;
@@ -241,16 +182,19 @@ namespace Blue.Graph
         public ComputationalNode Sigmoid()
         {
             var node = new ComputationalNode(new[] { this }, Size);
-            const string shaderName = "Activation/Sigmoid";
-            node.AddForwardOperate(new Operate(shaderName, "Forward")
+            const string shaderName = "Activation";
+            node.AddForwardOperate(new Operate(shaderName, "ForwardSigmoid")
+                .SetInt("dim", Size.Length)
                 .SetTensor("rw_output", node)
                 .SetTensor("input", this)
                 .SetDispatchSize(FlattenSize));
             
-            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
-                .SetTensor("r_output", node)
-                .SetTensor("input_gradient", Gradient)
-                .SetTensor("output_gradient", node.Gradient)
+            var inputStrideOrder = Gradient.CalculateStrideOrder();
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "BackwardSigmoid")
+                .SetInt("dim", Size.Length)
+                .SetTensor("r_output", node, inputStrideOrder)
+                .SetTensor("input_gradient", Gradient, inputStrideOrder)
+                .SetTensor("output_gradient", node.Gradient, inputStrideOrder)
                 .SetDispatchSize(Gradient.FlattenSize));
 
             return node;
@@ -259,16 +203,19 @@ namespace Blue.Graph
         public ComputationalNode Tanh()
         {
             var node = new ComputationalNode(new[] { this }, Size);
-            const string shaderName = "Activation/Tanh";
-            node.AddForwardOperate(new Operate(shaderName, "Forward")
+            const string shaderName = "Activation";
+            node.AddForwardOperate(new Operate(shaderName, "ForwardTanh")
+                .SetInt("dim", Size.Length)
                 .SetTensor("rw_output", node)
                 .SetTensor("input", this)
                 .SetDispatchSize(FlattenSize));
-            
-            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "Backward_input")
-                .SetTensor("r_output", node)
-                .SetTensor("input_gradient", Gradient)
-                .SetTensor("output_gradient", node.Gradient)
+
+            var inputStrideOrder = Gradient.CalculateStrideOrder();
+            if (Gradient != null) node.AddBackwardOperate(new Operate(shaderName, "BackwardTanh")
+                .SetInt("dim", Size.Length)
+                .SetTensor("r_output", node, inputStrideOrder)
+                .SetTensor("input_gradient", Gradient, inputStrideOrder)
+                .SetTensor("output_gradient", node.Gradient, inputStrideOrder)
                 .SetDispatchSize(Gradient.FlattenSize));
 
             return node;

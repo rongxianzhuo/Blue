@@ -15,14 +15,6 @@ namespace Blue.Editor
     public static class BlueTest
     {
 
-        private const string Py = @"
-def save_tensor_list(save_path, *tensor_list):
-    with open(save_path, 'wb') as file:
-        for tensor in tensor_list:
-            for f in tensor.reshape(-1).detach().numpy():
-                file.write(struct.pack('f', float(f)))
-";
-
         private class Test : Attribute
         {
             
@@ -75,16 +67,55 @@ def save_tensor_list(save_path, *tensor_list):
             var path = Application.dataPath + "/Blue/Editor/TestData/Tanh.bytes";
             using var stream = File.OpenRead(path);
             
-            using var a = new ComputationalNode(true, 32, 8);
+            using var a = new ComputationalNode(true, 3, 32, 8);
             a.LoadFromStream(stream);
-            using var b = a.Tanh().Forward();
-            using var loss = new MseLoss(b);
+            using var b = a.Transpose(0, 2);
+            using var c = b.Tanh().Forward();
+            using var loss = new MseLoss(c);
             loss.Target.LoadFromStream(stream);
             loss.Backward();
             
-            CheckFloatValueSimilar(b, stream);
+            CheckFloatValueSimilar(c, stream);
             CheckFloatValueSimilar(a.Gradient, stream);
             Debug.Log("Tanh Pass");
+        }
+
+        [Test]
+        public static void ReLU()
+        {
+            var path = Application.dataPath + "/Blue/Editor/TestData/ReLU.bytes";
+            using var stream = File.OpenRead(path);
+            
+            using var a = new ComputationalNode(true, 3, 32, 8);
+            a.LoadFromStream(stream);
+            using var b = a.Transpose(0, 2);
+            using var c = b.ReLU().Forward();
+            using var loss = new MseLoss(c);
+            loss.Target.LoadFromStream(stream);
+            loss.Backward();
+            
+            CheckFloatValueSimilar(c, stream);
+            CheckFloatValueSimilar(a.Gradient, stream);
+            Debug.Log("ReLU Pass");
+        }
+
+        [Test]
+        public static void Sigmoid()
+        {
+            var path = Application.dataPath + "/Blue/Editor/TestData/Sigmoid.bytes";
+            using var stream = File.OpenRead(path);
+            
+            using var a = new ComputationalNode(true, 3, 32, 8);
+            a.LoadFromStream(stream);
+            using var b = a.Transpose(0, 2);
+            using var c = b.Sigmoid().Forward();
+            using var loss = new MseLoss(c);
+            loss.Target.LoadFromStream(stream);
+            loss.Backward();
+            
+            CheckFloatValueSimilar(c, stream);
+            CheckFloatValueSimilar(a.Gradient, stream);
+            Debug.Log("Sigmoid Pass");
         }
 
         [Test]
@@ -109,15 +140,16 @@ def save_tensor_list(save_path, *tensor_list):
         }
 
         [Test]
-        public static void Mul()
+        public static void MatMul1()
         {
-            var path = Application.dataPath + "/Blue/Editor/TestData/Mul.bytes";
+            var path = Application.dataPath + "/Blue/Editor/TestData/MatMul1.bytes";
             using var stream = File.OpenRead(path);
             
-            using var a = new ComputationalNode(true, 3, 32, 8);
+            using var a = new ComputationalNode(true, 32, 8);
             using var b = new ComputationalNode(true, 32, 8);
-            var c = a * b;
-            using var graph = c.Graph();
+            var c = a.Transpose(0, 1);
+            var d = c.MatMul(b);
+            using var graph = d.Graph();
             using var loss = new MseLoss(graph.Output);
             a.LoadFromStream(stream);
             b.LoadFromStream(stream);
@@ -128,19 +160,20 @@ def save_tensor_list(save_path, *tensor_list):
             CheckFloatValueSimilar(graph.Output, stream);
             CheckFloatValueSimilar(a.Gradient, stream);
             CheckFloatValueSimilar(b.Gradient, stream);
-            Debug.Log("Mul Pass");
+            Debug.Log("MatMul1 Pass");
         }
 
         [Test]
-        public static void MatMul()
+        public static void MatMul2()
         {
-            var path = Application.dataPath + "/Blue/Editor/TestData/MatMul.bytes";
+            var path = Application.dataPath + "/Blue/Editor/TestData/MatMul2.bytes";
             using var stream = File.OpenRead(path);
             
-            using var a = new ComputationalNode(true, 3, 32);
-            using var b = new ComputationalNode(true, 32, 16);
-            var c = a.MatMul(b);
-            using var graph = c.Graph();
+            using var a = new ComputationalNode(true, 32, 8);
+            using var b = new ComputationalNode(true, 32, 8);
+            var c = b.Transpose(0, 1);
+            var d = a.MatMul(c);
+            using var graph = d.Graph();
             using var loss = new MseLoss(graph.Output);
             a.LoadFromStream(stream);
             b.LoadFromStream(stream);
@@ -151,57 +184,17 @@ def save_tensor_list(save_path, *tensor_list):
             CheckFloatValueSimilar(graph.Output, stream);
             CheckFloatValueSimilar(a.Gradient, stream);
             CheckFloatValueSimilar(b.Gradient, stream);
-            Debug.Log("MatMul Pass");
-        }
-
-        // [Test]
-        // public static void Transpose()
-        // {
-        //     var path = Application.dataPath + "/Blue/Editor/TestData/Transpose.bytes";
-        //     using var stream = File.OpenRead(path);
-        //     
-        //     using var a = new ComputationalNode(true, 3, 32, 8);
-        //     var b = a.Transpose();
-        //     using var graph = b.Graph();
-        //     using var loss = new MseLoss(graph.Output);
-        //     a.LoadFromStream(stream);
-        //     loss.Target.LoadFromStream(stream);
-        //     graph.Forward();
-        //     loss.Backward();
-        //     
-        //     CheckFloatValueSimilar(graph.Output, stream);
-        //     CheckFloatValueSimilar(a.Gradient, stream);
-        //     Debug.Log("Transpose Pass");
-        // }
-
-        [Test]
-        public static void Power()
-        {
-            var path = Application.dataPath + "/Blue/Editor/TestData/Power.bytes";
-            using var stream = File.OpenRead(path);
-            
-            using var a = new ComputationalNode(true, 2, 3);
-            var b = a.Power(0.5f);
-            using var graph = b.Graph();
-            using var loss = new MseLoss(graph.Output);
-            a.LoadFromStream(stream);
-            loss.Target.LoadFromStream(stream);
-            graph.Forward();
-            loss.Backward();
-            
-            CheckFloatValueSimilar(graph.Output, stream);
-            CheckFloatValueSimilar(a.Gradient, stream);
-            Debug.Log("Power Pass");
+            Debug.Log("MatMul2 Pass");
         }
 
         [Test]
-        public static void Softmax()
+        public static void Transpose()
         {
-            var path = Application.dataPath + "/Blue/Editor/TestData/Softmax.bytes";
+            var path = Application.dataPath + "/Blue/Editor/TestData/Transpose.bytes";
             using var stream = File.OpenRead(path);
             
             using var a = new ComputationalNode(true, 3, 32, 8);
-            var b = a.Softmax(1);
+            var b = a.Transpose(0, 2);
             using var graph = b.Graph();
             using var loss = new MseLoss(graph.Output);
             a.LoadFromStream(stream);
@@ -211,30 +204,7 @@ def save_tensor_list(save_path, *tensor_list):
             
             CheckFloatValueSimilar(graph.Output, stream);
             CheckFloatValueSimilar(a.Gradient, stream);
-            Debug.Log("Softmax Pass");
-        }
-
-        [Test]
-        public static void LayerNorm()
-        {
-            var path = Application.dataPath + "/Blue/Editor/TestData/LayerNorm.bytes";
-            using var stream = File.OpenRead(path);
-
-            using var ln = new LayerNorm(5, 8);
-            using var a = new ComputationalNode(true, 3, 5, 8);
-            var b = ln.Build(a);
-            using var graph = b.Graph();
-            using var loss = new MseLoss(graph.Output);
-            a.LoadFromStream(stream);
-            loss.Target.LoadFromStream(stream);
-            graph.Forward();
-            loss.Backward();
-            
-            CheckFloatValueSimilar(graph.Output, stream);
-            CheckFloatValueSimilar(a.Gradient, stream);
-            CheckFloatValueSimilar(ln.Weight.Gradient, stream);
-            CheckFloatValueSimilar(ln.Bias.Gradient, stream);
-            Debug.Log("LayerNorm Pass");
+            Debug.Log("Transpose Pass");
         }
 
         [Test]
@@ -244,12 +214,13 @@ def save_tensor_list(save_path, *tensor_list):
             using var stream = File.OpenRead(path);
             
             using var a = new ComputationalNode(true, 3, 32, 8);
-            using var b = new ComputationalNode(true, 1, 32, 8);
-            var c = a + b;
-            using var graph = c.Graph();
-            using var loss = new MseLoss(graph.Output);
             a.LoadFromStream(stream);
+            using var b = new ComputationalNode(true, 8, 32, 3);
             b.LoadFromStream(stream);
+            var c = b.Transpose(0, 2);
+            var d = a + c;
+            using var graph = d.Graph();
+            using var loss = new MseLoss(graph.Output);
             loss.Target.LoadFromStream(stream);
             graph.Forward();
             loss.Backward();
@@ -268,7 +239,7 @@ def save_tensor_list(save_path, *tensor_list):
             
             using var a = new ComputationalNode(true, 3, 32, 8);
             using var b = new ComputationalNode(true, 3, 32, 8);
-            var c = a.Softmax(1) + (a * b).Sigmoid() + (a + b).ReLU() + b.Softmax(2);
+            var c = (a * b).Sigmoid() + (a + b).ReLU();
             using var graph = c.Graph();
             using var loss = new MseLoss(graph.Output);
             a.LoadFromStream(stream);
@@ -281,27 +252,6 @@ def save_tensor_list(save_path, *tensor_list):
             CheckFloatValueSimilar(a.Gradient, stream);
             CheckFloatValueSimilar(b.Gradient, stream);
             Debug.Log("Res Pass");
-        }
-
-        [Test]
-        public static void Embedding()
-        {
-            var path = Application.dataPath + "/Blue/Editor/TestData/Embedding.bytes";
-            using var stream = File.OpenRead(path);
-            using var embedding = new Embedding(10, 3);
-            using var a = new ComputationalNode(true, 2, 4);
-            var b = embedding.Build(a);
-            using var graph = b.Graph();
-            using var loss = new MseLoss(graph.Output);
-            a.SetData(new []{1, 2, 4, 5, 4, 3, 2, 9});
-            loss.Target.LoadFromStream(stream);
-            embedding.Weight.LoadFromStream(stream);
-            graph.Forward();
-            loss.Backward();
-            
-            CheckFloatValueSimilar(graph.Output, stream);
-            CheckFloatValueSimilar(embedding.Weight.Gradient, stream);
-            Debug.Log("Embedding Pass");
         }
         
     }

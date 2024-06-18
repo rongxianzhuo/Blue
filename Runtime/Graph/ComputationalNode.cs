@@ -20,7 +20,7 @@ namespace Blue.Graph
 
         public IReadOnlyList<ComputationalNode> InputNodes => _inputNodes;
 
-        public Tensor Gradient => IsView ? _viewOrigin.Gradient : _gradient;
+        public Tensor Gradient => _gradient ??= CreateGradient();
 
         public ComputationalNode(IEnumerable<ComputationalNode> inputNodes, params int[] shape) : base(shape)
         {
@@ -33,10 +33,11 @@ namespace Blue.Graph
         public ComputationalNode(bool isParameter, params int[] shape) : base(shape)
         {
             IsParameter = isParameter;
-            if (IsParameter) GetOrCreateGradient();
         }
 
-        public ComputationalNode(IReadOnlyList<int> shape, ComputationalNode origin) : base(shape, origin)
+        public ComputationalNode(IReadOnlyList<int> shape
+            , ComputationalNode origin
+            , IReadOnlyList<int> stride=null) : base(shape, origin, stride)
         {
             _viewOrigin = origin;
             IsParameter = false;
@@ -47,25 +48,17 @@ namespace Blue.Graph
 
         public ComputationalGraph Graph(params ComputationalNode[] inputs) => new ComputationalGraph(this, inputs);
 
-        public Tensor GetOrCreateGradient()
+        private Tensor CreateGradient()
         {
-            if (IsView) return _viewOrigin.GetOrCreateGradient();
-            if (_gradient != null) return Gradient;
-            _gradient = CreateTempTensor(Size);
-            _clearGradientOp = Op.Clear(_gradient, 0f);
-            return _gradient;
-        }
-
-        internal Tensor CreateTempTensor(params int[] shape)
-        {
-            var tensor = new Tensor(shape);
-            _tempTensors.Add(tensor);
-            return tensor;
+            var originGradient = _viewOrigin?.Gradient;
+            var gradient = new Tensor(Size, originGradient, StrideInMemory);
+            _tempTensors.Add(gradient);
+            _clearGradientOp = Op.Clear(gradient, 0f);
+            return gradient;
         }
 
         public void AddInputNode(ComputationalNode node)
         {
-            if (node.Gradient != null) GetOrCreateGradient();
             _inputNodes.Add(node);
         }
 

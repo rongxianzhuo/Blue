@@ -1,0 +1,69 @@
+#pragma kernel ForwardAdd
+#pragma kernel BackwardAdd1
+#pragma kernel BackwardAdd2
+#pragma kernel ForwardMul
+#pragma kernel BackwardMul1
+#pragma kernel BackwardMul2
+#include "Common.cginc"
+
+uint dim;
+
+StructuredBuffer<float> input1;
+StructuredBuffer<uint> input1_stride;
+
+RWStructuredBuffer<float> input1_gradient;
+StructuredBuffer<uint> input1_gradient_stride;
+
+StructuredBuffer<float> input2;
+StructuredBuffer<uint> input2_stride;
+
+RWStructuredBuffer<float> input2_gradient;
+StructuredBuffer<uint> input2_gradient_stride;
+
+RWStructuredBuffer<float> output;
+StructuredBuffer<uint> output_stride;
+
+StructuredBuffer<float> output_gradient;
+StructuredBuffer<uint> output_gradient_stride;
+
+[numthreads(512, 1, 1)]
+void ForwardAdd(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 input_id = calculate_new_index(dim, id.x, output_stride, input1_stride, input2_stride);
+    output[id.x] = input1[input_id.x] + input2[input_id.y];
+}
+
+[numthreads(512, 1, 1)]
+void BackwardAdd1(uint3 id : SV_DispatchThreadID)
+{
+    const uint output_id = calculate_new_index(dim, id.x, input1_gradient_stride, output_gradient_stride);
+    input1_gradient[id.x] += output_gradient[output_id];
+}
+
+[numthreads(512, 1, 1)]
+void BackwardAdd2(uint3 id : SV_DispatchThreadID)
+{
+    const uint output_id = calculate_new_index(dim, id.x, input2_gradient_stride, output_gradient_stride);
+    input2_gradient[id.x] += output_gradient[output_id];
+}
+
+[numthreads(512, 1, 1)]
+void ForwardMul(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 input_id = calculate_new_index(dim, id.x, output_stride, input1_stride, input2_stride);
+    output[id.x] = input1[input_id.x] * input2[input_id.y];
+}
+
+[numthreads(512, 1, 1)]
+void BackwardMul1(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 new_id = calculate_new_index(dim, id.x, input1_gradient_stride, output_gradient_stride, input2_stride);
+    input1_gradient[id.x] += output_gradient[new_id.x] * input2[new_id.y];
+}
+
+[numthreads(512, 1, 1)]
+void BackwardMul2(uint3 id : SV_DispatchThreadID)
+{
+    const uint2 new_id = calculate_new_index(dim, id.x, input2_gradient_stride, output_gradient_stride, input1_stride);
+    input2_gradient[id.x] += output_gradient[new_id.x] * input1[new_id.y];
+}

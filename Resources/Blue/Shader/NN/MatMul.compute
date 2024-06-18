@@ -1,53 +1,81 @@
 #pragma kernel Forward
 #pragma kernel BackwardLeft
 #pragma kernel BackwardRight
+#include "../Common.cginc"
 
-uint hl;
-uint wl;
-uint wr;
+uint lw;
+uint lh;
+uint rw;
 
-StructuredBuffer<float> left;
-StructuredBuffer<float> right;
+uint result_dim_size;
 RWStructuredBuffer<float> result;
-StructuredBuffer<float> result_gradient;
-RWStructuredBuffer<float> left_gradient;
-RWStructuredBuffer<float> right_gradient;
+StructuredBuffer<uint> result_stride;
 
-[numthreads(64, 1, 1)]
+uint left_dim_size;
+StructuredBuffer<float> left;
+StructuredBuffer<uint> left_stride;
+
+uint right_dim_size;
+StructuredBuffer<float> right;
+StructuredBuffer<uint> right_stride;
+
+uint left_gradient_dim_size;
+RWStructuredBuffer<float> left_gradient;
+StructuredBuffer<uint> left_gradient_stride;
+
+uint right_gradient_dim_size;
+RWStructuredBuffer<float> right_gradient;
+StructuredBuffer<uint> right_gradient_stride;
+
+uint result_gradient_dim_size;
+StructuredBuffer<float> result_gradient;
+StructuredBuffer<uint> result_gradient_stride;
+
+
+[numthreads(512, 1, 1)]
 void Forward(uint3 id : SV_DispatchThreadID)
 {
-    const uint i = id.x / wr;
-    const uint j = id.x % wr;
-    float sum = 0.0;
-    for (uint k = 0; k < wl; k++)
+    uint l = calculate_new_index(result_dim_size, id.x, result_dim_size - 1, result_stride, left_stride);
+    uint r = calculate_dim_value(result_dim_size, result_dim_size - 1, id.x, result_stride) * right_stride[1];
+    float s = 0;
+    for (uint i = 0; i < lw; i++)
     {
-        sum += left[i * wl + k] * right[j + wr * k];
+        s += left[l] * right[r];
+        l += left_stride[left_dim_size - 1];
+        r += right_stride[0];
     }
-    result[i * wr + j] = sum;
+    result[id.x] = s;
 }
 
-[numthreads(64, 1, 1)]
+
+[numthreads(512, 1, 1)]
 void BackwardLeft(uint3 id : SV_DispatchThreadID)
 {
-    const uint i = id.x / wl;
-    const uint j = id.x % wl;
-    float sum = 0.0;
-    for (uint k = 0; k < wr; k++)
+    if (id.x >= lw * lh) return;
+    const uint y = id.x / lw;
+    const uint x = id.x - y * lw;
+    float s = 0;
+    for (uint i = 0; i < lh; i++)
     {
-        sum += right[j * wr + k] * result_gradient[i * wr + k];
+        const uint r_id = right_stride[0] * x + right_stride[1] * i;
+        const uint result_id = result_gradient_stride[0] * y + result_gradient_stride[1] * i;
+        s += right[r_id] * result_gradient[result_id];
     }
-    left_gradient[id.x] += sum;
+    left_gradient[y * left_gradient_stride[0] + x * left_gradient_stride[1]] = s;
 }
 
-[numthreads(64, 1, 1)]
+
+[numthreads(512, 1, 1)]
 void BackwardRight(uint3 id : SV_DispatchThreadID)
 {
-    const uint i = id.x / wr;
-    const uint j = id.x % wr;
-    float sum = 0.0;
-    for (uint k = 0; k < hl; k++)
+    if (id.x >= rw * lw) return;
+    const uint y = id.x / rw;
+    const uint x = id.x - y * rw;
+    float s = 0;
+    for (uint j = 0; j < lh; j++)
     {
-        sum += left[k * wl + i] * result_gradient[k * wr + j];
+        s += left[y * left_stride[left_dim_size - 1] + j * left_stride[left_dim_size - 2]]
+        * result_gradient[x * result_gradient_stride[result_gradient_dim_size - 1] + j * result_gradient_stride[result_gradient_dim_size - 2]];
     }
-    right_gradient[id.x] += sum;
+    right_gradient[y * right_gradient_stride[0] + x * right_gradient_stride[1]] = s;
 }
