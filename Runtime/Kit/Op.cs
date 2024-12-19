@@ -24,6 +24,15 @@ namespace Blue.Kit
                 .SetDispatchSize(texture.width, texture.height);
         }
 
+        public static Operate ClipNorm(Tensor tensor, float maxNorm)
+        {
+            return new Operate("Common/ClipNorm", "CSMain")
+                .SetInt("size", tensor.FlattenSize)
+                .SetFloat("max_norm", maxNorm)
+                .SetTensor("buffer", tensor)
+                .SetDispatchSize(tensor.FlattenSize);
+        }
+
         public static Operate Lerp(Tensor a, Tensor b, Tensor t)
         {
             return new Operate("Common/Lerp", "CSMain")
