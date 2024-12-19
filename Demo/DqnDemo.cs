@@ -1,3 +1,4 @@
+using System;
 using Blue.Graph;
 using Blue.RL;
 using Blue.NN;
@@ -14,10 +15,12 @@ namespace Blue.Demo
             
             private const float PlayerStep = 0.02f;
             private const float BallStep = 0.01f;
+            private const float BallRadius = 0.025f;
+            private const float BorderRadius = 1.0f;
             
-            private static readonly float SqrtP5 = Mathf.Sqrt(0.5f);
+            private static readonly float SqrtP5 = Mathf.Sqrt((BorderRadius - BallRadius) * 0.5f);
 
-            private int _lastAction = -1;
+            private int _tick;
 
             public Vector2 Player { get; private set; }
 
@@ -31,11 +34,11 @@ namespace Blue.Demo
                 Reset();
             }
             
-            private void Reset()
+            public void Reset()
             {
+                _tick = 0;
                 Player = RandomBornPosition;
-                Ball = RandomBornPosition;
-                while (Vector2.Distance(Player, Ball) < 0.5f) Reset();
+                Ball = -Player;
             }
 
             public void GetState(float[] state)
@@ -48,42 +51,46 @@ namespace Blue.Demo
 
             public bool Update(int action, out float reward)
             {
-                var d = (Player - Ball).normalized;
-                Ball += d * BallStep;
+                var done = false;
+                _tick++;
                 Player += action switch
                 {
-                    1 => Vector2.up * PlayerStep,
-                    2 => Vector2.right * PlayerStep,
-                    3 => Vector2.down * PlayerStep,
-                    4 => Vector2.left * PlayerStep,
+                    0 => Vector2.up * PlayerStep,
+                    1 => Vector2.right * PlayerStep,
+                    2 => Vector2.down * PlayerStep,
+                    3 => Vector2.left * PlayerStep,
                     _ => Vector2.zero
                 };
-                if (_lastAction != -1 && _lastAction != action) reward = -0.1f;
-                else reward = 1;
-                _lastAction = action;
-                if (Vector2.Distance(Player, Ball) < 0.05f)
+                Ball += (Player - Ball).normalized * BallStep;
+                reward = Vector2.Distance(Player, Ball) * 0.01f;
+                if (_tick >= 1000)
+                {
+                    done = true;
+                }
+                else if (Vector2.Distance(Player, Ball) < BallRadius * 2)
+                {
+                    reward -= 1;
+                    done = true;
+                }
+                else if (Player.magnitude > BorderRadius - BallRadius)
+                {
+                    reward -= 1;
+                    done = true;
+                }
+                if (done)
                 {
                     Reset();
-                    reward = -10;
-                    return true;
                 }
 
-                if (Player.magnitude > 1)
-                {
-                    Reset();
-                    reward = -10;
-                    return true;
-                }
-
-                return false;
+                return done;
             }
 
             public void Render()
             {
                 Gizmos.color = Color.green;
-                Gizmos.DrawSphere(Player, 0.025f);
+                Gizmos.DrawSphere(Player, BallRadius);
                 Gizmos.color = Color.red;
-                Gizmos.DrawSphere(Ball, 0.025f);
+                Gizmos.DrawSphere(Ball, BallRadius);
             }
             
         }
@@ -99,7 +106,7 @@ namespace Blue.Demo
             {
                 _fc1 = RegisterModule(new Linear(4, 64));
                 _fc2 = RegisterModule(new Linear(64, 64));
-                _fc3 = RegisterModule(new Linear(64, 5));
+                _fc3 = RegisterModule(new Linear(64, 4));
             }
             
             public override ComputationalNode Build(params ComputationalNode[] input)
@@ -117,7 +124,6 @@ namespace Blue.Demo
         private Module _qNetwork;
         private Module _targetQNetwork;
         private float[] _tempState;
-        private float _greed = 0.5f;
 
         private void Awake()
         {
@@ -128,20 +134,27 @@ namespace Blue.Demo
             _targetQNetwork = new QNetwork();
             _targetQNetwork.CopyParameter(_qNetwork).Dispatch().Dispose();
             _dqn = new DqnAgent(4
-                , 5
+                , 4
                 , 32
-                , 10000
+                , 1000000
+                , 2000000
                 , _qNetwork
                 , _targetQNetwork);
         }
 
         private void Update()
         {
-            for (var i = 0; i < 32; i++)
+            if (!_dqn.IsTrainCompleted)
             {
-                _dqn.Train(_trainEnv, greed: _greed);
-                _greed = Mathf.Max(0.01f, _greed - 0.00001f);
+                for (var i = 0; i < 64; i++)
+                {
+                    _dqn.TrainStep(_trainEnv);
+                }
             }
+        }
+
+        private void FixedUpdate()
+        {
             _previewEnv.GetState(_tempState);
             _previewEnv.Update(_dqn.TakeAction(_tempState), out _);
         }

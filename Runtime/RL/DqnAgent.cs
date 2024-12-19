@@ -122,27 +122,33 @@ namespace Blue.RL
             }
         }
 
+        private readonly int _totalTrainSteps;
         private readonly Dqn _dqn;
         private readonly Dqn _targetDqn;
-        private readonly MseLoss _loss;
+        private readonly SmoothL1Loss _loss;
         private readonly IOptimizer _optimizer;
         private readonly Tensor _rewardTensor;
         private readonly Tensor _doneTensor;
         private readonly Tensor _actionTensor;
         private readonly List<Operate> _targetQOp = new List<Operate>();
         private readonly OperateList _updateTargetOp = new OperateList();
+        private readonly OperateList _clipGradNormOp = new OperateList();
         private readonly ReplayMemory _memory;
         private readonly int _batchSize;
 
         private uint _trainStep;
+        
+        public bool IsTrainCompleted => _trainStep >=  _totalTrainSteps;
 
         public DqnAgent(int stateSize
             , int actionSize
             , int batchSize
             , int replayBufferSize
+            , int totalTrainSteps
             , Module qNetwork
             , Module targetQNetwork)
         {
+            _totalTrainSteps = totalTrainSteps;
             _batchSize = batchSize;
             _memory = new ReplayMemory(replayBufferSize, stateSize, actionSize);
 
@@ -153,8 +159,8 @@ namespace Blue.RL
             _dqn = new Dqn(stateSize, batchSize, qNetwork);
             _targetDqn = new Dqn(stateSize, batchSize, targetQNetwork);
             
-            _loss = new MseLoss(_dqn.TrainGraph.Output, _targetDqn.TrainGraph.Output);
-            _optimizer = new AdamOptimizer(qNetwork.GetAllParameters());
+            _loss = new SmoothL1Loss(_dqn.TrainGraph.Output, _targetDqn.TrainGraph.Output);
+            _optimizer = new AdamOptimizer(qNetwork.GetAllParameters(), learningRate:0.0001f);
             _targetQOp.Add(new Operate("Common/Translate", "CSMain")
                 .SetTensor("weight", _doneTensor)
                 .SetTensor("bias", _rewardTensor)
@@ -162,19 +168,23 @@ namespace Blue.RL
                 .SetDispatchSize(_targetDqn.TrainGraph.Output.FlattenSize));
             _targetQOp.Add(Op.Lerp(_targetDqn.TrainGraph.Output, _dqn.TrainGraph.Output, _actionTensor));
             _targetDqn.Model.CopyParameter(_dqn.Model, _updateTargetOp);
+            foreach (var node in _dqn.Model.GetAllParameters())
+            {
+                _clipGradNormOp.Add(Op.ClipNorm(node.Gradient, 10f));
+            }
         }
 
-        public void Train(IEnv trainEnv
-            , float greed = 0.2f
-            , float futureRewardDiscount = 0.5f
-            , uint targetUpdateInterval = 16)
+        public void TrainStep(IEnv trainEnv
+            , float futureRewardDiscount = 0.99f
+            , uint targetUpdateInterval = 10000)
         {
+            if (IsTrainCompleted) return;
             _trainStep++;
             _memory.Push(out var state, out var action, out var reward, out var nextState, out var done);
             trainEnv.GetState(state);
             _dqn.RuntimeInput.SetData(state);
             _dqn.RuntimeGraph.Forward();
-            var a = SelectAction(_dqn.RuntimeGraph.Output, greed);
+            var a = SelectAction(_dqn.RuntimeGraph.Output, false);
             var d = trainEnv.Update(a, out var r);
             if (!d) trainEnv.GetState(nextState);
             for (var j = 0; j < reward.Length; j++)
@@ -183,7 +193,8 @@ namespace Blue.RL
                 done[j] = d ? 0f : futureRewardDiscount;
                 action[j] = j == a ? 0 : 1;
             }
-            if (_memory.Size < _batchSize) return;
+            if (_memory.Size < Mathf.Max(100, _batchSize)) return;
+            if (_trainStep % 4 != 0) return;
                 
             _memory.SampleBatch(_batchSize
                 , out var sampleState
@@ -201,10 +212,12 @@ namespace Blue.RL
             foreach (var o in _targetQOp) o.Dispatch();
             _dqn.TrainGraph.ClearGradient();
             _loss.Backward();
+            _clipGradNormOp.Dispatch();
             _optimizer.Step();
 
             if (_dqn.Model == _targetDqn.Model) return;
-            if (_trainStep % targetUpdateInterval == 0) return;
+            if (_trainStep % 10000 == 0) Debug.Log($"Train Step: {_trainStep}");
+            if (_trainStep % targetUpdateInterval != 0) return;
             _updateTargetOp.Dispatch();
         }
 
@@ -212,7 +225,7 @@ namespace Blue.RL
         {
             _targetDqn.RuntimeInput.SetData(state);
             _targetDqn.RuntimeGraph.Forward();
-            return SelectAction(_targetDqn.RuntimeGraph.Output, 0f);
+            return SelectAction(_targetDqn.RuntimeGraph.Output, true);
         }
 
         public void Dispose()
@@ -230,11 +243,19 @@ namespace Blue.RL
             _targetDqn.Dispose();
             _loss.Dispose();
             _optimizer.Dispose();
+            _clipGradNormOp.Dispose();
         }
 
-        private static int SelectAction(Tensor actionOutput, float noise)
+        private int SelectAction(Tensor actionOutput, bool deterministic)
         {
-            if (Random.Range(0f, 1f) < noise) return Random.Range(0, actionOutput.FlattenSize);
+            float explorationRate = -1;
+            if (!deterministic)
+            {
+                var trainProgress = (float)_trainStep / _totalTrainSteps;
+                if (trainProgress > 0.1f) explorationRate = 0.05f;
+                else explorationRate = 1.0f - trainProgress * (1.0f - 0.05f) / 0.1f;
+            }
+            if (explorationRate >= 0 && Random.Range(0f, 1f) < explorationRate) return Random.Range(0, actionOutput.FlattenSize);
             actionOutput.Max(out var maxIndex);
             return maxIndex;
         }
