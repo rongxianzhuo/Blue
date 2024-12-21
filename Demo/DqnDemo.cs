@@ -77,10 +77,6 @@ namespace Blue.Demo
                     reward -= 1;
                     done = true;
                 }
-                if (done)
-                {
-                    Reset();
-                }
 
                 return done;
             }
@@ -137,7 +133,7 @@ namespace Blue.Demo
                 , 4
                 , 32
                 , 1000000
-                , 2000000
+                , 500000
                 , _qNetwork
                 , _targetQNetwork);
         }
@@ -151,12 +147,11 @@ namespace Blue.Demo
                     _dqn.TrainStep(_trainEnv);
                 }
             }
-        }
-
-        private void FixedUpdate()
-        {
             _previewEnv.GetState(_tempState);
-            _previewEnv.Update(_dqn.TakeAction(_tempState), out _);
+            if (_previewEnv.Update(_dqn.TakeAction(_tempState), out _))
+            {
+                _previewEnv.Reset();
+            }
         }
 
         private void OnDestroy()

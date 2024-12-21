@@ -13,6 +13,7 @@ namespace Blue.RL
         
         public interface IEnv
         {
+            void Reset();
             void GetState(float[] state);
             bool Update(int action, out float reward);
         }
@@ -186,7 +187,8 @@ namespace Blue.RL
             _dqn.RuntimeGraph.Forward();
             var a = SelectAction(_dqn.RuntimeGraph.Output, false);
             var d = trainEnv.Update(a, out var r);
-            if (!d) trainEnv.GetState(nextState);
+            if (d) trainEnv.Reset();
+            else trainEnv.GetState(nextState);
             for (var j = 0; j < reward.Length; j++)
             {
                 reward[j] = r;
