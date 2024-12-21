@@ -5,6 +5,7 @@ using Blue.Kit;
 using Blue.Optimizers;
 using Blue.NN;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Blue.RL
 {
@@ -49,6 +50,8 @@ namespace Blue.RL
             public readonly int Capacity;
             public readonly int StateSize;
             public readonly int ActionSize;
+
+            private readonly Random _rand;
             
             private readonly List<float[]> _stateReplay = new List<float[]>();
             private readonly List<float[]> _actionReplay = new List<float[]>();
@@ -66,8 +69,9 @@ namespace Blue.RL
 
             public int Size => _stateReplay.Count;
 
-            public ReplayMemory(int capacity, int stateSize, int actionSize)
+            public ReplayMemory(int capacity, int stateSize, int actionSize, Random rand)
             {
+                _rand = rand;
                 Capacity = capacity;
                 StateSize = stateSize;
                 ActionSize = actionSize;
@@ -113,7 +117,7 @@ namespace Blue.RL
                 
                 while (batchSize-- > 0)
                 {
-                    var i = Random.Range(0, _stateReplay.Count);
+                    var i = _rand.Next(0, _stateReplay.Count);
                     _sampleState.Add(_stateReplay[i]);
                     _sampleAction.Add(_actionReplay[i]);
                     _sampleReward.Add(_rewardReplay[i]);
@@ -138,6 +142,7 @@ namespace Blue.RL
         private readonly int _batchSize;
         private readonly int _learningStarts = 100;
         private readonly int _trainFreq = 4;
+        private readonly Random _rand = new Random();
 
         private uint _trainStep;
         
@@ -153,7 +158,7 @@ namespace Blue.RL
         {
             _totalTrainSteps = totalTrainSteps;
             _batchSize = batchSize;
-            _memory = new ReplayMemory(replayBufferSize, stateSize, actionSize);
+            _memory = new ReplayMemory(replayBufferSize, stateSize, actionSize, _rand);
 
             _rewardTensor = new Tensor(new []{batchSize, actionSize});
             _doneTensor = new Tensor(new []{batchSize, actionSize});
@@ -163,7 +168,7 @@ namespace Blue.RL
             _targetDqn = new Dqn(stateSize, batchSize, targetQNetwork);
             
             _loss = new SmoothL1Loss(_dqn.TrainGraph.Output, _targetDqn.TrainGraph.Output, scale:actionSize);
-            _optimizer = new AdamOptimizer(qNetwork.GetAllParameters(), learningRate:0.0001f);
+            _optimizer = new AdamOptimizer(qNetwork.GetAllParameters(), learningRate:0.001f);
             _targetQOp.Add(new Operate("Common/Translate", "CSMain")
                 .SetTensor("weight", _doneTensor)
                 .SetTensor("bias", _rewardTensor)
@@ -266,7 +271,11 @@ namespace Blue.RL
                     else explorationRate = 1.0f - trainProgress * (1.0f - 0.05f) / 0.1f;
                 }
             }
-            if (explorationRate >= 0 && Random.Range(0f, 1f) < explorationRate) return Random.Range(0, actionOutput.FlattenSize);
+
+            if (explorationRate >= 0 && _rand.NextDouble() < explorationRate)
+            {
+                return _rand.Next(0, actionOutput.FlattenSize);
+            }
             actionOutput.Max(out var maxIndex);
             return maxIndex;
         }
