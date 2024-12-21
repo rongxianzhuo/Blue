@@ -136,6 +136,8 @@ namespace Blue.RL
         private readonly OperateList _clipGradNormOp = new OperateList();
         private readonly ReplayMemory _memory;
         private readonly int _batchSize;
+        private readonly int _learningStarts = 100;
+        private readonly int _trainFreq = 4;
 
         private uint _trainStep;
         
@@ -180,7 +182,6 @@ namespace Blue.RL
             , uint targetUpdateInterval = 10000)
         {
             if (IsTrainCompleted) return;
-            _trainStep++;
             _memory.Push(out var state, out var action, out var reward, out var nextState, out var done);
             trainEnv.GetState(state);
             _dqn.RuntimeInput.SetData(state);
@@ -195,8 +196,9 @@ namespace Blue.RL
                 done[j] = d ? 0f : futureRewardDiscount;
                 action[j] = j == a ? 0 : 1;
             }
-            if (_memory.Size < Mathf.Max(100, _batchSize)) return;
-            if (_trainStep % 4 != 0) return;
+            _trainStep++;
+            if (_trainStep < _learningStarts) return;
+            if (_trainStep % _trainFreq != 0) return;
                 
             _memory.SampleBatch(_batchSize
                 , out var sampleState
@@ -253,9 +255,16 @@ namespace Blue.RL
             float explorationRate = -1;
             if (!deterministic)
             {
-                var trainProgress = (float)_trainStep / _totalTrainSteps;
-                if (trainProgress > 0.1f) explorationRate = 0.05f;
-                else explorationRate = 1.0f - trainProgress * (1.0f - 0.05f) / 0.1f;
+                if (_trainStep < _learningStarts)
+                {
+                    explorationRate = 1;
+                }
+                else
+                {
+                    var trainProgress = (float)_trainStep / _totalTrainSteps;
+                    if (trainProgress > 0.1f) explorationRate = 0.05f;
+                    else explorationRate = 1.0f - trainProgress * (1.0f - 0.05f) / 0.1f;
+                }
             }
             if (explorationRate >= 0 && Random.Range(0f, 1f) < explorationRate) return Random.Range(0, actionOutput.FlattenSize);
             actionOutput.Max(out var maxIndex);
