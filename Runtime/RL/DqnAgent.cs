@@ -160,7 +160,7 @@ namespace Blue.RL
             _dqn = new Dqn(stateSize, batchSize, qNetwork);
             _targetDqn = new Dqn(stateSize, batchSize, targetQNetwork);
             
-            _loss = new SmoothL1Loss(_dqn.TrainGraph.Output, _targetDqn.TrainGraph.Output);
+            _loss = new SmoothL1Loss(_dqn.TrainGraph.Output, _targetDqn.TrainGraph.Output, scale:actionSize);
             _optimizer = new AdamOptimizer(qNetwork.GetAllParameters(), learningRate:0.0001f);
             _targetQOp.Add(new Operate("Common/Translate", "CSMain")
                 .SetTensor("weight", _doneTensor)

@@ -15,7 +15,7 @@ namespace Blue.NN
 
         public static float Value => throw new NotImplementedException();
 
-        public SmoothL1Loss(ComputationalNode output, Tensor target=null, float beta = 1.0f)
+        public SmoothL1Loss(ComputationalNode output, Tensor target=null, float beta = 1.0f, float scale = 1.0f)
         {
             Output = output;
             _isInnerTarget = target == null;
@@ -25,6 +25,7 @@ namespace Blue.NN
                 .SetInt("n", output.FlattenSize)
                 .SetInt("dim", output.Size.Length)
                 .SetFloat("beta", beta)
+                .SetFloat("scale", scale)
                 .SetTensor("output", output, strideOrder)
                 .SetTensor("target", Target, strideOrder)
                 .SetTensor("gradient", output.Gradient, strideOrder)

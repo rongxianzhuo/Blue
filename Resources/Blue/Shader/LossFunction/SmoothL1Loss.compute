@@ -4,6 +4,7 @@
 uint n;
 uint dim;
 float beta;
+float scale;
 
 StructuredBuffer<float> output;
 StructuredBuffer<uint> output_stride;
@@ -20,6 +21,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     const uint2 new_id = calculate_new_index(dim, id.x, gradient_stride, output_stride, target_stride);
     const float x = output[new_id.x];
     const float y = target[new_id.y];
-    if (abs(x - y) < beta) gradient[id.x] = (x - y) / beta / n;
-    else gradient[id.x] = 1.0 / n;
+    if (abs(x - y) < beta) gradient[id.x] = (x - y) * scale / beta / n;
+    else gradient[id.x] = scale / n;
 }
