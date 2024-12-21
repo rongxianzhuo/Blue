@@ -21,5 +21,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // 加 abs 只是为了避免unity警告
     cm = cm/ (1.0 - pow(abs(beta1), t));
     cv = cv/ (1.0 - pow(abs(beta2), t));
-    theta[id.x] = theta[id.x] - learning_rate * cm / (sqrt(cv) + 0.0000001);
+    theta[id.x] = theta[id.x] - learning_rate * cm / (sqrt(cv) + 1e-08);
 }
