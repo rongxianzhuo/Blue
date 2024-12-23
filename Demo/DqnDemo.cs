@@ -3,7 +3,7 @@ using Blue.Graph;
 using Blue.RL;
 using Blue.NN;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 namespace Blue.Demo
 {
@@ -20,6 +20,7 @@ namespace Blue.Demo
             
             private static readonly float SqrtP5 = Mathf.Sqrt((BorderRadius - BallRadius) * 0.5f);
 
+            private readonly Random _random = new Random();
             private int _tick;
 
             public Vector2 Player { get; private set; }
@@ -27,7 +28,7 @@ namespace Blue.Demo
             public Vector2 Ball { get; private set; }
             
             private Vector2 RandomBornPosition =>
-                new Vector2(Random.Range(-SqrtP5, SqrtP5), Random.Range(-SqrtP5, SqrtP5));
+                new Vector2((float)(_random.NextDouble() * 2 - 1) * SqrtP5, (float)(_random.NextDouble() * 2 - 1) * SqrtP5);
 
             public Env()
             {
@@ -83,6 +84,8 @@ namespace Blue.Demo
 
             public void Render()
             {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(default, 1f);
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(Player, BallRadius);
                 Gizmos.color = Color.red;
@@ -163,8 +166,6 @@ namespace Blue.Demo
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(default, 1f);
             _previewEnv?.Render();
         }
     }
